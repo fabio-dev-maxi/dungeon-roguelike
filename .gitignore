@@ -1,0 +1,15 @@
+# Dependencies
+/node_modules
+
+# Build output
+/dist
+/out-tsc
+/.angular/cache
+
+# IDE
+/.vscode
+/.idea
+
+# Misc
+.DS_Store
+*.log
