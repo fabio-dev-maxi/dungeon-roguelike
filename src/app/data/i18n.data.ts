@@ -9,7 +9,7 @@ export const I18N: any = {
   it: {
     htmlLang:'it',
     ui:{
-      title:'La Guglia Cava', subtitle:'Discesa Infinita',
+      title:'La Guglia Cava', subtitle:'Discesa Infinita nella cava',
       lore:"Sotto le rovine di un regno dimenticato si apre una spirale di pietra che non ha fondo. Chi vi entra cerca oro, potere, o semplicemente una fine diversa da quella che lo attende in superficie. Nessuno e mai risalito per raccontarlo, ma le monete che ne escono, di tanto in tanto, dicono che qualcosa, laggiu, si puo ancora trovare.",
       startButton:'Comincia la Discesa',
       bestDepthLabel:'Record di questa sessione: piano {depth}',
