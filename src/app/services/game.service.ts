@@ -7,7 +7,7 @@ import {
   RELIC_CLASS_POOLS, applyRelicEffect, xpToNext, mod
 } from '../data/game.data';
 import {
-  Armor, ChoiceOption, ClassKey, GameState, LevelUpState, Monster, PendingChoice, Player, StatKey, Stats, Weapon
+  Armor, ChoiceOption, ClassKey, DropInfo, GameState, LevelUpState, Monster, PendingChoice, Player, StatKey, Stats, Weapon
 } from '../models/game.models';
 
 @Injectable({ providedIn: 'root' })
@@ -50,8 +50,10 @@ export class GameService {
       pendingChoice: null,
       pendingLevelUps: 0,
       levelUp: null,
+      bossRewardModal: null,
       lastTavernDepth: -99,
       statsExpanded: false,
+      inventoryExpanded: false,
       rollingDie: { active: false, value: null, cls: '' },
       tempStats: null,
       tempName: ''
@@ -644,6 +646,7 @@ export class GameService {
     cur.monster = null;
     this.touch();
 
+    const drops: DropInfo[] = [];
     if (wasBoss) {
       const pool = RELIC_CLASS_POOLS[cur.player!.cls];
       if (pool) {
@@ -653,7 +656,10 @@ export class GameService {
           applyRelicEffect(cur.player!, relicId);
           cur.player!.relics.push(relicId);
           this.touch();
-          this.log(this.tf('log.relicFound', { relic: this.t('relics.' + relicId + '.name'), effect: this.t('relics.' + relicId + '.effect') }), 'heal');
+          const relicName = this.t('relics.' + relicId + '.name');
+          const relicEffect = this.t('relics.' + relicId + '.effect');
+          this.log(this.tf('log.relicFound', { relic: relicName, effect: relicEffect }), 'heal');
+          drops.push({ type: 'relic', id: relicId, name: relicName, effect: relicEffect });
         }
       }
     }
@@ -665,10 +671,27 @@ export class GameService {
     while (xpLeft >= xpToNext(lvl)) { xpLeft -= xpToNext(lvl); lvl++; levelsToGain++; }
     final.player!.xp = xpLeft;
     final.pendingLevelUps = levelsToGain;
-    this.touch();
 
-    if (levelsToGain > 0) { this.startLevelUp(); }
-    else { final.phase = 'explore'; this.touch(); }
+    if (wasBoss) {
+      // Highlight the boss kill with a dedicated summary dialog; the level-up
+      // flow (if any) only starts once the player acknowledges it.
+      final.phase = null;
+      final.rollingDie = { active: false, value: null, cls: '' };
+      final.bossRewardModal = { name, xp, gold, drops };
+      this.touch();
+    } else {
+      this.touch();
+      if (levelsToGain > 0) { this.startLevelUp(); }
+      else { final.phase = 'explore'; this.touch(); }
+    }
+  }
+
+  confirmBossReward(): void {
+    const s = this.state();
+    s.bossRewardModal = null;
+    this.touch();
+    if (s.pendingLevelUps > 0) { this.startLevelUp(); }
+    else { s.phase = 'explore'; this.touch(); }
   }
 
   // ------------------------------------------------------------ level up
@@ -755,6 +778,12 @@ export class GameService {
   toggleStats(): void {
     const s = this.state();
     s.statsExpanded = !s.statsExpanded;
+    this.touch();
+  }
+
+  toggleInventory(): void {
+    const s = this.state();
+    s.inventoryExpanded = !s.inventoryExpanded;
     this.touch();
   }
 

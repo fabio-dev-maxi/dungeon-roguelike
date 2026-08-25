@@ -6,13 +6,14 @@ import { CLASS_DATA, xpToNext } from '../../data/game.data';
 import { ChoiceOption, StatKey } from '../../models/game.models';
 import { DiceWidgetComponent } from '../dice-widget/dice-widget.component';
 import { LevelUpModalComponent } from '../level-up-modal/level-up-modal.component';
+import { BossRewardModalComponent } from '../boss-reward-modal/boss-reward-modal.component';
 
 const STAT_KEYS: StatKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 
 @Component({
   selector: 'app-game-screen',
   standalone: true,
-  imports: [DiceWidgetComponent, LevelUpModalComponent],
+  imports: [DiceWidgetComponent, LevelUpModalComponent, BossRewardModalComponent],
   template: `
     <div class="game-grid">
       <div class="panel" id="sheet-panel">
@@ -33,34 +34,40 @@ const STAT_KEYS: StatKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
         <div class="sheet-row"><span>{{ i18n.t('ui.armorLabel') }}</span><span class="num">{{ game.armorName(p().armor) }} (+{{ p().armor.bonus }})</span></div>
 
         <hr class="rule">
-        <button class="stats-toggle" (click)="game.toggleStats()">
-          {{ s().statsExpanded ? i18n.t('ui.hideStatsButton') : i18n.t('ui.showStatsButton') }}
-        </button>
+        <div class="toggle-row">
+          <button class="stats-toggle" (click)="game.toggleStats()">
+            {{ s().statsExpanded ? i18n.t('ui.hideStatsButton') : i18n.t('ui.showStatsButton') }}
+          </button>
+          <button class="stats-toggle" (click)="game.toggleInventory()">
+            {{ s().inventoryExpanded ? i18n.t('ui.hideInventoryButton') : i18n.t('ui.showInventoryButton') }}
+          </button>
+        </div>
+
         @if (s().statsExpanded) {
           @for (k of statKeys; track k) {
             <div class="sheet-row"><span>{{ i18n.t('statAbbr.' + k) }}</span><span class="num">{{ p().stats[k] }} ({{ dice.fmtMod(dice.mod(p().stats[k])) }})</span></div>
           }
         }
 
-        <hr class="rule">
-        <div class="small">{{ i18n.t('ui.inventoryLabel') }}</div>
-        <ul class="inv-list">
-          @if (p().inventory.length === 0) {
-            <li>&middot; {{ i18n.t('ui.emptyInventory') }}</li>
-          }
-          @for (item of p().inventory; track $index) {
-            <li>&middot; {{ i18n.t('potionName') }}</li>
-          }
-        </ul>
-
-        @if (p().relics.length > 0) {
-          <hr class="rule">
-          <div class="small">{{ i18n.t('ui.relicsLabel') }}</div>
+        @if (s().inventoryExpanded) {
+          <div class="small" style="margin-top:6px;">{{ i18n.t('ui.inventoryLabel') }}</div>
           <ul class="inv-list">
-            @for (rid of p().relics; track rid) {
-              <li>&middot; {{ i18n.t('relics.' + rid + '.name') }}</li>
+            @if (p().inventory.length === 0) {
+              <li>&middot; {{ i18n.t('ui.emptyInventory') }}</li>
+            }
+            @for (item of p().inventory; track $index) {
+              <li>&middot; {{ i18n.t('potionName') }}</li>
             }
           </ul>
+
+          @if (p().relics.length > 0) {
+            <div class="small" style="margin-top:6px;">{{ i18n.t('ui.relicsLabel') }}</div>
+            <ul class="inv-list">
+              @for (rid of p().relics; track rid) {
+                <li>&middot; {{ i18n.t('relics.' + rid + '.name') }}</li>
+              }
+            </ul>
+          }
         }
 
         @if (s().monster; as m) {
@@ -121,6 +128,10 @@ const STAT_KEYS: StatKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 
     @if (s().phase === 'levelup' && s().levelUp?.step === 'stat') {
       <app-level-up-modal></app-level-up-modal>
+    }
+
+    @if (s().bossRewardModal) {
+      <app-boss-reward-modal></app-boss-reward-modal>
     }
   `
 })

@@ -91,6 +91,20 @@ export interface RollingDie {
   tag?: string;
 }
 
+export interface DropInfo {
+  type: 'relic'; // future drop kinds (weapon/armor/etc.) can extend this union later
+  id: string;
+  name: string;
+  effect: string;
+}
+
+export interface BossReward {
+  name: string;
+  xp: number;
+  gold: number;
+  drops: DropInfo[];
+}
+
 export interface GameState {
   screen: GameScreen;
   lang: LangCode;
@@ -103,8 +117,10 @@ export interface GameState {
   pendingChoice: PendingChoice | null;
   pendingLevelUps: number;
   levelUp: LevelUpState | null;
+  bossRewardModal: BossReward | null;
   lastTavernDepth: number;
   statsExpanded: boolean;
+  inventoryExpanded: boolean;
   rollingDie: RollingDie;
   tempStats: Stats | null;
   tempName: string;
