@@ -54,7 +54,7 @@ export const I18N: any = {
       blood_amulet:{name:'Amuleto del Sangue Antico', effect:'La soglia di Colpo Critico si espande a 19-20.'}
     },
     monsters:{rat:'Ratto Gigante', goblin:'Goblin', skeleton:'Scheletro', raven:'Corvo Maledetto', orc:'Orco', wolf:'Lupo Spettrale', ghoul:'Ghoul Putrescente', knight:'Cavaliere Decaduto', ogre:'Ogre', wraith:'Spettro Errante', troll:'Troll Rigenerante', basilisk:'Basilisco Cieco'},
-    bosses:{boss1:'Il Necroforgiato', boss2:"La Sposa dell'Abisso", boss3:'Il Divoratore di Corone', boss4: 'boss4', boss5: 'boss5' },
+    bosses:{boss1:'Il Necroforgiato', boss2:"La Sposa dell'Abisso", boss3:'Il Divoratore di Corone', chimera:'La Chimera Infuocata', archdemon:"L'Arcidemone", lich:'Il Lich', hydra:"L'Idra dai Sette Capi", dragon_red:'Il Drago Rosso', kraken:'Il Kraken degli Abissi', tarrasque:'Il Tarrasque'},
     prefixes:['', '', 'Grande ', 'Antico ', 'Immane '],
     epitaphs:[
       "Il buio della Guglia Cava non restituisce cio che prende.",
@@ -167,7 +167,7 @@ export const I18N: any = {
       blood_amulet:{name:'Amulet of Ancient Blood', effect:'Critical Hit threshold expands to 19-20.'}
     },
     monsters:{rat:'Giant Rat', goblin:'Goblin', skeleton:'Skeleton', raven:'Cursed Raven', orc:'Orc', wolf:'Spectral Wolf', ghoul:'Rotting Ghoul', knight:'Fallen Knight', ogre:'Ogre', wraith:'Wandering Wraith', troll:'Regenerating Troll', basilisk:'Blind Basilisk'},
-    bosses:{boss1:'The Necroforged', boss2:'The Bride of the Abyss', boss3:'The Crown Devourer'},
+    bosses:{boss1:'The Necroforged', boss2:'The Bride of the Abyss', boss3:'The Crown Devourer', chimera:'The Fire-Breathing Chimera', archdemon:'The Archdemon', lich:'The Lich', hydra:'The Seven-Headed Hydra', dragon_red:'The Red Dragon', kraken:'The Abyssal Kraken', tarrasque:'The Tarrasque'},
     prefixes:['', '', 'Greater ', 'Ancient ', 'Immense '],
     epitaphs:[
       'The dark of the Hollow Spire never gives back what it takes.',
@@ -280,7 +280,7 @@ export const I18N: any = {
       blood_amulet:{name:'Amulette du Sang Antique', effect:'Le seuil de Coup Critique s\u2019etend a 19-20.'}
     },
     monsters:{rat:'Rat Geant', goblin:'Gobelin', skeleton:'Squelette', raven:'Corbeau Maudit', orc:'Orc', wolf:'Loup Spectral', ghoul:'Goule Putride', knight:'Chevalier Dechu', ogre:'Ogre', wraith:'Spectre Errant', troll:'Troll Regenerant', basilisk:'Basilic Aveugle'},
-    bosses:{boss1:'Le Necroforge', boss2:"L'Epouse de l'Abime", boss3:'Le Devoreur de Couronnes'},
+    bosses:{boss1:'Le Necroforge', boss2:"L'Epouse de l'Abime", boss3:'Le Devoreur de Couronnes', chimera:'La Chimere Cracheuse de Feu', archdemon:"L'Archidemon", lich:'La Liche', hydra:"L'Hydre a Sept Tetes", dragon_red:'Le Dragon Rouge', kraken:'Le Kraken des Abysses', tarrasque:'Le Tarasque'},
     prefixes:['', '', 'Grand ', 'Antique ', 'Immense '],
     epitaphs:[
       "L'obscurite de la Fleche Creuse ne rend jamais ce qu'elle prend.",
@@ -393,7 +393,7 @@ export const I18N: any = {
       blood_amulet:{name:'Amuleto de la Sangre Antigua', effect:'El umbral de Golpe Critico se amplia a 19-20.'}
     },
     monsters:{rat:'Rata Gigante', goblin:'Goblin', skeleton:'Esqueleto', raven:'Cuervo Maldito', orc:'Orco', wolf:'Lobo Espectral', ghoul:'Necrofago Putrido', knight:'Caballero Caido', ogre:'Ogro', wraith:'Espectro Errante', troll:'Troll Regenerador', basilisk:'Basilisco Ciego'},
-    bosses:{boss1:'El Necroforjado', boss2:'La Novia del Abismo', boss3:'El Devorador de Coronas'},
+    bosses:{boss1:'El Necroforjado', boss2:'La Novia del Abismo', boss3:'El Devorador de Coronas', chimera:'La Quimera Escupefuego', archdemon:'El Archidemonio', lich:'El Liche', hydra:'La Hidra de Siete Cabezas', dragon_red:'El Dragon Rojo', kraken:'El Kraken Abisal', tarrasque:'El Tarrasque'},
     prefixes:['', '', 'Gran ', 'Antiguo ', 'Inmenso '],
     epitaphs:[
       'La oscuridad de la Aguja Hueca nunca devuelve lo que toma.',
@@ -506,7 +506,7 @@ export const I18N: any = {
       blood_amulet:{name:'Amulett des Alten Blutes', effect:'Die Schwelle fuer Kritische Treffer erweitert sich auf 19-20.'}
     },
     monsters:{rat:'Riesenratte', goblin:'Goblin', skeleton:'Skelett', raven:'Verfluchte Kraehe', orc:'Ork', wolf:'Gespenstischer Wolf', ghoul:'Verwesender Ghul', knight:'Gefallener Ritter', ogre:'Oger', wraith:'Umherirrender Geist', troll:'Regenerierender Troll', basilisk:'Blinder Basilisk'},
-    bosses:{boss1:'Der Nekrogeschmiedete', boss2:'Die Braut des Abgrunds', boss3:'Der Kronenfresser'},
+    bosses:{boss1:'Der Nekrogeschmiedete', boss2:'Die Braut des Abgrunds', boss3:'Der Kronenfresser', chimera:'Die Feuerspeiende Chimaera', archdemon:'Der Erzdaemon', lich:'Der Lich', hydra:'Die Siebenkoepfige Hydra', dragon_red:'Der Rote Drache', kraken:'Der Abgrundkraken', tarrasque:'Der Tarrasque'},
     prefixes:['', '', 'Gross-', 'Uralter ', 'Gewaltiger '],
     epitaphs:[
       'Die Dunkelheit der Hohlen Turmspitze gibt nie zurueck, was sie nimmt.',
