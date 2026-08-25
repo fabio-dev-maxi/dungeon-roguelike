@@ -178,19 +178,32 @@ export class GameService {
   }
 
   // ------------------------------------------------------------ floor gen
+  //Più la depth aumenta e più è possibile trovare mostri di tier più alti
   private pickMonsterTier(depth: number): number {
-    if (depth <= 3) return 1;
-    if (depth <= 5) return this.dice.weightedPick([{ v: 1, w: 60 }, { v: 2, w: 40 }]);
-    if (depth <= 7) return this.dice.weightedPick([{ v: 1, w: 20 }, { v: 2, w: 65 }, { v: 3, w: 15 }]);
-    if (depth <= 11) return this.dice.weightedPick([{ v: 1, w: 5 }, { v: 2, w: 55 }, { v: 3, w: 40 }]);
-    return this.dice.weightedPick([{ v: 1, w: 5 }, { v: 2, w: 30 }, { v: 3, w: 65 }]);
+
+    //Depth 1-10 -> Tier 1-2
+    if (depth <= 4) return 1;
+    if (depth <= 9) return this.dice.weightedPick([{ v: 1, w: 60 }, { v: 2, w: 40 }]);
+    //Depth 11-20 -> Tier 1-2-3
+    if (depth <= 14) return this.dice.weightedPick([{ v: 1, w: 30 }, { v: 2, w: 50 }, { v: 3, w: 20 }]);
+    if (depth <= 19) return this.dice.weightedPick([{ v: 1, w: 10 }, { v: 2, w: 60 }, { v: 3, w: 30 }]);
+    //Depth 21-30 -> Tier 2-3-4
+    if (depth <= 24) return this.dice.weightedPick([{ v: 2, w: 30 }, { v: 3, w: 50 }, { v: 4, w: 20 }]);
+    if (depth <= 29) return this.dice.weightedPick([{ v: 2, w: 10 }, { v: 3, w: 60 },{ v: 4, w: 30 }]);
+    //Depth 30-40 -> Tier 3-4-5
+    if (depth <= 34) return this.dice.weightedPick([{ v: 3, w: 30 }, { v: 4, w: 50 },{ v: 5, w: 20 }]);
+    if (depth <= 39) return this.dice.weightedPick([{ v: 3, w: 10 }, { v: 4, w: 60 },{ v: 5, w: 30 }]);
+    //Depth 40-50 -> Tier 4-5-6
+    if (depth <= 44) return this.dice.weightedPick([{ v: 4, w: 30 }, { v: 5, w: 50 },{ v: 6, w: 20 }]);
+    if (depth <= 49) return this.dice.weightedPick([{ v: 4, w: 10 }, { v: 5, w: 60 },{ v: 6, w: 30 }]);
+    return this.dice.weightedPick([{ v: 5, w: 30 }, { v: 6, w: 70 }]);
   }
 
   private encounterWeightsForDepth(depth: number): WeightedItem<string>[] {
     let weights: WeightedItem<string>[];
     if (depth <= 5) weights = [{ v: 'combat', w: 70 }, { v: 'trap', w: 12 }, { v: 'treasure', w: 14 }, { v: 'shrine', w: 2 }, { v: 'merchant', w: 2 }, { v: 'tavern', w: 0.5 }];
-    else if (depth <= 7) weights = [{ v: 'combat', w: 52 }, { v: 'trap', w: 15 }, { v: 'treasure', w: 15 }, { v: 'shrine', w: 7 }, { v: 'merchant', w: 8 }, { v: 'tavern', w: 3 }];
-    else if (depth <= 11) weights = [{ v: 'combat', w: 45 }, { v: 'trap', w: 15 }, { v: 'treasure', w: 13 }, { v: 'shrine', w: 10 }, { v: 'merchant', w: 11 }, { v: 'tavern', w: 6 }];
+    else if (depth <= 9) weights = [{ v: 'combat', w: 52 }, { v: 'trap', w: 15 }, { v: 'treasure', w: 15 }, { v: 'shrine', w: 7 }, { v: 'merchant', w: 8 }, { v: 'tavern', w: 3 }];
+    else if (depth <= 14) weights = [{ v: 'combat', w: 45 }, { v: 'trap', w: 15 }, { v: 'treasure', w: 13 }, { v: 'shrine', w: 10 }, { v: 'merchant', w: 11 }, { v: 'tavern', w: 6 }];
     else weights = [{ v: 'combat', w: 38 }, { v: 'trap', w: 14 }, { v: 'treasure', w: 13 }, { v: 'shrine', w: 14 }, { v: 'merchant', w: 14 }, { v: 'tavern', w: 7 }];
 
     if (depth - this.state().lastTavernDepth < 5) {
@@ -199,29 +212,37 @@ export class GameService {
     return weights;
   }
 
-  private bracketForDepth(depth: number): number { return this.dice.clamp(Math.floor(depth / 5), 0, 4); }
-
   private makeMonster(depth: number): Monster {
+    //verifico se c'è un boss forzato a questo depth, altrimenti genero un mostro normale
     const bossId = BOSS_IDS.find(id => BOSS_STATS[id].atDepth === depth);
     let id: string, base: { hpBase: number; dmg: [number, number]; ac: number }, isBoss = false;
+
+    // Se c'è un boss forzato, lo uso, altrimenti genero un mostro normale
     if (bossId) { id = bossId; base = BOSS_STATS[bossId]; isBoss = true; }
     else {
+      // Se non c'è un boss forzato, genero un mostro normale in base al depth
       const tier = this.pickMonsterTier(depth);
+      //deciso il tier in base alla depth ne prendo uno a caso per quel tier
       id = this.dice.pick(MONSTER_IDS_TIER[tier]);
       base = MONSTER_STATS[id];
     }
-    const bracket = this.bracketForDepth(depth);
+
+    // Calcolo l'HP e l'AC del mostro in base al depth e al bracket
+
+    //il bracket aumenta con l'auemntare della depth, fino alla depth 20 è sempre 0, poi fisso a 4
+    const bracket = this.dice.clamp(Math.floor(depth / 5), 0, 4);
     const scale = 1 + bracket * 0.35;
 
     let effectiveHpBase = base.hpBase;
     let acVariance = 0;
     if (isBoss) {
-      const factor = 1 + (Math.random() * 2 - 1) * 0.25;
+      // per i boss il factor è tra -0.15 e +0.15, ovvero -15% -> + 15%
+      const factor = 1 + (Math.random() * 2 - 1) * 0.15;
       effectiveHpBase = Math.round(base.hpBase * factor);
       acVariance = Math.floor(Math.random() * 3) - 1;
     }
     const hp = Math.round(effectiveHpBase * scale) + Math.floor(depth / 2);
-    return { id, isBoss, bracket, hp, maxHp: hp, dmg: base.dmg, ac: base.ac + Math.floor(depth / 6) + acVariance };
+    return { id, isBoss, bracket, hp, maxHp: hp, dmg: base.dmg, ac: base.ac + acVariance };
   }
 
   startFloor(): void {

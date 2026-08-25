@@ -27,6 +27,9 @@ export class DiceService {
     return (m >= 0 ? '+' + m : '' + m);
   }
 
+  /**
+   *  Questo metodo prende il minimo tra b e v, e poi il massimo tra a e il risultato precedente
+   */
   clamp(v: number, a: number, b: number): number {
     return Math.max(a, Math.min(b, v));
   }
@@ -35,6 +38,11 @@ export class DiceService {
     return arr[Math.floor(Math.random() * arr.length)];
   }
 
+  /**
+   * Picks an item from an array based on weighted probabilities.
+   * @param items 
+   * @returns 
+   */
   weightedPick<T>(items: WeightedItem<T>[]): T {
     const total = items.reduce((s, i) => s + i.w, 0);
     let r = Math.random() * total;

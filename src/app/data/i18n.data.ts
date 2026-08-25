@@ -54,7 +54,7 @@ export const I18N: any = {
       blood_amulet:{name:'Amuleto del Sangue Antico', effect:'La soglia di Colpo Critico si espande a 19-20.'}
     },
     monsters:{rat:'Ratto Gigante', goblin:'Goblin', skeleton:'Scheletro', raven:'Corvo Maledetto', orc:'Orco', wolf:'Lupo Spettrale', ghoul:'Ghoul Putrescente', knight:'Cavaliere Decaduto', ogre:'Ogre', wraith:'Spettro Errante', troll:'Troll Rigenerante', basilisk:'Basilisco Cieco'},
-    bosses:{boss1:'Il Necroforgiato', boss2:"La Sposa dell'Abisso", boss3:'Il Divoratore di Corone'},
+    bosses:{boss1:'Il Necroforgiato', boss2:"La Sposa dell'Abisso", boss3:'Il Divoratore di Corone', boss4: 'boss4', boss5: 'boss5' },
     prefixes:['', '', 'Grande ', 'Antico ', 'Immane '],
     epitaphs:[
       "Il buio della Guglia Cava non restituisce cio che prende.",
