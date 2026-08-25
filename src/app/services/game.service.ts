@@ -12,14 +12,26 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class GameService {
-  state = signal<GameState>(this.freshState('it'));
+  private _state: GameState = this.freshState('it');
+  private _version = signal(0);
   bestDepth = signal<number>(0);
 
   constructor(private i18n: I18nService, private dice: DiceService) {}
 
   // ---------------------------------------------------------------- helpers
+  /**
+   * Returns the single canonical, mutable game state object. Reading `_version()`
+   * here establishes the reactive dependency for templates/effects, while the
+   * object identity never changes — so any code holding a reference obtained via
+   * state() earlier in the same method is always still valid to mutate.
+   */
+  state(): GameState {
+    this._version();
+    return this._state;
+  }
+
   private touch(): void {
-    this.state.set({ ...this.state() });
+    this._version.update(v => v + 1);
   }
 
   private t(path: string): any { return this.i18n.t(path); }
@@ -748,7 +760,8 @@ export class GameService {
 
   restartGame(): void {
     const lang = this.state().lang;
-    this.state.set(this.freshState(lang));
+    this._state = this.freshState(lang);
+    this.touch();
   }
 
   descendFloor(): void {
