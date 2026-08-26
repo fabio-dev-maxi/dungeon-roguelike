@@ -23,6 +23,8 @@ export class GameScreenComponent implements AfterViewChecked {
 
   private lastPlayerValue: number | null = null;
   private lastMonsterValue: number | null = null;
+  private lastPhase: string | null = null;
+  private lastLogLength = 0;
 
   @ViewChild('logbox') logboxRef?: ElementRef<HTMLDivElement>;
 
@@ -76,12 +78,24 @@ export class GameScreenComponent implements AfterViewChecked {
     const el = this.logboxRef?.nativeElement;
     if (el) el.scrollTop = el.scrollHeight;
 
-    const anchor = document.getElementById('scroll-anchor');
-    if (anchor && window.innerWidth > 720) {
-      anchor.scrollIntoView({ block: 'end', behavior: 'auto' });
+    const curPhase = this.s().phase;
+    const curLogLen = this.s().log.length;
+
+    // Su mobile porta automaticamente il focus sui pulsanti ogni volta che il turno cambia o viene aggiunto del testo
+    if (window.innerWidth <= 720) {
+      if (this.lastPhase !== curPhase || this.lastLogLength !== curLogLen) {
+        this.lastPhase = curPhase;
+        this.lastLogLength = curLogLen;
+        const anchor = document.getElementById('scroll-anchor');
+        anchor?.scrollIntoView({ block: 'end', behavior: 'smooth' });
+      }
+    } else {
+      const anchor = document.getElementById('scroll-anchor');
+      if (anchor) {
+        anchor.scrollIntoView({ block: 'end', behavior: 'auto' });
+      }
     }
 
-    // RIPRISTINATO IL FLOW NATURALE DEL BODY (Elimina lo spazio vuoto gigante in alto su mobile)
     document.body.style.paddingTop = '';
     document.body.classList.remove('has-topbar');
   }

@@ -140,14 +140,12 @@
     gap: 12px !important;
   }
 
-  /* Chat ad altezza fissa controllata in flusso verticale */
   .log {
     height: 180px !important;
     min-height: 180px !important;
     max-height: 180px !important;
   }
 
-  /* Arena dadi */
   .dice-arena {
     flex: none !important;
     height: 100px !important;
@@ -173,7 +171,6 @@
     justify-content: center !important;
   }
 
-  /* Pulsantiera in Griglia CSS a 2 colonne separata nettamente dall'arena dadi */
   .actions {
     flex: none !important;
     display: grid !important;
@@ -183,6 +180,7 @@
     min-height: 0 !important;
     max-height: none !important;
     margin-top: 4px !important;
+    padding-bottom: 16px !important;
     position: relative !important;
     z-index: 2 !important;
   }
@@ -201,7 +199,6 @@
     line-height: 1.1 !important;
   }
 
-  /* Se c'è un solo bottone o un numero dispari (es. il 5° "FUGGI"), si allarga su tutta la riga */
   .actions .btn:only-child,
   .actions .btn:last-child:nth-child(odd) {
     grid-column: span 2 !important;
