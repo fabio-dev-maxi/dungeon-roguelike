@@ -105,7 +105,7 @@ export class GameService {
       level: 1,
       xp: 0,
       tempAtkBonus: 0,
-      critThreshold: 20,
+      critThreshold: classKey === 'rogue' ? 19 : 20, // Base 19 per Ladro, 20 per gli altri
       relics: [],
       feats: [],
       flatAtkBonus: 0,
@@ -450,9 +450,9 @@ export class GameService {
     const raw = await this.animateRollAsync(this.dice.rnd(20), 20, 'attack', critThreshold);
 
     const cur = this.state();
-    const isCritByClass = (cur.player!.cls === 'rogue' && raw >= 19) || raw >= critThreshold;
+    const isCrit = raw >= critThreshold; // Verifica dinamica (18+, 19+, 20)
     const total = raw + statMod;
-    const hit = raw === 20 || isCritByClass || total >= cur.monster!.ac;
+    const hit = raw === 20 || isCrit || total >= cur.monster!.ac;
 
     if (raw === 1) {
       this.log(this.t('log.attackMissNat1'), 'dmg');
@@ -463,7 +463,7 @@ export class GameService {
       const dmgMax = n * d;
       let dmg = dmgRoll + bonus;
       let critTxt = '';
-      if (raw === 20 || isCritByClass) {
+      if (isCrit) {
         const mult = cur.player!.critMultiplier || 2;
         dmg = Math.floor(dmg * mult);
         critTxt = this.t('log.critText');
@@ -798,7 +798,7 @@ export class GameService {
     } else if (featId === 'iron_skin') {
       p.ac += 1;
     } else if (featId === 'savage_striker') {
-      p.critThreshold = 19;
+      p.critThreshold = (p.critThreshold || 20) - 1; // Scalare cumulativo -1
     } else if (featId === 'battle_vigors') {
       p.maxHp += 6;
       p.hp += 6;

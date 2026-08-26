@@ -120,18 +120,16 @@ export const RELIC_CLASS_POOLS: Partial<Record<ClassKey, string[]>> = { fighter:
 
 export function mod(stat: number): number { return Math.floor((stat - 10) / 2); }
 
-export function applyRelicEffect(player: Player, relicId: string): void {
-  if (relicId === 'shadow_ring') {
-    const oldDexMod = mod(player.stats.dex);
-    player.stats.dex += 2;
-    const newDexMod = mod(player.stats.dex);
-    player.ac += (newDexMod - oldDexMod) + 1;
+export function applyRelicEffect(p: Player, relicId: string): void {
+  if (relicId === 'blood_amulet') {
+    p.critThreshold = (p.critThreshold || 20) - 1; // Riduce la soglia di 1 (es. da 20 a 19, o da 19 a 18)
   } else if (relicId === 'giant_belt') {
-    player.stats.str += 3;
-    player.maxHp += 10;
-    player.hp += 10;
-  } else if (relicId === 'blood_amulet') {
-    player.critThreshold = Math.max(2, (player.critThreshold || 20) - 1);
+    p.stats.str += 3;
+    p.maxHp += 10;
+    p.hp += 10;
+  } else if (relicId === 'shadow_ring') {
+    p.stats.dex += 2;
+    p.ac += 1;
   }
 }
 
