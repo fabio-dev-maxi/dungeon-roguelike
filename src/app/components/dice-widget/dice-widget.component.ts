@@ -13,54 +13,8 @@ import * as THREE from 'three';
 @Component({
   selector: 'app-dice-widget',
   standalone: true,
-  template: `
-    <div class="tdw-widget-wrapper">
-      <div class="tdw-label" [style.color]="labelColor" [title]="label">{{ label }}</div>
-      <div class="tdw-canvas-container" [style.borderColor]="borderColor">
-        <canvas #diceCanvas></canvas>
-      </div>
-    </div>
-  `,
-  styles: [`
-    :host { display: inline-block; }
-    .tdw-widget-wrapper {
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: center !important;
-      gap: 6px !important;
-      width: 200px !important;
-      max-width: 200px !important;
-    }
-    .tdw-label {
-      font-size: 0.85rem !important;
-      font-weight: bold !important;
-      text-transform: uppercase !important;
-      letter-spacing: 0.5px !important;
-      font-family: 'Cinzel', serif, sans-serif !important;
-      width: 100% !important;
-      max-width: 200px !important;
-      white-space: nowrap !important;
-      overflow: hidden !important;
-      text-overflow: ellipsis !important;
-      text-align: center !important;
-    }
-    .tdw-canvas-container {
-      width: 80px !important;
-      height: 80px !important;
-      min-width: 80px !important;
-      min-height: 80px !important;
-      position: relative !important;
-      border-radius: 50% !important;
-      border: 2px solid #d4af37;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
-    }
-    .tdw-canvas-container canvas {
-      width: 80px !important;
-      height: 80px !important;
-      display: block !important;
-      border-radius: 50% !important;
-    }
-  `]
+  templateUrl: './dice-widget.component.html',
+  styleUrl: './dice-widget.component.css'
 })
 export class DiceWidgetComponent implements OnChanges, OnDestroy {
   @Input() value: number | null = null;

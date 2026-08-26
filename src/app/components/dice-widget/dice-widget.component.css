@@ -1,0 +1,46 @@
+:host { 
+  display: inline-block; 
+  width: 100%;
+}
+
+.tdw-widget-wrapper {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 4px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.tdw-label {
+  font-size: 0.8rem !important;
+  font-weight: bold !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  font-family: 'Cinzel', serif, sans-serif !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  text-align: center !important;
+}
+
+.tdw-canvas-container {
+  width: 72px !important;
+  height: 72px !important;
+  min-width: 72px !important;
+  min-height: 72px !important;
+  position: relative !important;
+  border-radius: 50% !important;
+  border: 2px solid #d4af37;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+}
+
+.tdw-canvas-container canvas {
+  width: 72px !important;
+  height: 72px !important;
+  display: block !important;
+  border-radius: 50% !important;
+}
