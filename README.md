@@ -56,3 +56,7 @@ src/app/
   su mobile.
 - Nessuno storage persistente (localStorage) è usato: il "record di sessione"
   vive solo in memoria, come nel prototipo originale.
+
+
+npm install three cannon-es
+  npm install --save-dev @types/three

@@ -19,12 +19,6 @@ export class GameService {
   constructor(private i18n: I18nService, private dice: DiceService) {}
 
   // ---------------------------------------------------------------- helpers
-  /**
-   * Returns the single canonical, mutable game state object. Reading `_version()`
-   * here establishes the reactive dependency for templates/effects, while the
-   * object identity never changes — so any code holding a reference obtained via
-   * state() earlier in the same method is always still valid to mutate.
-   */
   state(): GameState {
     this._version();
     return this._state;
@@ -36,6 +30,10 @@ export class GameService {
 
   private t(path: string): any { return this.i18n.t(path); }
   private tf(path: string, vars: Record<string, any> = {}): string { return this.i18n.tf(path, vars); }
+
+  private wait(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 
   freshState(prevLang: LangCode): GameState {
     return {
@@ -150,52 +148,42 @@ export class GameService {
     this.touch();
   }
 
-  // ------------------------------------------------------------ dice widget
-  animateRoll(finalValue: number, sides: number, onDone?: () => void, tag = '', critMin?: number): void {
+  // ------------------------------------------------------------ dice widget async
+  private async animateRollAsync(finalValue: number, sides: number, tag = '', critMin?: number): Promise<number> {
     const s = this.state();
+
+    // 1. Fase Spin Attivo
     s.rollingDie = { active: true, value: this.dice.rnd(sides), cls: 'rolling', sides, tag };
     this.touch();
-    let ticks = 0;
-    const maxTicks = 9;
-    const iv = setInterval(() => {
-      ticks++;
-      const cur = this.state();
-      if (ticks >= maxTicks) {
-        clearInterval(iv);
-        let cls = '';
-        if (sides === 20) {
-          if (finalValue >= (critMin || 20)) cls = 'crit';
-          else if (finalValue === 1) cls = 'fail';
-        }
-        cur.rollingDie = { active: false, value: finalValue, cls, sides, tag };
-        this.touch();
-        if (onDone) onDone();
-      } else {
-        cur.rollingDie = { active: true, value: this.dice.rnd(sides), cls: 'rolling', sides, tag };
-        this.touch();
-      }
-    }, 55);
+    await this.wait(500);
+
+    // 2. Determinazione critici/fallimenti
+    let cls = '';
+    if (sides === 20) {
+      if (finalValue >= (critMin || 20)) cls = 'crit';
+      else if (finalValue === 1) cls = 'fail';
+    }
+
+    // 3. Arresto e posizionamento 3D
+    s.rollingDie = { active: false, value: finalValue, cls, sides, tag };
+    this.touch();
+    await this.wait(800); // Tempo per lo slerp di Three.js e la lettura a schermo
+
+    return finalValue;
   }
 
   // ------------------------------------------------------------ floor gen
-  //Più la depth aumenta e più è possibile trovare mostri di tier più alti
   private pickMonsterTier(depth: number): number {
-
-    //Depth 1-10 -> Tier 1-2
     if (depth <= 4) return 1;
     if (depth <= 9) return this.dice.weightedPick([{ v: 1, w: 60 }, { v: 2, w: 40 }]);
-    //Depth 11-20 -> Tier 1-2-3
     if (depth <= 14) return this.dice.weightedPick([{ v: 1, w: 30 }, { v: 2, w: 50 }, { v: 3, w: 20 }]);
     if (depth <= 19) return this.dice.weightedPick([{ v: 1, w: 10 }, { v: 2, w: 60 }, { v: 3, w: 30 }]);
-    //Depth 21-30 -> Tier 2-3-4
     if (depth <= 24) return this.dice.weightedPick([{ v: 2, w: 30 }, { v: 3, w: 50 }, { v: 4, w: 20 }]);
-    if (depth <= 29) return this.dice.weightedPick([{ v: 2, w: 10 }, { v: 3, w: 60 },{ v: 4, w: 30 }]);
-    //Depth 30-40 -> Tier 3-4-5
-    if (depth <= 34) return this.dice.weightedPick([{ v: 3, w: 30 }, { v: 4, w: 50 },{ v: 5, w: 20 }]);
-    if (depth <= 39) return this.dice.weightedPick([{ v: 3, w: 10 }, { v: 4, w: 60 },{ v: 5, w: 30 }]);
-    //Depth 40-50 -> Tier 4-5-6
-    if (depth <= 44) return this.dice.weightedPick([{ v: 4, w: 30 }, { v: 5, w: 50 },{ v: 6, w: 20 }]);
-    if (depth <= 49) return this.dice.weightedPick([{ v: 4, w: 10 }, { v: 5, w: 60 },{ v: 6, w: 30 }]);
+    if (depth <= 29) return this.dice.weightedPick([{ v: 2, w: 10 }, { v: 3, w: 60 }, { v: 4, w: 30 }]);
+    if (depth <= 34) return this.dice.weightedPick([{ v: 3, w: 30 }, { v: 4, w: 50 }, { v: 5, w: 20 }]);
+    if (depth <= 39) return this.dice.weightedPick([{ v: 3, w: 10 }, { v: 4, w: 60 }, { v: 5, w: 30 }]);
+    if (depth <= 44) return this.dice.weightedPick([{ v: 4, w: 30 }, { v: 5, w: 50 }, { v: 6, w: 20 }]);
+    if (depth <= 49) return this.dice.weightedPick([{ v: 4, w: 10 }, { v: 5, w: 60 }, { v: 6, w: 30 }]);
     return this.dice.weightedPick([{ v: 5, w: 30 }, { v: 6, w: 70 }]);
   }
 
@@ -213,30 +201,22 @@ export class GameService {
   }
 
   private makeMonster(depth: number): Monster {
-    //verifico se c'è un boss forzato a questo depth, altrimenti genero un mostro normale
     const bossId = BOSS_IDS.find(id => BOSS_STATS[id].atDepth === depth);
     let id: string, base: { hpBase: number; dmg: [number, number]; ac: number }, isBoss = false;
 
-    // Se c'è un boss forzato, lo uso, altrimenti genero un mostro normale
     if (bossId) { id = bossId; base = BOSS_STATS[bossId]; isBoss = true; }
     else {
-      // Se non c'è un boss forzato, genero un mostro normale in base al depth
       const tier = this.pickMonsterTier(depth);
-      //deciso il tier in base alla depth ne prendo uno a caso per quel tier
       id = this.dice.pick(MONSTER_IDS_TIER[tier]);
       base = MONSTER_STATS[id];
     }
 
-    // Calcolo l'HP e l'AC del mostro in base al depth e al bracket
-
-    //il bracket aumenta con l'auemntare della depth, fino alla depth 20 è sempre 0, poi fisso a 4
     const bracket = this.dice.clamp(Math.floor(depth / 5), 0, 4);
     const scale = 1 + bracket * 0.35;
 
     let effectiveHpBase = base.hpBase;
     let acVariance = 0;
     if (isBoss) {
-      // per i boss il factor è tra -0.15 e +0.15, ovvero -15% -> + 15%
       const factor = 1 + (Math.random() * 2 - 1) * 0.15;
       effectiveHpBase = Math.round(base.hpBase * factor);
       acVariance = Math.floor(Math.random() * 3) - 1;
@@ -432,7 +412,7 @@ export class GameService {
     };
   }
 
-  resolveChoiceOption(opt: ChoiceOption): void {
+  async resolveChoiceOption(opt: ChoiceOption): Promise<void> {
     const s = this.state();
     const pc = s.pendingChoice;
     if (!pc) return;
@@ -448,75 +428,82 @@ export class GameService {
     }
 
     const statMod = mod(s.player!.stats[opt.stat as StatKey]);
-    this.animateRoll(this.dice.rnd(20), 20, () => {
-      const cur = this.state();
-      const total = cur.rollingDie.value! + statMod;
-      const success = total >= pc.dc!;
-      this.log(this.tf('log.checkResult', {
-        stat: this.t('statAbbr.' + opt.stat), roll: cur.rollingDie.value, mod: this.dice.fmtMod(statMod),
-        total, dc: pc.dc, result: success ? this.t('log.checkSuccess') : this.t('log.checkFail')
-      }));
-      pc.onResolve!(success);
-      cur.phase = 'explore'; cur.pendingChoice = null;
-      this.touch();
-      if (cur.player!.hp <= 0) { this.gameOver(); return; }
-    }, 'check');
+    const raw = await this.animateRollAsync(this.dice.rnd(20), 20, 'check');
+
+    const cur = this.state();
+    const total = raw + statMod;
+    const success = total >= pc.dc!;
+    this.log(this.tf('log.checkResult', {
+      stat: this.t('statAbbr.' + opt.stat), roll: raw, mod: this.dice.fmtMod(statMod),
+      total, dc: pc.dc, result: success ? this.t('log.checkSuccess') : this.t('log.checkFail')
+    }));
+    pc.onResolve!(success);
+    cur.phase = 'explore'; cur.pendingChoice = null;
+    this.touch();
+    if (cur.player!.hp <= 0) { this.gameOver(); return; }
   }
 
-  // ------------------------------------------------------------ combat
-  playerAttack(): void {
+  // ------------------------------------------------------------ combat async
+  async playerAttack(): Promise<void> {
     const s = this.state();
     if (s.combatFlags.acting) return;
     s.combatFlags.acting = true;
+
     const c = CLASS_DATA[s.player!.cls];
     const statMod = mod(s.player!.stats[c.atkStat]) + (s.player!.tempAtkBonus || 0);
     const critThreshold = s.player!.critThreshold || 20;
     s.player!.tempAtkBonus = 0;
     this.touch();
 
-    this.animateRoll(this.dice.rnd(20), 20, () => {
-      const cur = this.state();
-      const raw = cur.rollingDie.value!;
-      const isCritByClass = (cur.player!.cls === 'rogue' && raw >= 19) || raw >= critThreshold;
-      const total = raw + statMod;
-      const hit = raw === 20 || isCritByClass || total >= cur.monster!.ac;
-      if (raw === 1) {
-        this.log(this.t('log.attackMissNat1'), 'dmg');
-      } else if (hit) {
-        const [n, d] = cur.player!.weapon.dice;
-        const bonus = mod(cur.player!.stats[c.atkStat]) + (cur.player!.weapon.bonus || 0);
-        const dmgRoll = this.dice.rollNdM(n, d);
-        const dmgMax = n * d;
-        let dmg = dmgRoll + bonus;
-        let critTxt = '';
-        if (raw === 20 || isCritByClass) { dmg *= 2; critTxt = this.t('log.critText'); }
-        cur.monster!.hp = this.dice.clamp(cur.monster!.hp - dmg, 0, cur.monster!.maxHp);
-        this.touch();
-        this.log(this.tf('log.attackHit', { roll: raw, mod: this.dice.fmtMod(statMod), total, ac: cur.monster!.ac, dmgRoll, dmgMax, dmg, crit: critTxt }));
-      } else {
-        this.log(this.tf('log.attackMiss', { roll: raw, mod: this.dice.fmtMod(statMod), total, ac: cur.monster!.ac }));
-      }
-      cur.combatFlags.acting = false;
+    const raw = await this.animateRollAsync(this.dice.rnd(20), 20, 'attack', critThreshold);
+
+    const cur = this.state();
+    const isCritByClass = (cur.player!.cls === 'rogue' && raw >= 19) || raw >= critThreshold;
+    const total = raw + statMod;
+    const hit = raw === 20 || isCritByClass || total >= cur.monster!.ac;
+
+    if (raw === 1) {
+      this.log(this.t('log.attackMissNat1'), 'dmg');
+    } else if (hit) {
+      const [n, d] = cur.player!.weapon.dice;
+      const bonus = mod(cur.player!.stats[c.atkStat]) + (cur.player!.weapon.bonus || 0);
+      const dmgRoll = this.dice.rollNdM(n, d);
+      const dmgMax = n * d;
+      let dmg = dmgRoll + bonus;
+      let critTxt = '';
+      if (raw === 20 || isCritByClass) { dmg *= 2; critTxt = this.t('log.critText'); }
+      cur.monster!.hp = this.dice.clamp(cur.monster!.hp - dmg, 0, cur.monster!.maxHp);
       this.touch();
-      if (cur.monster && cur.monster.hp <= 0) { this.monsterDefeated(); return; }
-      this.monsterTurn();
-    }, 'attack', critThreshold);
+      this.log(this.tf('log.attackHit', { roll: raw, mod: this.dice.fmtMod(statMod), total, ac: cur.monster!.ac, dmgRoll, dmgMax, dmg, crit: critTxt }));
+    } else {
+      this.log(this.tf('log.attackMiss', { roll: raw, mod: this.dice.fmtMod(statMod), total, ac: cur.monster!.ac }));
+    }
+
+    if (cur.monster && cur.monster.hp <= 0) {
+      cur.combatFlags.acting = false;
+      this.monsterDefeated();
+      return;
+    }
+
+    await this.monsterTurn();
+    this.state().combatFlags.acting = false;
+    this.touch();
   }
 
-  playerDefend(): void {
+  async playerDefend(): Promise<void> {
     const s = this.state();
     if (s.combatFlags.acting) return;
     s.combatFlags.acting = true;
     s.combatFlags.defending = true;
     this.touch();
     this.log(this.t('log.defendFlavor'), 'flavor');
-    const cur = this.state();
-    cur.combatFlags.acting = false;
+
+    await this.monsterTurn();
+    this.state().combatFlags.acting = false;
     this.touch();
-    this.monsterTurn();
   }
 
-  playerUseSpecial(): void {
+  async playerUseSpecial(): Promise<void> {
     const s = this.state();
     if (s.combatFlags.acting || s.player!.usedSpecial) return;
     const cls = s.player!.cls;
@@ -533,10 +520,12 @@ export class GameService {
       this.touch();
       this.log(this.tf('log.specialWizard', { special: specialName, dmgRoll, dmgMax, dmg }), 'dmg');
       s.player!.usedSpecial = true;
-      s.combatFlags.acting = false;
-      this.touch();
-      if (s.monster!.hp <= 0) { this.monsterDefeated(); return; }
-      this.monsterTurn();
+      if (s.monster!.hp <= 0) {
+        s.combatFlags.acting = false;
+        this.monsterDefeated();
+        return;
+      }
+      await this.monsterTurn();
     } else if (cls === 'cleric') {
       const bonus = mod(s.player!.stats.wis);
       const dmgRoll = this.dice.rollNdM(2, 6);
@@ -546,9 +535,7 @@ export class GameService {
       this.touch();
       this.log(this.tf('log.specialCleric', { special: specialName, dmgRoll, dmgMax, heal }), 'heal');
       s.player!.usedSpecial = true;
-      s.combatFlags.acting = false;
-      this.touch();
-      this.monsterTurn();
+      await this.monsterTurn();
     } else if (cls === 'fighter') {
       const [n, d] = CLASS_DATA.fighter.weaponDice;
       const bonus = mod(s.player!.stats[CLASS_DATA.fighter.atkStat]) + (s.player!.weapon.bonus || 0);
@@ -559,17 +546,22 @@ export class GameService {
       this.touch();
       this.log(this.tf('log.specialFighter', { special: specialName, dmgRoll, dmgMax, dmg }), 'dmg');
       s.player!.usedSpecial = true;
-      s.combatFlags.acting = false;
-      this.touch();
-      if (s.monster!.hp <= 0) { this.monsterDefeated(); return; }
-      this.monsterTurn();
+      if (s.monster!.hp <= 0) {
+        s.combatFlags.acting = false;
+        this.monsterDefeated();
+        return;
+      }
+      await this.monsterTurn();
     } else {
       s.combatFlags.acting = false;
       this.touch();
     }
+
+    this.state().combatFlags.acting = false;
+    this.touch();
   }
 
-  playerUsePotion(): void {
+  async playerUsePotion(): Promise<void> {
     const s = this.state();
     if (s.combatFlags.acting) return;
     const idx = s.player!.inventory.findIndex(i => i.type === 'potion');
@@ -583,40 +575,45 @@ export class GameService {
     s.player!.hp = this.dice.clamp(s.player!.hp + heal, 0, s.player!.maxHp);
     this.touch();
     this.log(this.tf('log.drinkPotion', { potion: this.t('potionName'), dmgRoll, dmgMax, heal }), 'heal');
-    const cur = this.state();
-    cur.combatFlags.acting = false;
+
+    if (s.phase === 'combat') {
+      await this.monsterTurn();
+    }
+
+    this.state().combatFlags.acting = false;
     this.touch();
-    if (cur.phase === 'combat') this.monsterTurn();
   }
 
-  playerFlee(): void {
+  async playerFlee(): Promise<void> {
     const s = this.state();
     if (s.combatFlags.acting) return;
     s.combatFlags.acting = true;
     this.touch();
+
     const dc = 10 + Math.floor(s.depth / 4);
     const statMod = mod(s.player!.stats.dex);
-    this.animateRoll(this.dice.rnd(20), 20, () => {
-      const cur = this.state();
-      const total = cur.rollingDie.value! + statMod;
-      const success = total >= dc;
-      this.log(this.tf('log.fleeAttempt', {
-        roll: cur.rollingDie.value, mod: this.dice.fmtMod(statMod), total, dc,
-        result: success ? this.t('log.fleeSuccess') : this.t('log.fleeFail')
-      }));
-      const c2 = this.state();
-      c2.combatFlags.acting = false;
-      if (success) {
-        c2.monster = null; c2.phase = 'explore';
-        this.touch();
-      } else {
-        this.touch();
-        this.monsterTurn();
-      }
-    }, 'flee');
+    const raw = await this.animateRollAsync(this.dice.rnd(20), 20, 'flee');
+
+    const cur = this.state();
+    const total = raw + statMod;
+    const success = total >= dc;
+    this.log(this.tf('log.fleeAttempt', {
+      roll: raw, mod: this.dice.fmtMod(statMod), total, dc,
+      result: success ? this.t('log.fleeSuccess') : this.t('log.fleeFail')
+    }));
+
+    if (success) {
+      cur.monster = null;
+      cur.phase = 'explore';
+    } else {
+      await this.monsterTurn();
+    }
+
+    this.state().combatFlags.acting = false;
+    this.touch();
   }
 
-  private monsterTurn(): void {
+  private async monsterTurn(): Promise<void> {
     const s = this.state();
     if (!s.monster || s.monster.hp <= 0) return;
     const name = this.monsterDisplayName(s.monster);
@@ -627,29 +624,31 @@ export class GameService {
     const targetAC = s.player!.ac + acBonus;
     this.touch();
 
-    this.animateRoll(this.dice.rnd(20), 20, () => {
-      const cur = this.state();
-      const toHit = cur.rollingDie.value!;
-      const total = toHit + monsterAtkMod;
-      if (toHit === 1) {
-        this.log(this.tf('log.monsterMiss1', { name }), 'flavor');
-      } else if (total >= targetAC || toHit === 20) {
-        const [n, d] = cur.monster!.dmg;
-        const dmgRoll = this.dice.rollNdM(n, d);
-        const dmgMax = n * d;
-        let dmg = dmgRoll;
-        if (defending) dmg = Math.ceil(dmg / 2);
-        cur.player!.hp = this.dice.clamp(cur.player!.hp - dmg, 0, cur.player!.maxHp);
-        this.touch();
-        this.log(this.tf('log.monsterHit', {
-          name, roll: toHit, mod: this.dice.fmtMod(monsterAtkMod), total, ac: targetAC, dmgRoll, dmgMax, dmg,
-          defended: defending ? this.t('log.defendedSuffix') : ''
-        }), 'dmg');
-        if (cur.player!.hp <= 0) { setTimeout(() => this.gameOver(), 400); }
-      } else {
-        this.log(this.tf('log.monsterMissGuard', { name, roll: toHit, mod: this.dice.fmtMod(monsterAtkMod), total, ac: targetAC }));
+    const toHit = await this.animateRollAsync(this.dice.rnd(20), 20, 'monsterAttack');
+
+    const cur = this.state();
+    const total = toHit + monsterAtkMod;
+    if (toHit === 1) {
+      this.log(this.tf('log.monsterMiss1', { name }), 'flavor');
+    } else if (total >= targetAC || toHit === 20) {
+      const [n, d] = cur.monster!.dmg;
+      const dmgRoll = this.dice.rollNdM(n, d);
+      const dmgMax = n * d;
+      let dmg = dmgRoll;
+      if (defending) dmg = Math.ceil(dmg / 2);
+      cur.player!.hp = this.dice.clamp(cur.player!.hp - dmg, 0, cur.player!.maxHp);
+      this.touch();
+      this.log(this.tf('log.monsterHit', {
+        name, roll: toHit, mod: this.dice.fmtMod(monsterAtkMod), total, ac: targetAC, dmgRoll, dmgMax, dmg,
+        defended: defending ? this.t('log.defendedSuffix') : ''
+      }), 'dmg');
+      if (cur.player!.hp <= 0) {
+        await this.wait(400);
+        this.gameOver();
       }
-    }, 'monsterAttack');
+    } else {
+      this.log(this.tf('log.monsterMissGuard', { name, roll: toHit, mod: this.dice.fmtMod(monsterAtkMod), total, ac: targetAC }));
+    }
   }
 
   private monsterDefeated(): void {
@@ -694,8 +693,6 @@ export class GameService {
     final.pendingLevelUps = levelsToGain;
 
     if (wasBoss) {
-      // Highlight the boss kill with a dedicated summary dialog; the level-up
-      // flow (if any) only starts once the player acknowledges it.
       final.phase = null;
       final.rollingDie = { active: false, value: null, cls: '' };
       final.bossRewardModal = { name, xp, gold, drops };
@@ -750,19 +747,21 @@ export class GameService {
     this.rollLevelUpHp();
   }
 
-  private rollLevelUpHp(): void {
+  private async rollLevelUpHp(): Promise<void> {
     const s = this.state();
     const hitDie = CLASS_DATA[s.player!.cls].hitDie;
     const conMod = mod(s.player!.stats.con);
     s.levelUp!.hpRollTotal = null;
     this.touch();
-    const finalBase = this.dice.rnd(hitDie);
-    this.animateRoll(finalBase, hitDie, () => {
-      const cur = this.state();
-      cur.levelUp!.hpRollBase = finalBase;
-      cur.levelUp!.hpRollTotal = Math.max(1, finalBase + conMod);
+
+    const finalBase = await this.animateRollAsync(this.dice.rnd(hitDie), hitDie, 'levelhp');
+
+    const cur = this.state();
+    if (cur.levelUp) {
+      cur.levelUp.hpRollBase = finalBase;
+      cur.levelUp.hpRollTotal = Math.max(1, finalBase + conMod);
       this.touch();
-    }, 'levelhp');
+    }
   }
 
   rerollLevelUpHp(): void {

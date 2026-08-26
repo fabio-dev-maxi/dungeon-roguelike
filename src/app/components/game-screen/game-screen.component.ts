@@ -16,9 +16,10 @@ const STAT_KEYS: StatKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
   imports: [DiceWidgetComponent, LevelUpModalComponent, BossRewardModalComponent],
   template: `
     <div class="game-grid">
+      <!-- PANNELLO SCHEDA PERSONAGGIO & NEMICO -->
       <div class="panel" id="sheet-panel">
         <div class="depth-badge">{{ i18n.t('ui.floorLabel') }} <span class="num">{{ s().depth }}</span></div>
-        <h3 style="font-size:.95rem;">{{ p().name }}</h3>
+        <h3 class="char-name">{{ p().name }}</h3>
         <p class="small" style="margin-top:-6px;">
           {{ i18n.tf('ui.levelLabel', { cls: i18n.t('classes.' + p().cls + '.name'), level: p().level }) }}
         </p>
@@ -73,12 +74,13 @@ const STAT_KEYS: StatKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
         @if (s().monster; as m) {
           <hr class="rule">
           <div class="small">{{ i18n.t('ui.enemyLabel') }}</div>
-          <div class="sheet-row"><span>{{ game.monsterDisplayName(m) }}</span><span class="num">{{ m.hp }}/{{ m.maxHp }}</span></div>
+          <div class="sheet-row"><span class="enemy-name">{{ game.monsterDisplayName(m) }}</span><span class="num">{{ m.hp }}/{{ m.maxHp }}</span></div>
           <div class="sheet-row"><span>{{ i18n.t('ui.acShort') }}</span><span class="num">{{ m.ac }}</span></div>
         }
       </div>
 
-      <div class="panel">
+      <!-- PANNELLO CENTRALE COMBAT LOG & AZIONI -->
+      <div class="panel main-panel">
         <div class="log" id="logbox" #logbox>
           @for (l of s().log; track $index) {
             <p [class]="l.cls" [innerHTML]="l.html"></p>
@@ -90,8 +92,34 @@ const STAT_KEYS: StatKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
           <p class="small">{{ i18n.t('ui.hpRollPrompt') }}</p>
         }
 
-        <app-dice-widget></app-dice-widget>
+        <!-- ARENA DADI AD ALTEZZA FISSA -->
+        <div class="dice-arena">
+          <div class="dice-slot left">
+            <app-dice-widget
+              [label]="p().name || 'Giocatore'"
+              [themeColor]="'#8b0000'"
+              [borderColor]="'#d4af37'"
+              [labelColor]="'#d4af37'"
+              [value]="playerDieValue()"
+              [isActive]="playerDieActive()">
+            </app-dice-widget>
+          </div>
 
+          <div class="dice-slot right">
+            @if (s().monster; as m) {
+              <app-dice-widget
+                [label]="game.monsterDisplayName(m)"
+                [themeColor]="'#142918'"
+                [borderColor]="'#34d399'"
+                [labelColor]="'#34d399'"
+                [value]="monsterDieValue()"
+                [isActive]="monsterDieActive()">
+              </app-dice-widget>
+            }
+          </div>
+        </div>
+
+        <!-- PULSANTIERA AZIONI AD ALTEZZA FISSA 2 RIGHE -->
         <div class="actions">
           @if (s().phase === 'explore') {
             <button class="btn" (click)="game.descendFloor()">{{ i18n.t('ui.descendButton') }}</button>
@@ -133,11 +161,121 @@ const STAT_KEYS: StatKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
     @if (s().bossRewardModal) {
       <app-boss-reward-modal></app-boss-reward-modal>
     }
-  `
+  `,
+  styles: [`
+    .char-name, .enemy-name {
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      max-width: 170px !important;
+      display: inline-block !important;
+    }
+
+    /* CONTENITORE PRINCIPALE AD ALTEZZA FISSA RIGIDA */
+    .main-panel {
+      display: flex !important;
+      flex-direction: column !important;
+      height: 620px !important;
+      min-height: 620px !important;
+      max-height: 620px !important;
+      box-sizing: border-box !important;
+      overflow: hidden !important;
+    }
+
+    /* LA CHAT ASSORBE DINAMICAMENTE LO SPAZIO RIMANENTE SENZA SPOSTARE NIENTE */
+    .log {
+      flex: 1 1 auto !important;
+      min-height: 150px !important;
+      width: 100% !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      padding-right: 8px !important;
+      box-sizing: border-box !important;
+      word-break: break-word !important;
+      overflow-wrap: anywhere !important;
+    }
+
+    .log::-webkit-scrollbar {
+      width: 6px;
+    }
+    .log::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 4px;
+    }
+    .log::-webkit-scrollbar-thumb {
+      background: #d4af37;
+      border-radius: 4px;
+    }
+
+    /* ARENA DADI FISSA E ANCORATA */
+    .dice-arena {
+      flex: 0 0 120px !important;
+      height: 120px !important;
+      min-height: 120px !important;
+      max-height: 120px !important;
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      width: 100% !important;
+      margin: 8px 0 !important;
+      padding: 0 16px !important;
+      background: rgba(0, 0, 0, 0.35) !important;
+      border-radius: 10px !important;
+      border: 1px solid rgba(212, 175, 55, 0.2) !important;
+      box-sizing: border-box !important;
+      overflow: hidden !important;
+    }
+
+    .dice-slot {
+      width: 200px !important;
+      min-width: 200px !important;
+      max-width: 200px !important;
+      height: 110px !important;
+      min-height: 110px !important;
+      max-height: 110px !important;
+      display: flex !important;
+      align-items: center !important;
+      flex-shrink: 0 !important;
+    }
+
+    .dice-slot.left {
+      justify-content: flex-start !important;
+    }
+
+    .dice-slot.right {
+      justify-content: flex-end !important;
+    }
+
+    /* PULSANTIERA BLOCCATA A 100PX PER HOSPITALIZZARE FINO A 2 RIGHE DI BOTTONI */
+    .actions {
+      flex: 0 0 100px !important;
+      height: 100px !important;
+      min-height: 100px !important;
+      max-height: 100px !important;
+      display: flex !important;
+      flex-wrap: wrap !important;
+      align-items: center !important;
+      justify-content: center !important;
+      align-content: center !important;
+      gap: 6px !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    /* UNIFORMIZZAZIONE BOTTONI PER GARANTIRE FIT PERFETTO */
+    .actions .btn {
+      padding: 6px 14px !important;
+      font-size: 0.82rem !important;
+      box-sizing: border-box !important;
+    }
+  `]
 })
 export class GameScreenComponent implements AfterViewChecked {
   statKeys = STAT_KEYS;
   classData = CLASS_DATA;
+
+  private lastPlayerValue: number | null = null;
+  private lastMonsterValue: number | null = null;
 
   @ViewChild('logbox') logboxRef?: ElementRef<HTMLDivElement>;
 
@@ -156,9 +294,38 @@ export class GameScreenComponent implements AfterViewChecked {
     return !this.p().usedSpecial && !!this.i18n.t('classes.' + cls + '.active');
   }
 
+  private isEnemyRoll(): boolean {
+    const rd = this.s().rollingDie;
+    return !!(rd && rd.tag === 'monsterAttack');
+  }
+
+  playerDieActive(): boolean {
+    const rd = this.s().rollingDie;
+    return !!(rd && rd.active && !this.isEnemyRoll());
+  }
+
+  playerDieValue(): number | null {
+    const rd = this.s().rollingDie;
+    if (rd && !this.isEnemyRoll() && rd.value !== null) {
+      this.lastPlayerValue = rd.value;
+    }
+    return this.lastPlayerValue;
+  }
+
+  monsterDieActive(): boolean {
+    const rd = this.s().rollingDie;
+    return !!(rd && rd.active && this.isEnemyRoll());
+  }
+
+  monsterDieValue(): number | null {
+    const rd = this.s().rollingDie;
+    if (rd && this.isEnemyRoll() && rd.value !== null) {
+      this.lastMonsterValue = rd.value;
+    }
+    return this.lastMonsterValue;
+  }
+
   ngAfterViewChecked(): void {
-    // Auto-scroll the log to the newest entry, and keep the compact sheet panel's
-    // reserved space (mobile fixed layout) in sync with its actual rendered height.
     const el = this.logboxRef?.nativeElement;
     if (el) el.scrollTop = el.scrollHeight;
 
