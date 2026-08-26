@@ -1,0 +1,35 @@
+<div class="modal-overlay">
+  <div class="modal-box">
+    <!-- FASE 1: SELEZIONE STATISTICA (Ogni 2 Livelli) -->
+    @if (levelUp()?.step === 'stat') {
+      <div class="depth-badge">{{ i18n.t('ui.levelUpTitle') }}</div>
+      <h2>{{ i18n.tf('ui.levelUpHeader', { level: p().level }) }}</h2>
+      <p class="prompt">{{ i18n.t('ui.chooseStatPrompt') }}</p>
+
+      <div class="stats-grid">
+        @for (k of statKeys; track k) {
+          <button class="btn stat-btn" (click)="selectStat(k)">
+            <span class="stat-name">{{ i18n.t('stats.' + k) }}</span>
+            <span class="stat-val">{{ p().stats[k] }} &rarr; <strong>{{ p().stats[k] + 1 }}</strong></span>
+          </button>
+        }
+      </div>
+    }
+
+    <!-- FASE 2: SELEZIONE TALENTO (Ogni 3 Livelli) -->
+    @if (levelUp()?.step === 'feat') {
+      <div class="depth-badge">{{ i18n.t('ui.levelUpTitle') }}</div>
+      <h2>{{ i18n.tf('ui.levelUpHeader', { level: p().level }) }}</h2>
+      <p class="prompt">Scegli un nuovo talento per il tuo personaggio:</p>
+
+      <div class="feats-list">
+        @for (f of levelUp()?.availableFeats; track f.id) {
+          <button class="btn feat-btn" (click)="selectFeat(f.id)">
+            <div class="feat-title">{{ i18n.t('feats.' + f.id + '.name') }}</div>
+            <div class="feat-desc">{{ i18n.t('feats.' + f.id + '.desc') }}</div>
+          </button>
+        }
+      </div>
+    }
+  </div>
+</div>

@@ -7,15 +7,25 @@
       {{ i18n.tf('ui.levelLabel', { cls: i18n.t('classes.' + p().cls + '.name'), level: p().level }) }}
     </p>
 
-    <div class="hpbar-outer"><div class="hpbar-inner" [style.width.%]="hpPct()"></div></div>
-    <div class="sheet-row"><span>{{ i18n.t('ui.hpLabel') }}</span><span class="num">{{ p().hp }} / {{ p().maxHp }}</span></div>
-    <div class="sheet-row"><span>{{ i18n.t('ui.xpLabel') }}</span><span class="num">{{ p().xp }} / {{ xpNeeded() }}</span></div>
-    <div class="hpbar-outer" style="height:8px;"><div class="hpbar-inner xpbar-inner" [style.width.%]="xpPct()"></div></div>
+    <div class="hpbar-outer">
+      <div class="hpbar-inner" [style.width.%]="hpPct()"></div>
+    </div>
+    <div class="sheet-row"><span>{{ i18n.t('ui.hpLabel') }}</span><span class="num">{{ p().hp }} / {{ p().maxHp
+        }}</span></div>
+    <div class="sheet-row"><span>{{ i18n.t('ui.xpLabel') }}</span><span class="num">{{ p().xp }} / {{ xpNeeded()
+        }}</span></div>
+    <div class="hpbar-outer" style="height:8px;">
+      <div class="hpbar-inner xpbar-inner" [style.width.%]="xpPct()"></div>
+    </div>
     <div class="sheet-row"><span>{{ i18n.t('ui.acLabel') }}</span><span class="num">{{ p().ac }}</span></div>
     <div class="sheet-row"><span>{{ i18n.t('ui.goldLabel') }}</span><span class="num">{{ p().gold }}</span></div>
-    <div class="sheet-row"><span>{{ i18n.t('ui.weaponLabel') }}</span><span class="num">{{ game.weaponName(p().weapon) }}{{ p().weapon.bonus ? ' +' + p().weapon.bonus : '' }}</span></div>
-    <div class="sheet-row"><span>{{ i18n.t('ui.dmgLabel') }}</span><span class="num">{{ p().weapon.dice[0] }}{{ i18n.t('ui.diceLetter') }}{{ p().weapon.dice[1] }} + {{ i18n.t('statAbbr.' + classData[p().cls].atkStat) }}</span></div>
-    <div class="sheet-row"><span>{{ i18n.t('ui.armorLabel') }}</span><span class="num">{{ game.armorName(p().armor) }} (+{{ p().armor.bonus }})</span></div>
+    <div class="sheet-row"><span>{{ i18n.t('ui.weaponLabel') }}</span><span class="num">{{ game.weaponName(p().weapon)
+        }}{{ p().weapon.bonus ? ' +' + p().weapon.bonus : '' }}</span></div>
+    <div class="sheet-row"><span>{{ i18n.t('ui.dmgLabel') }}</span><span class="num">{{ p().weapon.dice[0] }}{{
+        i18n.t('ui.diceLetter') }}{{ p().weapon.dice[1] }} + {{ i18n.t('statAbbr.' + classData[p().cls].atkStat)
+        }}</span></div>
+    <div class="sheet-row"><span>{{ i18n.t('ui.armorLabel') }}</span><span class="num">{{ game.armorName(p().armor) }}
+        (+{{ p().armor.bonus }})</span></div>
 
     <hr class="rule">
     <div class="toggle-row">
@@ -28,37 +38,39 @@
     </div>
 
     @if (s().statsExpanded) {
-      @for (k of statKeys; track k) {
-        <div class="sheet-row"><span>{{ i18n.t('statAbbr.' + k) }}</span><span class="num">{{ p().stats[k] }} ({{ dice.fmtMod(dice.mod(p().stats[k])) }})</span></div>
-      }
+    @for (k of statKeys; track k) {
+    <div class="sheet-row"><span>{{ i18n.t('statAbbr.' + k) }}</span><span class="num">{{ p().stats[k] }} ({{
+        dice.fmtMod(dice.mod(p().stats[k])) }})</span></div>
+    }
     }
 
     @if (s().inventoryExpanded) {
-      <div class="small" style="margin-top:6px;">{{ i18n.t('ui.inventoryLabel') }}</div>
-      <ul class="inv-list">
-        @if (p().inventory.length === 0) {
-          <li>&middot; {{ i18n.t('ui.emptyInventory') }}</li>
-        }
-        @for (item of p().inventory; track $index) {
-          <li>&middot; {{ i18n.t('potionName') }}</li>
-        }
-      </ul>
-
-      @if (p().relics.length > 0) {
-        <div class="small" style="margin-top:6px;">{{ i18n.t('ui.relicsLabel') }}</div>
-        <ul class="inv-list">
-          @for (rid of p().relics; track rid) {
-            <li>&middot; {{ i18n.t('relics.' + rid + '.name') }}</li>
-          }
-        </ul>
+    <div class="small" style="margin-top:6px;">{{ i18n.t('ui.inventoryLabel') }}</div>
+    <ul class="inv-list">
+      @if (p().inventory.length === 0) {
+      <li>&middot; {{ i18n.t('ui.emptyInventory') }}</li>
       }
+      @for (item of p().inventory; track $index) {
+      <li>&middot; {{ i18n.t('potionName') }}</li>
+      }
+    </ul>
+
+    @if (p().relics.length > 0) {
+    <div class="small" style="margin-top:6px;">{{ i18n.t('ui.relicsLabel') }}</div>
+    <ul class="inv-list">
+      @for (rid of p().relics; track rid) {
+      <li>&middot; {{ i18n.t('relics.' + rid + '.name') }}</li>
+      }
+    </ul>
+    }
     }
 
     @if (s().monster; as m) {
-      <hr class="rule">
-      <div class="small">{{ i18n.t('ui.enemyLabel') }}</div>
-      <div class="sheet-row"><span class="enemy-name">{{ game.monsterDisplayName(m) }}</span><span class="num">{{ m.hp }}/{{ m.maxHp }}</span></div>
-      <div class="sheet-row"><span>{{ i18n.t('ui.acShort') }}</span><span class="num">{{ m.ac }}</span></div>
+    <hr class="rule">
+    <div class="small">{{ i18n.t('ui.enemyLabel') }}</div>
+    <div class="sheet-row"><span class="enemy-name">{{ game.monsterDisplayName(m) }}</span><span class="num">{{ m.hp
+        }}/{{ m.maxHp }}</span></div>
+    <div class="sheet-row"><span>{{ i18n.t('ui.acShort') }}</span><span class="num">{{ m.ac }}</span></div>
     }
   </div>
 
@@ -66,38 +78,29 @@
   <div class="panel main-panel">
     <div class="log" id="logbox" #logbox>
       @for (l of s().log; track $index) {
-        <p [class]="l.cls" [innerHTML]="l.html"></p>
+      <p [class]="l.cls" [innerHTML]="l.html"></p>
       }
     </div>
 
     @if (s().phase === 'levelup' && s().levelUp?.step === 'hp') {
-      <div class="depth-badge">{{ i18n.t('ui.levelUpTitle') }}</div>
-      <p class="small">{{ i18n.t('ui.hpRollPrompt') }}</p>
+    <div class="depth-badge">{{ i18n.t('ui.levelUpTitle') }}</div>
+    <p class="small">{{ i18n.t('ui.hpRollPrompt') }}</p>
     }
 
-    <!-- ARENA DADI AD ALTEZZA FISSA -->
+    <!-- ARENA DADI FISSA -->
     <div class="dice-arena">
       <div class="dice-slot left">
-        <app-dice-widget
-          [label]="p().name || 'Giocatore'"
-          [themeColor]="'#8b0000'"
-          [borderColor]="'#d4af37'"
-          [labelColor]="'#d4af37'"
-          [value]="playerDieValue()"
-          [isActive]="playerDieActive()">
+        <app-dice-widget [label]="p().name || 'Giocatore'" [themeColor]="'#8b0000'" [borderColor]="'#d4af37'"
+          [labelColor]="'#d4af37'" [value]="playerDieValue()" [isActive]="playerDieActive()" [sides]="playerDieSides()">
         </app-dice-widget>
       </div>
 
       <div class="dice-slot right">
         @if (s().monster; as m) {
-          <app-dice-widget
-            [label]="game.monsterDisplayName(m)"
-            [themeColor]="'#142918'"
-            [borderColor]="'#34d399'"
-            [labelColor]="'#34d399'"
-            [value]="monsterDieValue()"
-            [isActive]="monsterDieActive()">
-          </app-dice-widget>
+        <app-dice-widget [label]="game.monsterDisplayName(m)" [themeColor]="'#142918'" [borderColor]="'#34d399'"
+          [labelColor]="'#34d399'" [value]="monsterDieValue()" [isActive]="monsterDieActive()"
+          [sides]="monsterDieSides()">
+        </app-dice-widget>
         }
       </div>
     </div>
@@ -105,42 +108,45 @@
     <!-- PULSANTIERA AZIONI -->
     <div class="actions">
       @if (s().phase === 'explore') {
-        <button class="btn" (click)="game.descendFloor()">{{ i18n.t('ui.descendButton') }}</button>
-        @if (hasPotion()) {
-          <button class="btn heal" (click)="game.playerUsePotion()">{{ i18n.t('ui.drinkPotionButton') }}</button>
-        }
+      <button class="btn" (click)="game.descendFloor()">{{ i18n.t('ui.descendButton') }}</button>
+      @if (hasPotion()) {
+      <button class="btn heal" (click)="game.playerUsePotion()">{{ i18n.t('ui.drinkPotionButton') }}</button>
+      }
       }
       @if (s().phase === 'combat') {
-        <button class="btn danger" [disabled]="acting()" (click)="game.playerAttack()">{{ i18n.t('ui.attackButton') }}</button>
-        <button class="btn" [disabled]="acting()" (click)="game.playerDefend()">{{ i18n.t('ui.defendButton') }}</button>
-        @if (canSpecial()) {
-          <button class="btn" [disabled]="acting()" (click)="game.playerUseSpecial()">{{ i18n.t('classes.' + p().cls + '.specialName') }}</button>
-        }
-        @if (hasPotion()) {
-          <button class="btn heal" [disabled]="acting()" (click)="game.playerUsePotion()">{{ i18n.t('ui.potionButton') }}</button>
-        }
-        <button class="btn" [disabled]="acting()" (click)="game.playerFlee()">{{ i18n.t('ui.fleeButton') }}</button>
+      <button class="btn danger" [disabled]="acting()" (click)="game.playerAttack()">{{ i18n.t('ui.attackButton')
+        }}</button>
+      <button class="btn" [disabled]="acting()" (click)="game.playerDefend()">{{ i18n.t('ui.defendButton') }}</button>
+      @if (canSpecial()) {
+      <button class="btn" [disabled]="acting()" (click)="game.playerUseSpecial()">{{ i18n.t('classes.' + p().cls +
+        '.specialName') }}</button>
+      }
+      @if (hasPotion()) {
+      <button class="btn heal" [disabled]="acting()" (click)="game.playerUsePotion()">{{ i18n.t('ui.potionButton')
+        }}</button>
+      }
+      <button class="btn" [disabled]="acting()" (click)="game.playerFlee()">{{ i18n.t('ui.fleeButton') }}</button>
       }
       @if (s().phase === 'choice' && s().pendingChoice) {
-        @for (o of s().pendingChoice!.options; track $index) {
-          <button class="btn" (click)="game.resolveChoiceOption(o)">{{ o.label }}</button>
-        }
+      @for (o of s().pendingChoice!.options; track $index) {
+      <button class="btn" (click)="game.resolveChoiceOption(o)">{{ o.label }}</button>
+      }
       }
       @if (s().phase === 'levelup' && s().levelUp?.step === 'hp' && s().levelUp?.hpRollTotal !== null) {
-        @if (!s().levelUp?.rerolled) {
-          <button class="btn" (click)="game.rerollLevelUpHp()">{{ i18n.t('ui.rerollHpButton') }}</button>
-        }
-        <button class="btn heal" (click)="game.confirmLevelUp()">{{ i18n.t('ui.confirmButton') }}</button>
+      @if (!s().levelUp?.rerolled) {
+      <button class="btn" (click)="game.rerollLevelUpHp()">{{ i18n.t('ui.rerollHpButton') }}</button>
+      }
+      <button class="btn heal" (click)="game.confirmLevelUp()">{{ i18n.t('ui.confirmButton') }}</button>
       }
     </div>
     <div id="scroll-anchor" style="height:1px;"></div>
   </div>
 </div>
 
-@if (s().phase === 'levelup' && s().levelUp?.step === 'stat') {
-  <app-level-up-modal></app-level-up-modal>
+@if (s().phase === 'levelup' && (s().levelUp?.step === 'stat' || s().levelUp?.step === 'feat')) {
+<app-level-up-modal></app-level-up-modal>
 }
 
 @if (s().bossRewardModal) {
-  <app-boss-reward-modal></app-boss-reward-modal>
+<app-boss-reward-modal></app-boss-reward-modal>
 }

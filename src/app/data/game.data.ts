@@ -1,4 +1,4 @@
-import { ClassKey, Player, StatKey } from '../models/game.models';
+import { ClassKey, Feat, Player, StatKey } from '../models/game.models';
 
 export const CLASS_KEYS: ClassKey[] = ['fighter', 'rogue', 'wizard', 'cleric'];
 
@@ -134,3 +134,13 @@ export function applyRelicEffect(player: Player, relicId: string): void {
     player.critThreshold = Math.max(2, (player.critThreshold || 20) - 1);
   }
 }
+
+export const CLASS_FEATS: Record<string, Feat[]> = {
+  fighter: [
+    { id: 'weapon_master', cls: 'fighter', name: '', desc: '' },
+    { id: 'iron_skin', cls: 'fighter', name: '', desc: '' },
+    { id: 'savage_striker', cls: 'fighter', name: '', desc: '' },
+    { id: 'battle_vigors', cls: 'fighter', name: '', desc: '' },
+    { id: 'devastating_crit', cls: 'fighter', name: '', desc: '' }
+  ]
+};

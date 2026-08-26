@@ -53,6 +53,13 @@ export const I18N: any = {
       giant_belt:{name:'Cintura del Gigante di Pietra', effect:'Forza +3, Punti Ferita massimi +10.'},
       blood_amulet:{name:'Amuleto del Sangue Antico', effect:'La soglia di Colpo Critico si espande a 19-20.'}
     },
+    feats:{
+      weapon_master:{name:'Maestro d\'Armi', desc:'+1 ai tiri per Colpire e +1 ai Danni.'},
+      iron_skin:{name:'Pelle di Ferro', desc:'+1 permanente alla Classe Armatura (CA).'},
+      savage_striker:{name:'Colpitore Spietato', desc:'Riduce la soglia del Colpo Critico a 19.'},
+      battle_vigors:{name:'Vigore da Battaglia', desc:'+6 Punti Ferita Massimi immediati.'},
+      devastating_crit:{name:'Critico Devastante', desc:'I colpi critici infliggono x2.5 danni invece di x2.'}
+    },
     monsters:{rat:'Ratto Gigante', goblin:'Goblin', skeleton:'Scheletro', raven:'Corvo Maledetto', orc:'Orco', wolf:'Lupo Spettrale', ghoul:'Ghoul Putrescente', knight:'Cavaliere Decaduto', ogre:'Ogre', wraith:'Spettro Errante', troll:'Troll Rigenerante', basilisk:'Basilisco Cieco'},
     bosses:{boss1:'Il Necroforgiato', boss2:"La Sposa dell'Abisso", boss3:'Il Divoratore di Corone', chimera:'La Chimera Infuocata', archdemon:"L'Arcidemone", lich:'Il Lich', hydra:"L'Idra dai Sette Capi", dragon_red:'Il Drago Rosso', kraken:'Il Kraken degli Abissi', tarrasque:'Il Tarrasque'},
     prefixes:['', '', 'Grande ', 'Antico ', 'Immane '],
@@ -116,7 +123,7 @@ export const I18N: any = {
       disarm:'Disarma il meccanismo (Destrezza)', force:'Sfonda con la forza (Forza)', study:'Studia il pattern delle rune (Intelligenza)',
       prayHeal:'Prega per la guarigione', prayBuff:'Prega per la forza (bonus temporaneo)', ignoreAltar:"Ignora l'altare e prosegui",
       buyPotion:'Compra una Pozione ({cost} oro)', upgradeWeapon:"Affila l'arma, +1 al danno ({cost} oro)", skipMerchant:'Rifiuta e vai oltre',
-      tavernRest:'Affitta una stanza e riposa ({cost} oro)', tavernDrink:'Bevi qualcosa al bancone (gratis)', tavernSkip:'Rifiuta e prosegui'
+      tavernRest:'Affitti una stanza e riposa ({cost} oro)', tavernDrink:'Bevi qualcosa al bancone (gratis)', tavernSkip:'Rifiuta e prosegui'
     }
   },
   en: {
@@ -165,6 +172,13 @@ export const I18N: any = {
       shadow_ring:{name:'Ring of the Swift Shadow', effect:'Dexterity +2, Armor Class +1.'},
       giant_belt:{name:'Belt of the Stone Giant', effect:'Strength +3, max Hit Points +10.'},
       blood_amulet:{name:'Amulet of Ancient Blood', effect:'Critical Hit threshold expands to 19-20.'}
+    },
+    feats:{
+      weapon_master:{name:'Weapon Master', desc:'+1 to Attack rolls and +1 to Damage.'},
+      iron_skin:{name:'Iron Skin', desc:'+1 permanent to Armor Class (AC).'},
+      savage_striker:{name:'Ruthless Striker', desc:'Lowers Critical Hit threshold to 19.'},
+      battle_vigors:{name:'Battle Vigor', desc:'+6 immediate Maximum Hit Points.'},
+      devastating_crit:{name:'Devastating Crit', desc:'Critical hits deal x2.5 damage instead of x2.'}
     },
     monsters:{rat:'Giant Rat', goblin:'Goblin', skeleton:'Skeleton', raven:'Cursed Raven', orc:'Orc', wolf:'Spectral Wolf', ghoul:'Rotting Ghoul', knight:'Fallen Knight', ogre:'Ogre', wraith:'Wandering Wraith', troll:'Regenerating Troll', basilisk:'Blind Basilisk'},
     bosses:{boss1:'The Necroforged', boss2:'The Bride of the Abyss', boss3:'The Crown Devourer', chimera:'The Fire-Breathing Chimera', archdemon:'The Archdemon', lich:'The Lich', hydra:'The Seven-Headed Hydra', dragon_red:'The Red Dragon', kraken:'The Abyssal Kraken', tarrasque:'The Tarrasque'},
@@ -279,6 +293,13 @@ export const I18N: any = {
       giant_belt:{name:'Ceinture du Geant de Pierre', effect:'Force +3, Points de Vie max +10.'},
       blood_amulet:{name:'Amulette du Sang Antique', effect:'Le seuil de Coup Critique s\u2019etend a 19-20.'}
     },
+    feats:{
+      weapon_master:{name:'Maître d\'Armes', desc:'+1 aux jets d\'Attaque et +1 aux Dégâts.'},
+      iron_skin:{name:'Peau de Fer', desc:'+1 permanent à la Classe d\'Armure (CA).'},
+      savage_striker:{name:'Frappeur Impitoyable', desc:'Réduit le seuil de Coup Critique à 19.'},
+      battle_vigors:{name:'Vigueur de Bataille', desc:'+6 Points de Vie Maximums immédiats.'},
+      devastating_crit:{name:'Critique Dévastateur', desc:'Les coups critiques infligent x2,5 dégâts au lieu de x2.'}
+    },
     monsters:{rat:'Rat Geant', goblin:'Gobelin', skeleton:'Squelette', raven:'Corbeau Maudit', orc:'Orc', wolf:'Loup Spectral', ghoul:'Goule Putride', knight:'Chevalier Dechu', ogre:'Ogre', wraith:'Spectre Errant', troll:'Troll Regenerant', basilisk:'Basilic Aveugle'},
     bosses:{boss1:'Le Necroforge', boss2:"L'Epouse de l'Abime", boss3:'Le Devoreur de Couronnes', chimera:'La Chimere Cracheuse de Feu', archdemon:"L'Archidemon", lich:'La Liche', hydra:"L'Hydre a Sept Tetes", dragon_red:'Le Dragon Rouge', kraken:'Le Kraken des Abysses', tarrasque:'Le Tarasque'},
     prefixes:['', '', 'Grand ', 'Antique ', 'Immense '],
@@ -391,6 +412,13 @@ export const I18N: any = {
       shadow_ring:{name:'Anillo de la Sombra Veloz', effect:'Destreza +2, Clase de Armadura +1.'},
       giant_belt:{name:'Cinturon del Gigante de Piedra', effect:'Fuerza +3, Puntos de Golpe maximos +10.'},
       blood_amulet:{name:'Amuleto de la Sangre Antigua', effect:'El umbral de Golpe Critico se amplia a 19-20.'}
+    },
+    feats:{
+      weapon_master:{name:'Maestro de Armas', desc:'+1 a las tiradas de Ataque y +1 al Daño.'},
+      iron_skin:{name:'Piel de Hierro', desc:'+1 permanente a la Clase de Armadura (CA).'},
+      savage_striker:{name:'Golpeador Despiadado', desc:'Reduce el umbral de Golpe Crítico a 19.'},
+      battle_vigors:{name:'Vigor de Batalla', desc:'+6 Puntos de Vida Máximos inmediatos.'},
+      devastating_crit:{name:'Crítico Devastador', desc:'Los golpes críticos infligen x2.5 de daño en lugar de x2.'}
     },
     monsters:{rat:'Rata Gigante', goblin:'Goblin', skeleton:'Esqueleto', raven:'Cuervo Maldito', orc:'Orco', wolf:'Lobo Espectral', ghoul:'Necrofago Putrido', knight:'Caballero Caido', ogre:'Ogro', wraith:'Espectro Errante', troll:'Troll Regenerador', basilisk:'Basilisco Ciego'},
     bosses:{boss1:'El Necroforjado', boss2:'La Novia del Abismo', boss3:'El Devorador de Coronas', chimera:'La Quimera Escupefuego', archdemon:'El Archidemonio', lich:'El Liche', hydra:'La Hidra de Siete Cabezas', dragon_red:'El Dragon Rojo', kraken:'El Kraken Abisal', tarrasque:'El Tarrasque'},
@@ -505,6 +533,13 @@ export const I18N: any = {
       giant_belt:{name:'Guertel des Steinriesen', effect:'Staerke +3, maximale Trefferpunkte +10.'},
       blood_amulet:{name:'Amulett des Alten Blutes', effect:'Die Schwelle fuer Kritische Treffer erweitert sich auf 19-20.'}
     },
+    feats:{
+      weapon_master:{name:'Waffenmeister', desc:'+1 auf Angriffswürfe und +1 auf Schaden.'},
+      iron_skin:{name:'Eisernes Haut', desc:'+1 permanent auf Rüstungsklasse (RK).'},
+      savage_striker:{name:'Gnadenloser Schläger', desc:'Senkt die Schwelle für Kritische Treffer auf 19.'},
+      battle_vigors:{name:'Schlachtenvigor', desc:'+6 sofortige maximale Trefferpunkte.'},
+      devastating_crit:{name:'Verheerender Krit', desc:'Kritische Treffer verursachen x2,5 Schaden statt x2.'}
+    },
     monsters:{rat:'Riesenratte', goblin:'Goblin', skeleton:'Skelett', raven:'Verfluchte Kraehe', orc:'Ork', wolf:'Gespenstischer Wolf', ghoul:'Verwesender Ghul', knight:'Gefallener Ritter', ogre:'Oger', wraith:'Umherirrender Geist', troll:'Regenerierender Troll', basilisk:'Blinder Basilisk'},
     bosses:{boss1:'Der Nekrogeschmiedete', boss2:'Die Braut des Abgrunds', boss3:'Der Kronenfresser', chimera:'Die Feuerspeiende Chimaera', archdemon:'Der Erzdaemon', lich:'Der Lich', hydra:'Die Siebenkoepfige Hydra', dragon_red:'Der Rote Drache', kraken:'Der Abgrundkraken', tarrasque:'Der Tarrasque'},
     prefixes:['', '', 'Gross-', 'Uralter ', 'Gewaltiger '],
@@ -572,3 +607,5 @@ export const I18N: any = {
     }
   }
 };
+
+export const I18N_DATA = I18N;

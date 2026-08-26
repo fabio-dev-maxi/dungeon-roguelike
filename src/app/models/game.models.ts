@@ -1,16 +1,21 @@
-import { LangCode } from '../data/i18n.data';
+import { LangCode } from "../data/i18n.data";
 
-export type ClassKey = 'fighter' | 'rogue' | 'wizard' | 'cleric';
 export type StatKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha';
+export type ClassKey = 'fighter' | 'rogue' | 'wizard' | 'cleric';
 
 export interface Stats {
-  str: number; dex: number; con: number; int: number; wis: number; cha: number;
+  str: number;
+  dex: number;
+  con: number;
+  int: number;
+  wis: number;
+  cha: number;
 }
 
 export interface Weapon {
   key: string;
   dice: [number, number];
-  bonus: number;
+  bonus?: number;
 }
 
 export interface Armor {
@@ -18,9 +23,16 @@ export interface Armor {
   bonus: number;
 }
 
-export interface Potion {
-  type: 'potion';
+export interface InventoryItem {
+  type: 'potion' | string;
   heal: [number, number];
+}
+
+export interface Feat {
+  id: string;
+  cls: ClassKey | 'all';
+  name: string;
+  desc: string;
 }
 
 export interface Player {
@@ -33,13 +45,17 @@ export interface Player {
   gold: number;
   weapon: Weapon;
   armor: Armor;
-  inventory: Potion[];
+  inventory: InventoryItem[];
   usedSpecial: boolean;
   level: number;
   xp: number;
-  tempAtkBonus: number;
+  tempAtkBonus?: number;
   critThreshold: number;
   relics: string[];
+  feats?: string[];
+  flatAtkBonus?: number;
+  flatDmgBonus?: number;
+  critMultiplier?: number;
 }
 
 export interface Monster {
@@ -52,14 +68,6 @@ export interface Monster {
   ac: number;
 }
 
-export type GamePhase = 'explore' | 'combat' | 'choice' | 'levelup' | null;
-export type GameScreen = 'title' | 'create' | 'run' | 'gameover';
-
-export interface LogEntry {
-  html: string;
-  cls: string;
-}
-
 export interface ChoiceOption {
   label: string;
   stat?: StatKey;
@@ -69,21 +77,37 @@ export interface ChoiceOption {
 
 export interface PendingChoice {
   dc: number | null;
-  options: ChoiceOption[];
   canFail?: boolean;
-  onResolve?: (success: boolean) => void;
+  options: ChoiceOption[];
   onChoose?: (opt: ChoiceOption) => boolean | void;
+  onResolve?: (success: boolean) => void;
+}
+
+export interface DropInfo {
+  type: 'relic';
+  id: string;
+  name: string;
+  effect: string;
+}
+
+export interface BossRewardModalData {
+  name: string;
+  xp: number;
+  gold: number;
+  drops: DropInfo[];
 }
 
 export interface LevelUpState {
-  step: 'stat' | 'hp';
-  chosenStat: StatKey | null;
-  hpRollBase: number | null;
-  hpRollTotal: number | null;
-  rerolled: boolean;
+  step: 'stat' | 'feat' | 'hp';
+  chosenStat?: StatKey | null;
+  availableFeats?: Feat[];
+  chosenFeatId?: string | null;
+  hpRollBase?: number | null;
+  hpRollTotal?: number | null;
+  rerolled?: boolean;
 }
 
-export interface RollingDie {
+export interface RollingDieState {
   active: boolean;
   value: number | null;
   cls: string;
@@ -91,37 +115,33 @@ export interface RollingDie {
   tag?: string;
 }
 
-export interface DropInfo {
-  type: 'relic'; // future drop kinds (weapon/armor/etc.) can extend this union later
-  id: string;
-  name: string;
-  effect: string;
+export interface CombatFlags {
+  acting?: boolean;
+  defending?: boolean;
 }
 
-export interface BossReward {
-  name: string;
-  xp: number;
-  gold: number;
-  drops: DropInfo[];
+export interface LogMessage {
+  html: string;
+  cls: string;
 }
 
 export interface GameState {
-  screen: GameScreen;
+  screen: 'title' | 'create' | 'run' | 'gameover';
   lang: LangCode;
   player: Player | null;
   depth: number;
   monster: Monster | null;
-  phase: GamePhase;
-  combatFlags: { acting?: boolean; defending?: boolean };
-  log: LogEntry[];
+  phase: 'explore' | 'combat' | 'choice' | 'levelup' | null;
+  combatFlags: CombatFlags;
+  log: LogMessage[];
   pendingChoice: PendingChoice | null;
   pendingLevelUps: number;
   levelUp: LevelUpState | null;
-  bossRewardModal: BossReward | null;
+  bossRewardModal: BossRewardModalData | null;
   lastTavernDepth: number;
   statsExpanded: boolean;
   inventoryExpanded: boolean;
-  rollingDie: RollingDie;
+  rollingDie: RollingDieState;
   tempStats: Stats | null;
   tempName: string;
 }

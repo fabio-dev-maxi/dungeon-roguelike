@@ -99,4 +99,21 @@ export class GameScreenComponent implements AfterViewChecked {
     document.body.style.paddingTop = '';
     document.body.classList.remove('has-topbar');
   }
+
+  // Aggiungi questi due metodi nella classe GameScreenComponent:
+playerDieSides(): number {
+  const rd = this.s().rollingDie;
+  if (rd && !this.isEnemyRoll() && rd.sides) {
+    return rd.sides;
+  }
+  return 20;
+}
+
+monsterDieSides(): number {
+  const rd = this.s().rollingDie;
+  if (rd && this.isEnemyRoll() && rd.sides) {
+    return rd.sides;
+  }
+  return 20;
+}
 }

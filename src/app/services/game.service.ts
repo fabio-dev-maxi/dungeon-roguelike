@@ -4,10 +4,10 @@ import { DiceService, WeightedItem } from './dice.service';
 import { LangCode } from '../data/i18n.data';
 import {
   BOSS_IDS, BOSS_STATS, BOSS_XP, CLASS_DATA, MONSTER_IDS_TIER, MONSTER_STATS, MONSTER_XP,
-  RELIC_CLASS_POOLS, applyRelicEffect, xpToNext, mod
+  RELIC_CLASS_POOLS, applyRelicEffect, xpToNext, mod, CLASS_FEATS
 } from '../data/game.data';
 import {
-  Armor, ChoiceOption, ClassKey, DropInfo, GameState, LevelUpState, Monster, PendingChoice, Player, StatKey, Stats, Weapon
+  Armor, ChoiceOption, ClassKey, DropInfo, Feat, GameState, LevelUpState, Monster, PendingChoice, Player, StatKey, Stats, Weapon
 } from '../models/game.models';
 
 @Injectable({ providedIn: 'root' })
@@ -16,9 +16,8 @@ export class GameService {
   private _version = signal(0);
   bestDepth = signal<number>(0);
 
-  constructor(private i18n: I18nService, private dice: DiceService) {}
+  constructor(private i18n: I18nService, private dice: DiceService) { }
 
-  // ---------------------------------------------------------------- helpers
   state(): GameState {
     this._version();
     return this._state;
@@ -107,7 +106,11 @@ export class GameService {
       xp: 0,
       tempAtkBonus: 0,
       critThreshold: 20,
-      relics: []
+      relics: [],
+      feats: [],
+      flatAtkBonus: 0,
+      flatDmgBonus: 0,
+      critMultiplier: 2
     };
   }
 
@@ -141,38 +144,31 @@ export class GameService {
     this.startFloor();
   }
 
-  // ------------------------------------------------------------ logging
   log(html: string, cls = ''): void {
     const s = this.state();
     s.log.push({ html, cls });
     this.touch();
   }
 
-  // ------------------------------------------------------------ dice widget async
   private async animateRollAsync(finalValue: number, sides: number, tag = '', critMin?: number): Promise<number> {
     const s = this.state();
-
-    // 1. Fase Spin Attivo
     s.rollingDie = { active: true, value: this.dice.rnd(sides), cls: 'rolling', sides, tag };
     this.touch();
     await this.wait(500);
 
-    // 2. Determinazione critici/fallimenti
     let cls = '';
     if (sides === 20) {
       if (finalValue >= (critMin || 20)) cls = 'crit';
       else if (finalValue === 1) cls = 'fail';
     }
 
-    // 3. Arresto e posizionamento 3D
     s.rollingDie = { active: false, value: finalValue, cls, sides, tag };
     this.touch();
-    await this.wait(800); // Tempo per lo slerp di Three.js e la lettura a schermo
+    await this.wait(800);
 
     return finalValue;
   }
 
-  // ------------------------------------------------------------ floor gen
   private pickMonsterTier(depth: number): number {
     if (depth <= 4) return 1;
     if (depth <= 9) return this.dice.weightedPick([{ v: 1, w: 60 }, { v: 2, w: 40 }]);
@@ -271,7 +267,6 @@ export class GameService {
     }
   }
 
-  // ---- Treasure ----
   private resolveTreasure(): void {
     const s = this.state();
     const gold = this.dice.rollNdM(2, 6) + s.depth;
@@ -287,7 +282,6 @@ export class GameService {
     this.touch();
   }
 
-  // ---- Trap ----
   private makeTrapChoice(): PendingChoice {
     const dc = 10 + Math.floor(this.state().depth / 3);
     return {
@@ -314,7 +308,6 @@ export class GameService {
     };
   }
 
-  // ---- Shrine ----
   private makeShrineChoice(): PendingChoice {
     return {
       dc: null,
@@ -341,7 +334,6 @@ export class GameService {
     };
   }
 
-  // ---- Merchant ----
   private makeMerchantChoice(): PendingChoice {
     const potionCost = 8;
     const upgradeCost = 15 + this.state().depth;
@@ -376,7 +368,6 @@ export class GameService {
     };
   }
 
-  // ---- Tavern ----
   private makeTavernChoice(): PendingChoice {
     const restCost = 18 + Math.floor(this.state().depth * 1.5);
     return {
@@ -449,10 +440,11 @@ export class GameService {
     if (s.combatFlags.acting) return;
     s.combatFlags.acting = true;
 
-    const c = CLASS_DATA[s.player!.cls];
-    const statMod = mod(s.player!.stats[c.atkStat]) + (s.player!.tempAtkBonus || 0);
-    const critThreshold = s.player!.critThreshold || 20;
-    s.player!.tempAtkBonus = 0;
+    const p = s.player!;
+    const c = CLASS_DATA[p.cls];
+    const statMod = mod(p.stats[c.atkStat]) + (p.tempAtkBonus || 0) + (p.flatAtkBonus || 0);
+    const critThreshold = p.critThreshold || 20;
+    p.tempAtkBonus = 0;
     this.touch();
 
     const raw = await this.animateRollAsync(this.dice.rnd(20), 20, 'attack', critThreshold);
@@ -466,12 +458,16 @@ export class GameService {
       this.log(this.t('log.attackMissNat1'), 'dmg');
     } else if (hit) {
       const [n, d] = cur.player!.weapon.dice;
-      const bonus = mod(cur.player!.stats[c.atkStat]) + (cur.player!.weapon.bonus || 0);
+      const bonus = mod(cur.player!.stats[c.atkStat]) + (cur.player!.weapon.bonus || 0) + (cur.player!.flatDmgBonus || 0);
       const dmgRoll = this.dice.rollNdM(n, d);
       const dmgMax = n * d;
       let dmg = dmgRoll + bonus;
       let critTxt = '';
-      if (raw === 20 || isCritByClass) { dmg *= 2; critTxt = this.t('log.critText'); }
+      if (raw === 20 || isCritByClass) {
+        const mult = cur.player!.critMultiplier || 2;
+        dmg = Math.floor(dmg * mult);
+        critTxt = this.t('log.critText');
+      }
       cur.monster!.hp = this.dice.clamp(cur.monster!.hp - dmg, 0, cur.monster!.maxHp);
       this.touch();
       this.log(this.tf('log.attackHit', { roll: raw, mod: this.dice.fmtMod(statMod), total, ac: cur.monster!.ac, dmgRoll, dmgMax, dmg, crit: critTxt }));
@@ -538,7 +534,7 @@ export class GameService {
       await this.monsterTurn();
     } else if (cls === 'fighter') {
       const [n, d] = CLASS_DATA.fighter.weaponDice;
-      const bonus = mod(s.player!.stats[CLASS_DATA.fighter.atkStat]) + (s.player!.weapon.bonus || 0);
+      const bonus = mod(s.player!.stats[CLASS_DATA.fighter.atkStat]) + (s.player!.weapon.bonus || 0) + (s.player!.flatDmgBonus || 0);
       const dmgRoll = this.dice.rollNdM(n, d);
       const dmgMax = n * d;
       const dmg = (dmgRoll + bonus) * 2;
@@ -712,15 +708,45 @@ export class GameService {
     else { s.phase = 'explore'; this.touch(); }
   }
 
-  // ------------------------------------------------------------ level up
+  // ------------------------------------------------------------ LEVEL UP LOGIC
   private startLevelUp(): void {
     const s = this.state();
     s.player!.level++;
     s.phase = 'levelup';
-    s.levelUp = { step: 'stat', chosenStat: null, hpRollBase: null, hpRollTotal: null, rerolled: false };
     s.rollingDie = { active: false, value: null, cls: '' };
+
+    const newLevel = s.player!.level;
+    const hasStat = newLevel % 2 === 0;
+    const hasFeat = newLevel % 3 === 0;
+
+    let initialStep: 'stat' | 'feat' | 'hp' = 'hp';
+    let featsForLevel: Feat[] = [];
+
+    if (hasStat) {
+      initialStep = 'stat';
+    } else if (hasFeat) {
+      initialStep = 'feat';
+      const allFeats = CLASS_FEATS[s.player!.cls] || [];
+      const userFeats = s.player!.feats || [];
+      featsForLevel = allFeats.filter(f => !userFeats.includes(f.id));
+    }
+
+    s.levelUp = {
+      step: initialStep,
+      chosenStat: null,
+      availableFeats: featsForLevel,
+      chosenFeatId: null,
+      hpRollBase: null,
+      hpRollTotal: null,
+      rerolled: false
+    };
+
     this.touch();
-    this.log(this.tf('log.levelUpAnnounce', { level: s.player!.level }), 'sys');
+    this.log(this.tf('log.levelUpAnnounce', { level: newLevel }), 'sys');
+
+    if (initialStep === 'hp') {
+      this.rollLevelUpHp();
+    }
   }
 
   chooseLevelUpStat(statKey: StatKey): void {
@@ -729,7 +755,6 @@ export class GameService {
     const oldConMod = mod(s.player!.stats.con);
     s.player!.stats[statKey] += 1;
     s.levelUp.chosenStat = statKey;
-    s.levelUp.step = 'hp';
     this.touch();
     this.log(this.tf('log.levelUpStatChosen', { stat: this.t('stats.' + statKey), value: s.player!.stats[statKey] }), 'heal');
 
@@ -744,6 +769,48 @@ export class GameService {
       }
     }
 
+    const newLevel = s.player!.level;
+    if (newLevel % 3 === 0) {
+      const allFeats = CLASS_FEATS[s.player!.cls] || [];
+      const userFeats = s.player!.feats || [];
+      s.levelUp.availableFeats = allFeats.filter(f => !userFeats.includes(f.id));
+      s.levelUp.step = 'feat';
+      this.touch();
+    } else {
+      s.levelUp.step = 'hp';
+      this.touch();
+      this.rollLevelUpHp();
+    }
+  }
+
+  chooseLevelUpFeat(featId: string): void {
+    const s = this.state();
+    if (!s.levelUp || s.levelUp.step !== 'feat') return;
+
+    const p = s.player!;
+    if (!p.feats) p.feats = [];
+    p.feats.push(featId);
+    s.levelUp.chosenFeatId = featId;
+
+    if (featId === 'weapon_master') {
+      p.flatAtkBonus = (p.flatAtkBonus || 0) + 1;
+      p.flatDmgBonus = (p.flatDmgBonus || 0) + 1;
+    } else if (featId === 'iron_skin') {
+      p.ac += 1;
+    } else if (featId === 'savage_striker') {
+      p.critThreshold = 19;
+    } else if (featId === 'battle_vigors') {
+      p.maxHp += 6;
+      p.hp += 6;
+    } else if (featId === 'devastating_crit') {
+      p.critMultiplier = 2.5;
+    }
+
+    const featName = this.t('feats.' + featId + '.name');
+    this.log(`Talento acquisito: <strong>${featName}</strong>!`, 'heal');
+
+    s.levelUp.step = 'hp';
+    this.touch();
     this.rollLevelUpHp();
   }
 
@@ -774,18 +841,26 @@ export class GameService {
 
   confirmLevelUp(): void {
     const s = this.state();
-    if (!s.levelUp || s.levelUp.hpRollTotal === null) return;
-    const gain = s.levelUp.hpRollTotal;
+    const levelUp = s.levelUp;
+    if (!levelUp || levelUp.hpRollTotal === null || levelUp.hpRollTotal === undefined) return;
+
+    const gain = levelUp.hpRollTotal;
     s.player!.maxHp += gain;
     s.player!.hp += gain;
     this.touch();
     this.log(this.tf('log.levelUpHpGained', { hp: gain, maxhp: s.player!.maxHp }), 'heal');
+
     const cur = this.state();
     cur.pendingLevelUps--;
     cur.rollingDie = { active: false, value: null, cls: '' };
     this.touch();
-    if (cur.pendingLevelUps > 0) { this.startLevelUp(); }
-    else { cur.levelUp = null; cur.phase = 'explore'; this.touch(); }
+    if (cur.pendingLevelUps > 0) {
+      this.startLevelUp();
+    } else {
+      cur.levelUp = null;
+      cur.phase = 'explore';
+      this.touch();
+    }
   }
 
   // ------------------------------------------------------------ misc
@@ -808,7 +883,7 @@ export class GameService {
   }
 
   restartGame(): void {
-    const lang = this.state().lang;
+    const lang = this.state().lang as LangCode;
     this._state = this.freshState(lang);
     this.touch();
   }
