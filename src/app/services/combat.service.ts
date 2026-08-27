@@ -9,7 +9,7 @@ import { LevelUpService } from './level-up.service';
 import { MonsterService } from './monster.service';
 
 /**
- * Logica di combattimento, attacchi, difese, abilità speciali e IA mostro.
+ * Gestisce la logica di combattimento, attacchi speciali e turni del mostro.
  */
 @Injectable({ providedIn: 'root' })
 export class CombatService {
@@ -40,6 +40,7 @@ export class CombatService {
 
     if (raw === 1) {
       this.stateService.log(this.stateService.t('log.attackMissNat1'), 'dmg');
+      // Se fallisce (1 naturale), mightyBlowActive NON viene azzerato e rimane per l'attacco successivo
     } else if (hit) {
       const [n, d] = cur.player!.weapon.dice;
       const bonus = mod(cur.player!.stats[c.atkStat]) + (cur.player!.weapon.bonus || 0) + (cur.player!.flatDmgBonus || 0);
@@ -54,6 +55,13 @@ export class CombatService {
         critTxt = this.stateService.t('log.critText');
       }
 
+      // Se Colpo Poderoso è attivo da un turno precedente (o dal fallimento dell'attacco speciale), consumalo ORA che ha colpito
+      if (cur.player!.mightyBlowActive) {
+        dmg = dmg * 2;
+        cur.player!.mightyBlowActive = false; // Consumato solo a segno
+        critTxt += ' <b>[COLPO PODEROSO!]</b>';
+      }
+
       cur.monster!.hp = this.dice.clamp(cur.monster!.hp - dmg, 0, cur.monster!.maxHp);
       this.stateService.touch();
       this.stateService.log(
@@ -65,6 +73,7 @@ export class CombatService {
       this.stateService.log(
         this.stateService.tf('log.attackMiss', { roll: raw, mod: this.dice.fmtMod(statMod), total, ac: cur.monster!.ac })
       );
+      // Se manca il bersaglio, mightyBlowActive rimane TRUE
     }
 
     if (cur.monster && cur.monster.hp <= 0) {
@@ -101,16 +110,101 @@ export class CombatService {
     s.combatFlags.acting = true;
     this.stateService.touch();
 
-    if (cls === 'wizard') {
+    if (cls === 'fighter') {
+      // Imposta il flag del Colpo Poderoso e segna l'abilità speciale come usata per il combattimento
+      p.mightyBlowActive = true;
+      p.usedSpecial = true;
+
+      const statMod = mod(p.stats.str) + (p.tempAtkBonus || 0) + (p.flatAtkBonus || 0);
+      p.tempAtkBonus = 0;
+      const critThreshold = p.critThreshold || 20;
+
+      // Attacco immediato
+      const raw = await this.stateService.animateRollAsync(this.dice.rnd(20), 20, 'attack', critThreshold);
+      const total = raw + statMod;
+      const isCrit = raw >= critThreshold;
+      const hit = raw === 20 || isCrit || total >= s.monster!.ac;
+
+      if (raw === 1) {
+        this.stateService.log(this.stateService.t('log.attackMissNat1'), 'dmg');
+        // Mancato: mightyBlowActive rimane true per i prossimi attacchi standard
+      } else if (hit) {
+        const [n, d] = CLASS_DATA.fighter.weaponDice;
+        const bonus = mod(p.stats.str) + (p.weapon.bonus || 0) + (p.flatDmgBonus || 0);
+        const dmgRoll = this.dice.rollNdM(n, d);
+        const dmgMax = n * d;
+        let dmg = (dmgRoll + bonus) * 2;
+        let critTxt = ' <b>[COLPO PODEROSO!]</b>';
+
+        if (isCrit) {
+          const mult = p.critMultiplier || 2;
+          dmg = Math.floor(dmg * mult);
+          critTxt += this.stateService.t('log.critText');
+        }
+
+        // Colpito: disattiva il flag
+        p.mightyBlowActive = false;
+
+        s.monster!.hp = this.dice.clamp(s.monster!.hp - dmg, 0, s.monster!.maxHp);
+        this.stateService.touch();
+        this.stateService.log(
+          this.stateService.tf('log.attackHit', { 
+            roll: raw, mod: this.dice.fmtMod(statMod), total, ac: s.monster!.ac, dmgRoll, dmgMax, dmg, crit: critTxt 
+          })
+        );
+      } else {
+        this.stateService.log(
+          this.stateService.tf('log.attackMiss', { roll: raw, mod: this.dice.fmtMod(statMod), total, ac: s.monster!.ac })
+        );
+        // Mancato: mightyBlowActive rimane true per i prossimi attacchi standard
+      }
+
+      if (s.monster!.hp <= 0) {
+        s.combatFlags.acting = false;
+        this.monsterDefeated();
+        return;
+      }
+      await this.monsterTurn();
+
+    } else if (cls === 'rogue') {
+      const statMod = mod(p.stats.dex) + (p.tempAtkBonus || 0) + (p.flatAtkBonus || 0) + 3;
+      p.tempAtkBonus = 0;
+      const raw = await this.stateService.animateRollAsync(this.dice.rnd(20), 20, 'attack', p.critThreshold);
+      const total = raw + statMod;
+      const hit = raw === 20 || total >= s.monster!.ac;
+
+      if (hit) {
+        const bonus = mod(p.stats.dex) + (p.weapon.bonus || 0) + (p.flatDmgBonus || 0);
+        const dmgRoll = this.dice.rollNdM(3, 6);
+        const mult = p.critMultiplier || 2;
+        const dmg = Math.floor((dmgRoll + bonus) * mult);
+
+        s.monster!.hp = this.dice.clamp(s.monster!.hp - dmg, 0, s.monster!.maxHp);
+        this.stateService.touch();
+        this.stateService.log(this.stateService.tf('log.specialRogueHit', { special: specialName, dmgRoll, dmgMax: 18, dmg }), 'dmg');
+      } else {
+        this.stateService.log(this.stateService.tf('log.specialRogueMiss', { special: specialName }), 'flavor');
+      }
+
+      p.usedSpecial = true;
+      if (s.monster!.hp <= 0) {
+        s.combatFlags.acting = false;
+        this.monsterDefeated();
+        return;
+      }
+      await this.monsterTurn();
+
+    } else if (cls === 'wizard') {
       const bonus = mod(p.stats.int) + (p.specialBonusDmg || 0) + (p.flatDmgBonus || 0);
-      const dmgRoll = this.dice.rollNdM(2, 4);
-      const dmgMax = 8;
+      const dmgRoll = this.dice.rollNdM(3, 6);
+      const dmgMax = 18;
       const dmg = dmgRoll + bonus;
       
       s.monster!.hp = this.dice.clamp(s.monster!.hp - dmg, 0, s.monster!.maxHp);
+      p.tempAcBonus = (p.tempAcBonus || 0) + 2;
       this.stateService.touch();
       this.stateService.log(this.stateService.tf('log.specialWizard', { special: specialName, dmgRoll, dmgMax, dmg }), 'dmg');
-      s.player!.usedSpecial = true;
+      p.usedSpecial = true;
 
       if (s.monster!.hp <= 0) {
         s.combatFlags.acting = false;
@@ -118,35 +212,19 @@ export class CombatService {
         return;
       }
       await this.monsterTurn();
+
     } else if (cls === 'cleric') {
       const bonus = mod(p.stats.wis) + (p.specialBonusHeal || 0);
-      const dmgRoll = this.dice.rollNdM(2, 6);
-      const dmgMax = 12;
+      const dmgRoll = this.dice.rollNdM(3, 6);
+      const dmgMax = 18;
       const heal = dmgRoll + bonus;
 
-      s.player!.hp = this.dice.clamp(s.player!.hp + heal, 0, s.player!.maxHp);
+      p.hp = this.dice.clamp(p.hp + heal, 0, p.maxHp);
+      p.tempAcBonus = (p.tempAcBonus || 0) + 2;
       this.stateService.touch();
       this.stateService.log(this.stateService.tf('log.specialCleric', { special: specialName, dmgRoll, dmgMax, heal }), 'heal');
-      s.player!.usedSpecial = true;
+      p.usedSpecial = true;
       
-      await this.monsterTurn();
-    } else if (cls === 'fighter') {
-      const [n, d] = CLASS_DATA.fighter.weaponDice;
-      const bonus = mod(p.stats[CLASS_DATA.fighter.atkStat]) + (p.weapon.bonus || 0) + (p.flatDmgBonus || 0);
-      const dmgRoll = this.dice.rollNdM(n, d);
-      const dmgMax = n * d;
-      const dmg = (dmgRoll + bonus) * 2;
-
-      s.monster!.hp = this.dice.clamp(s.monster!.hp - dmg, 0, s.monster!.maxHp);
-      this.stateService.touch();
-      this.stateService.log(this.stateService.tf('log.specialFighter', { special: specialName, dmgRoll, dmgMax, dmg }), 'dmg');
-      s.player!.usedSpecial = true;
-
-      if (s.monster!.hp <= 0) {
-        s.combatFlags.acting = false;
-        this.monsterDefeated();
-        return;
-      }
       await this.monsterTurn();
     }
 
@@ -223,7 +301,7 @@ export class CombatService {
 
     const acBonus = defending ? 4 : 0;
     const monsterAtkMod = 2 + Math.floor(s.depth / 5);
-    const targetAC = p.ac + acBonus;
+    const targetAC = p.ac + acBonus + (p.tempAcBonus || 0);
     this.stateService.touch();
 
     const toHit = await this.stateService.animateRollAsync(this.dice.rnd(20), 20, 'monsterAttack');
@@ -240,7 +318,6 @@ export class CombatService {
       
       if (defending) dmg = Math.ceil(dmg / 2);
 
-      // Applica la Riduzione Danno passiva del giocatore (Guerriero/Reliquia)
       if (p.damageReduction && p.damageReduction > 0) {
         dmg = Math.max(1, dmg - p.damageReduction);
       }
@@ -272,6 +349,8 @@ export class CombatService {
     s.player!.gold += gold;
     s.player!.xp += xp;
     s.player!.usedSpecial = false;
+    s.player!.tempAcBonus = 0;
+    s.player!.mightyBlowActive = false; // Azzera l'eventuale carica non usata a fine combattimento
     this.stateService.touch();
 
     this.stateService.log(this.stateService.tf('log.monsterDefeated', { name, gold, xp }), 'heal');

@@ -50,19 +50,19 @@ export interface Player {
   level: number;
   xp: number;
   tempAtkBonus?: number;
+  tempAcBonus?: number;
+  mightyBlowActive?: boolean;
   critThreshold: number;
   relics: string[];
   feats?: string[];
   flatAtkBonus?: number;
   flatDmgBonus?: number;
   critMultiplier?: number;
-  
-  // Nuovi attributi per specializzazioni, talenti e reliquie
-  damageReduction?: number;    // Riduzione fissa del danno nemico subito (Guerriero/Tank)
-  specialBonusDmg?: number;    // Bonus ai danni delle abilita arcaniche/speciali (Mago)
-  specialBonusHeal?: number;   // Bonus all'efficacia delle cure magiche (Chierico)
-  potionHealBonus?: number;    // Bonus alle cure tramite pozioni (Chierico)
-  fleeBonus?: number;          // Bonus alle prove per fuggire dal combattimento (Ladro)
+  damageReduction?: number;
+  specialBonusDmg?: number;
+  specialBonusHeal?: number;
+  potionHealBonus?: number;
+  fleeBonus?: number;
 }
 
 export interface Monster {

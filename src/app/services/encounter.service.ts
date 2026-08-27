@@ -1,27 +1,18 @@
 import { Injectable } from '@angular/core';
-import { mod } from '../data/game.data';
 import { BOSS_IDS, BOSS_STATS } from '../data/monster.data';
 import { ChoiceOption, PendingChoice, StatKey } from '../models/game.models';
 import { DiceService, WeightedItem } from './dice.service';
 import { GameStateService } from './game-state.service';
 import { MonsterService } from './monster.service';
 
-/**
- * Gestione eventi (trappole, altari, mercante, taverna, tesori)
- */
 @Injectable({ providedIn: 'root' })
 export class EncounterService {
   constructor(
     private stateService: GameStateService,
     private monsterService: MonsterService,
     private dice: DiceService
-  ) { }
+  ) {}
 
-  /**
-   * Restituisce i pesi per i vari tipi di incontro in base alla profondità
-   * @param depth 
-   * @returns 
-   */
   encounterWeightsForDepth(depth: number): WeightedItem<string>[] {
     let weights: WeightedItem<string>[];
     if (depth <= 5) weights = [
@@ -59,20 +50,16 @@ export class EncounterService {
     return weights;
   }
 
-  /**
-   * Inizia un nuovo piano, generando un incontro casuale in base alla profondità
-   */
   startFloor(): void {
     const s = this.stateService.state();
     s.depth++;
-
-    // Il numero di piani superati con successo prima di questo piano è s.depth - 1
+    
     const completedFloors = Math.max(0, s.depth - 1);
     this.stateService.bestDepth.set(Math.max(this.stateService.bestDepth(), completedFloors));
-
+    
     const forcedBoss = BOSS_IDS.some(id => BOSS_STATS[id].atDepth === s.depth);
     let type = forcedBoss ? 'combat' : this.dice.weightedPick(this.encounterWeightsForDepth(s.depth));
-
+    
     this.stateService.touch();
     this.stateService.log(`<span class="sys">${this.stateService.tf('log.floorHeader', { depth: s.depth })}</span>`);
 
@@ -250,7 +237,6 @@ export class EncounterService {
     const s = this.stateService.state();
     const pc = s.pendingChoice;
     if (!pc) return;
-
     if (pc.canFail) {
       const ok = pc.onChoose!(opt);
       if (ok === false) return;
@@ -260,10 +246,8 @@ export class EncounterService {
       pc.onChoose(opt);
       s.phase = 'explore'; s.pendingChoice = null; this.stateService.touch(); return;
     }
-
-    const statMod = mod(s.player!.stats[opt.stat as StatKey]);
+    const statMod = this.dice.mod(s.player!.stats[opt.stat as StatKey]);
     const raw = await this.stateService.animateRollAsync(this.dice.rnd(20), 20, 'check');
-
     const cur = this.stateService.state();
     const total = raw + statMod;
     const success = total >= pc.dc!;

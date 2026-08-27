@@ -1,19 +1,12 @@
 import { ClassKey, Player } from '../models/game.models';
 
 export const RELIC_IDS = [
-  // Guerriero
   'giant_belt', 'dragon_scale_shield', 'berserker_ring',
-  // Ladro
   'shadow_ring', 'blood_amulet', 'cloaking_cape',
-  // Mago
   'tome_of_archmage', 'pendant_of_ether', 'crystal_orb',
-  // Chierico
   'sun_reliquary', 'holy_grail', 'guardian_talisman'
 ];
 
-/**
-  * Pool di reliquie disponibili per ciascuna classe ottenibili dai Boss.
-  */
 export const RELIC_CLASS_POOLS: Record<ClassKey, string[]> = {
   fighter: ['giant_belt', 'dragon_scale_shield', 'berserker_ring'],
   rogue: ['shadow_ring', 'blood_amulet', 'cloaking_cape'],
@@ -21,12 +14,8 @@ export const RELIC_CLASS_POOLS: Record<ClassKey, string[]> = {
   cleric: ['sun_reliquary', 'holy_grail', 'guardian_talisman']
 };
 
-/**
-  * Applica l'effetto permanente della reliquia acquisita al giocatore.
-  */
 export function applyRelicEffect(p: Player, relicId: string): void {
   switch (relicId) {
-    // --- RELIQUIE GUERRIERO ---
     case 'giant_belt':
       p.stats.str += 3;
       p.maxHp += 12;
@@ -40,8 +29,6 @@ export function applyRelicEffect(p: Player, relicId: string): void {
       p.flatDmgBonus = (p.flatDmgBonus || 0) + 3;
       p.flatAtkBonus = (p.flatAtkBonus || 0) + 1;
       break;
-
-    // --- RELIQUIE LADRO ---
     case 'shadow_ring':
       p.stats.dex += 3;
       p.ac += 1;
@@ -54,8 +41,6 @@ export function applyRelicEffect(p: Player, relicId: string): void {
       p.stats.dex += 2;
       p.critMultiplier = Math.max(2.5, (p.critMultiplier || 2) + 0.5);
       break;
-
-    // --- RELIQUIE MAGO ---
     case 'tome_of_archmage':
       p.stats.int += 3;
       p.specialBonusDmg = (p.specialBonusDmg || 0) + 3;
@@ -69,8 +54,6 @@ export function applyRelicEffect(p: Player, relicId: string): void {
       p.stats.int += 2;
       p.flatAtkBonus = (p.flatAtkBonus || 0) + 2;
       break;
-
-    // --- RELIQUIE CHIERICO ---
     case 'sun_reliquary':
       p.stats.wis += 3;
       p.flatAtkBonus = (p.flatAtkBonus || 0) + 2;
