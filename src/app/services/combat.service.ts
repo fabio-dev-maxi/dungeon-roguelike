@@ -9,7 +9,7 @@ import { LevelUpService } from './level-up.service';
 import { MonsterService } from './monster.service';
 
 /**
- * Gestisce la logica di combattimento, attacchi speciali e turni del mostro.
+ * Gestisce la logica di combattimento con tiri animati sia per il colpire che per il danno.
  */
 @Injectable({ providedIn: 'root' })
 export class CombatService {
@@ -18,7 +18,7 @@ export class CombatService {
     private monsterService: MonsterService,
     private levelUpService: LevelUpService,
     private dice: DiceService
-  ) {}
+  ) { }
 
   async playerAttack(): Promise<void> {
     const s = this.stateService.state();
@@ -32,6 +32,7 @@ export class CombatService {
     p.tempAtkBonus = 0;
     this.stateService.touch();
 
+    // 1. Tiro per Colpire (d20)
     const raw = await this.stateService.animateRollAsync(this.dice.rnd(20), 20, 'attack', critThreshold);
     const cur = this.stateService.state();
     const isCrit = raw >= critThreshold;
@@ -40,12 +41,15 @@ export class CombatService {
 
     if (raw === 1) {
       this.stateService.log(this.stateService.t('log.attackMissNat1'), 'dmg');
-      // Se fallisce (1 naturale), mightyBlowActive NON viene azzerato e rimane per l'attacco successivo
     } else if (hit) {
       const [n, d] = cur.player!.weapon.dice;
       const bonus = mod(cur.player!.stats[c.atkStat]) + (cur.player!.weapon.bonus || 0) + (cur.player!.flatDmgBonus || 0);
       const dmgRoll = this.dice.rollNdM(n, d);
       const dmgMax = n * d;
+
+      // 2. Animazione Dado Danno dell'Arma
+      await this.stateService.animateRollAsync(dmgRoll, d, 'damage');
+
       let dmg = dmgRoll + bonus;
       let critTxt = '';
 
@@ -55,25 +59,23 @@ export class CombatService {
         critTxt = this.stateService.t('log.critText');
       }
 
-      // Se Colpo Poderoso è attivo da un turno precedente (o dal fallimento dell'attacco speciale), consumalo ORA che ha colpito
       if (cur.player!.mightyBlowActive) {
         dmg = dmg * 2;
-        cur.player!.mightyBlowActive = false; // Consumato solo a segno
+        cur.player!.mightyBlowActive = false;
         critTxt += ' <b>[COLPO PODEROSO!]</b>';
       }
 
       cur.monster!.hp = this.dice.clamp(cur.monster!.hp - dmg, 0, cur.monster!.maxHp);
       this.stateService.touch();
       this.stateService.log(
-        this.stateService.tf('log.attackHit', { 
-          roll: raw, mod: this.dice.fmtMod(statMod), total, ac: cur.monster!.ac, dmgRoll, dmgMax, dmg, crit: critTxt 
+        this.stateService.tf('log.attackHit', {
+          roll: raw, mod: this.dice.fmtMod(statMod), total, ac: cur.monster!.ac, dmgRoll, dmgMax, dmg, crit: critTxt
         })
       );
     } else {
       this.stateService.log(
         this.stateService.tf('log.attackMiss', { roll: raw, mod: this.dice.fmtMod(statMod), total, ac: cur.monster!.ac })
       );
-      // Se manca il bersaglio, mightyBlowActive rimane TRUE
     }
 
     if (cur.monster && cur.monster.hp <= 0) {
@@ -94,7 +96,7 @@ export class CombatService {
     s.combatFlags.defending = true;
     this.stateService.touch();
     this.stateService.log(this.stateService.t('log.defendFlavor'), 'flavor');
-    
+
     await this.monsterTurn();
     this.stateService.state().combatFlags.acting = false;
     this.stateService.touch();
@@ -106,12 +108,11 @@ export class CombatService {
     const p = s.player!;
     const cls = p.cls;
     const specialName = this.stateService.t('classes.' + cls + '.specialName');
-    
+
     s.combatFlags.acting = true;
     this.stateService.touch();
 
     if (cls === 'fighter') {
-      // Imposta il flag del Colpo Poderoso e segna l'abilità speciale come usata per il combattimento
       p.mightyBlowActive = true;
       p.usedSpecial = true;
 
@@ -119,7 +120,7 @@ export class CombatService {
       p.tempAtkBonus = 0;
       const critThreshold = p.critThreshold || 20;
 
-      // Attacco immediato
+      // 1. Tiro per Colpire speciale (d20)
       const raw = await this.stateService.animateRollAsync(this.dice.rnd(20), 20, 'attack', critThreshold);
       const total = raw + statMod;
       const isCrit = raw >= critThreshold;
@@ -127,12 +128,15 @@ export class CombatService {
 
       if (raw === 1) {
         this.stateService.log(this.stateService.t('log.attackMissNat1'), 'dmg');
-        // Mancato: mightyBlowActive rimane true per i prossimi attacchi standard
       } else if (hit) {
         const [n, d] = CLASS_DATA.fighter.weaponDice;
         const bonus = mod(p.stats.str) + (p.weapon.bonus || 0) + (p.flatDmgBonus || 0);
         const dmgRoll = this.dice.rollNdM(n, d);
         const dmgMax = n * d;
+
+        // 2. Animazione Dado Danno (d10)
+        await this.stateService.animateRollAsync(dmgRoll, d, 'damage');
+
         let dmg = (dmgRoll + bonus) * 2;
         let critTxt = ' <b>[COLPO PODEROSO!]</b>';
 
@@ -142,21 +146,19 @@ export class CombatService {
           critTxt += this.stateService.t('log.critText');
         }
 
-        // Colpito: disattiva il flag
         p.mightyBlowActive = false;
 
         s.monster!.hp = this.dice.clamp(s.monster!.hp - dmg, 0, s.monster!.maxHp);
         this.stateService.touch();
         this.stateService.log(
-          this.stateService.tf('log.attackHit', { 
-            roll: raw, mod: this.dice.fmtMod(statMod), total, ac: s.monster!.ac, dmgRoll, dmgMax, dmg, crit: critTxt 
+          this.stateService.tf('log.attackHit', {
+            roll: raw, mod: this.dice.fmtMod(statMod), total, ac: s.monster!.ac, dmgRoll, dmgMax, dmg, crit: critTxt
           })
         );
       } else {
         this.stateService.log(
           this.stateService.tf('log.attackMiss', { roll: raw, mod: this.dice.fmtMod(statMod), total, ac: s.monster!.ac })
         );
-        // Mancato: mightyBlowActive rimane true per i prossimi attacchi standard
       }
 
       if (s.monster!.hp <= 0) {
@@ -169,6 +171,8 @@ export class CombatService {
     } else if (cls === 'rogue') {
       const statMod = mod(p.stats.dex) + (p.tempAtkBonus || 0) + (p.flatAtkBonus || 0) + 3;
       p.tempAtkBonus = 0;
+
+      // 1. Tiro per Colpire (d20)
       const raw = await this.stateService.animateRollAsync(this.dice.rnd(20), 20, 'attack', p.critThreshold);
       const total = raw + statMod;
       const hit = raw === 20 || total >= s.monster!.ac;
@@ -176,6 +180,10 @@ export class CombatService {
       if (hit) {
         const bonus = mod(p.stats.dex) + (p.weapon.bonus || 0) + (p.flatDmgBonus || 0);
         const dmgRoll = this.dice.rollNdM(3, 6);
+
+        // 2. Animazione Dado Danno Attacco Furtivo (d6)
+        await this.stateService.animateRollAsync(dmgRoll, 6, 'damage');
+
         const mult = p.critMultiplier || 2;
         const dmg = Math.floor((dmgRoll + bonus) * mult);
 
@@ -196,14 +204,28 @@ export class CombatService {
 
     } else if (cls === 'wizard') {
       const bonus = mod(p.stats.int) + (p.specialBonusDmg || 0) + (p.flatDmgBonus || 0);
-      const dmgRoll = this.dice.rollNdM(3, 6);
-      const dmgMax = 18;
+
+      // 1. Primo lancio e animazione del 1° d4
+      const roll1 = this.dice.rollDie(4);
+      await this.stateService.animateRollAsync(roll1, 4, 'damage');
+
+      // 2. Secondo lancio e animazione del 2° d4
+      const roll2 = this.dice.rollDie(4);
+      await this.stateService.animateRollAsync(roll2, 4, 'damage');
+
+      // Somma dei due dadi + bonus
+      const dmgRoll = roll1 + roll2;
+      const dmgMax = 8;
       const dmg = dmgRoll + bonus;
-      
+
       s.monster!.hp = this.dice.clamp(s.monster!.hp - dmg, 0, s.monster!.maxHp);
       p.tempAcBonus = (p.tempAcBonus || 0) + 2;
       this.stateService.touch();
-      this.stateService.log(this.stateService.tf('log.specialWizard', { special: specialName, dmgRoll, dmgMax, dmg }), 'dmg');
+
+      this.stateService.log(
+        this.stateService.tf('log.specialWizard', { special: specialName, dmgRoll, dmgMax, dmg }),
+        'dmg'
+      );
       p.usedSpecial = true;
 
       if (s.monster!.hp <= 0) {
@@ -212,11 +234,14 @@ export class CombatService {
         return;
       }
       await this.monsterTurn();
-
     } else if (cls === 'cleric') {
       const bonus = mod(p.stats.wis) + (p.specialBonusHeal || 0);
       const dmgRoll = this.dice.rollNdM(3, 6);
       const dmgMax = 18;
+
+      // Animazione Dado Cura Preghiera Guaritrice (d6)
+      await this.stateService.animateRollAsync(dmgRoll, 6, 'heal');
+
       const heal = dmgRoll + bonus;
 
       p.hp = this.dice.clamp(p.hp + heal, 0, p.maxHp);
@@ -224,7 +249,7 @@ export class CombatService {
       this.stateService.touch();
       this.stateService.log(this.stateService.tf('log.specialCleric', { special: specialName, dmgRoll, dmgMax, heal }), 'heal');
       p.usedSpecial = true;
-      
+
       await this.monsterTurn();
     }
 
@@ -244,12 +269,16 @@ export class CombatService {
     const [n, d] = potion.heal;
     const dmgRoll = this.dice.rollNdM(n, d);
     const dmgMax = n * d;
+
+    // Animazione Dado Cura Pozione (d6)
+    await this.stateService.animateRollAsync(dmgRoll, d, 'heal');
+
     const heal = dmgRoll + (p.potionHealBonus || 0);
 
     p.hp = this.dice.clamp(p.hp + heal, 0, p.maxHp);
     this.stateService.touch();
     this.stateService.log(
-      this.stateService.tf('log.drinkPotion', { potion: this.stateService.t('potionName'), dmgRoll, dmgMax, heal }), 
+      this.stateService.tf('log.drinkPotion', { potion: this.stateService.t('potionName'), dmgRoll, dmgMax, heal }),
       'heal'
     );
 
@@ -270,7 +299,7 @@ export class CombatService {
     const dc = 10 + Math.floor(s.depth / 4);
     const statMod = mod(p.stats.dex) + (p.fleeBonus || 0);
     const raw = await this.stateService.animateRollAsync(this.dice.rnd(20), 20, 'flee');
-    
+
     const cur = this.stateService.state();
     const total = raw + statMod;
     const success = total >= dc;
@@ -304,6 +333,7 @@ export class CombatService {
     const targetAC = p.ac + acBonus + (p.tempAcBonus || 0);
     this.stateService.touch();
 
+    // 1. Tiro per Colpire del Nemico (d20)
     const toHit = await this.stateService.animateRollAsync(this.dice.rnd(20), 20, 'monsterAttack');
     const cur = this.stateService.state();
     const total = toHit + monsterAtkMod;
@@ -314,8 +344,12 @@ export class CombatService {
       const [n, d] = cur.monster!.dmg;
       const dmgRoll = this.dice.rollNdM(n, d);
       const dmgMax = n * d;
+
+      // 2. Animazione Dado Danno del Nemico (d4, d6, d8, d10)
+      await this.stateService.animateRollAsync(dmgRoll, d, 'monsterDamage');
+
       let dmg = dmgRoll;
-      
+
       if (defending) dmg = Math.ceil(dmg / 2);
 
       if (p.damageReduction && p.damageReduction > 0) {
@@ -350,7 +384,7 @@ export class CombatService {
     s.player!.xp += xp;
     s.player!.usedSpecial = false;
     s.player!.tempAcBonus = 0;
-    s.player!.mightyBlowActive = false; // Azzera l'eventuale carica non usata a fine combattimento
+    s.player!.mightyBlowActive = false;
     this.stateService.touch();
 
     this.stateService.log(this.stateService.tf('log.monsterDefeated', { name, gold, xp }), 'heal');
@@ -383,10 +417,10 @@ export class CombatService {
     let xpLeft = final.player!.xp;
     let levelsToGain = 0;
 
-    while (xpLeft >= xpToNext(lvl)) { 
-      xpLeft -= xpToNext(lvl); 
-      lvl++; 
-      levelsToGain++; 
+    while (xpLeft >= xpToNext(lvl)) {
+      xpLeft -= xpToNext(lvl);
+      lvl++;
+      levelsToGain++;
     }
 
     final.player!.xp = xpLeft;
@@ -399,11 +433,11 @@ export class CombatService {
       this.stateService.touch();
     } else {
       this.stateService.touch();
-      if (levelsToGain > 0) { 
-        this.levelUpService.startLevelUp(); 
-      } else { 
-        final.phase = 'explore'; 
-        this.stateService.touch(); 
+      if (levelsToGain > 0) {
+        this.levelUpService.startLevelUp();
+      } else {
+        final.phase = 'explore';
+        this.stateService.touch();
       }
     }
   }
@@ -413,11 +447,11 @@ export class CombatService {
     s.bossRewardModal = null;
     this.stateService.touch();
 
-    if (s.pendingLevelUps > 0) { 
-      this.levelUpService.startLevelUp(); 
-    } else { 
-      s.phase = 'explore'; 
-      this.stateService.touch(); 
+    if (s.pendingLevelUps > 0) {
+      this.levelUpService.startLevelUp();
+    } else {
+      s.phase = 'explore';
+      this.stateService.touch();
     }
   }
 
