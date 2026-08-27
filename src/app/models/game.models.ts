@@ -56,6 +56,13 @@ export interface Player {
   flatAtkBonus?: number;
   flatDmgBonus?: number;
   critMultiplier?: number;
+  
+  // Nuovi attributi per specializzazioni, talenti e reliquie
+  damageReduction?: number;    // Riduzione fissa del danno nemico subito (Guerriero/Tank)
+  specialBonusDmg?: number;    // Bonus ai danni delle abilita arcaniche/speciali (Mago)
+  specialBonusHeal?: number;   // Bonus all'efficacia delle cure magiche (Chierico)
+  potionHealBonus?: number;    // Bonus alle cure tramite pozioni (Chierico)
+  fleeBonus?: number;          // Bonus alle prove per fuggire dal combattimento (Ladro)
 }
 
 export interface Monster {

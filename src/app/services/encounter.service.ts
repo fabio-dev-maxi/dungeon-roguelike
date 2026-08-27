@@ -65,7 +65,11 @@ export class EncounterService {
   startFloor(): void {
     const s = this.stateService.state();
     s.depth++;
-    this.stateService.bestDepth.set(Math.max(this.stateService.bestDepth(), s.depth));
+
+    // Il numero di piani superati con successo prima di questo piano è s.depth - 1
+    const completedFloors = Math.max(0, s.depth - 1);
+    this.stateService.bestDepth.set(Math.max(this.stateService.bestDepth(), completedFloors));
+
     const forcedBoss = BOSS_IDS.some(id => BOSS_STATS[id].atDepth === s.depth);
     let type = forcedBoss ? 'combat' : this.dice.weightedPick(this.encounterWeightsForDepth(s.depth));
 

@@ -20,14 +20,44 @@ export const CLASS_DATA: Record<ClassKey, ClassData> = {
   cleric: { primary: 'wis', atkStat: 'str', hpBase: 8, armor: 2, armorKey: 'chainmail', weaponKey: 'mace', weaponDice: [1, 6], hitDie: 8 }
 };
 
-export function mod(stat: number): number { return Math.floor((stat - 10) / 2); }
+export function mod(stat: number): number { 
+  return Math.floor((stat - 10) / 2); 
+}
 
-export const CLASS_FEATS: Record<string, Feat[]> = {
+/**
+  * Talenti specializzati per ogni classe.
+  */
+export const CLASS_FEATS: Record<ClassKey, Feat[]> = {
+  // GUERRIERO: Specializzazione su Danni, CA e Punti Ferita (Tanking & Forzabruta)
   fighter: [
-    { id: 'weapon_master', cls: 'fighter', name: '', desc: '' },
-    { id: 'iron_skin', cls: 'fighter', name: '', desc: '' },
-    { id: 'savage_striker', cls: 'fighter', name: '', desc: '' },
-    { id: 'battle_vigors', cls: 'fighter', name: '', desc: '' },
+    { id: 'juggernaut', cls: 'fighter', name: '', desc: '' },
+    { id: 'colossus_strike', cls: 'fighter', name: '', desc: '' },
+    { id: 'bloodlust_vigor', cls: 'fighter', name: '', desc: '' },
+    { id: 'titan_defense', cls: 'fighter', name: '', desc: '' },
     { id: 'devastating_crit', cls: 'fighter', name: '', desc: '' }
+  ],
+  // LADRO: Specializzazione su Destrezza, Critici elevati e Agilità/Fuga
+  rogue: [
+    { id: 'shadow_step', cls: 'rogue', name: '', desc: '' },
+    { id: 'lethal_precision', cls: 'rogue', name: '', desc: '' },
+    { id: 'assassin_blade', cls: 'rogue', name: '', desc: '' },
+    { id: 'evasion_master', cls: 'rogue', name: '', desc: '' },
+    { id: 'venomous_strike', cls: 'rogue', name: '', desc: '' }
+  ],
+  // MAGO: Specializzazione su Intelligenza, Danni Arcani e Barriere di Mana
+  wizard: [
+    { id: 'arcane_mind', cls: 'wizard', name: '', desc: '' },
+    { id: 'spell_amplification', cls: 'wizard', name: '', desc: '' },
+    { id: 'mana_barrier', cls: 'wizard', name: '', desc: '' },
+    { id: 'overcharge_spell', cls: 'wizard', name: '', desc: '' },
+    { id: 'archmage_focus', cls: 'wizard', name: '', desc: '' }
+  ],
+  // CHIERICO: Specializzazione su Saggezza, Cura potenziata, Rigenerazione e Difesa Sacra
+  cleric: [
+    { id: 'divine_grace', cls: 'cleric', name: '', desc: '' },
+    { id: 'radiant_cure', cls: 'cleric', name: '', desc: '' },
+    { id: 'holy_armor', cls: 'cleric', name: '', desc: '' },
+    { id: 'blessed_strikes', cls: 'cleric', name: '', desc: '' },
+    { id: 'renewing_faith', cls: 'cleric', name: '', desc: '' }
   ]
 };

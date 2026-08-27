@@ -10,7 +10,7 @@ import { DiceService } from '../../services/dice.service';
     <div class="panel center">
       <h2>{{ i18n.t('ui.gameOverTitle') }}</h2>
       <div class="score-box">
-        <span class="n">{{ game.state().depth }}</span>
+        <span class="n">{{ floorsCompleted }}</span>
         <span class="l">{{ i18n.t('ui.floorsDescended') }}</span>
       </div>
       <p class="epitaph">"{{ epitaph }}"</p>
@@ -30,5 +30,9 @@ export class GameOverComponent {
 
   constructor(public game: GameService, public i18n: I18nService, dice: DiceService) {
     this.epitaph = dice.pick(this.i18n.t('epitaphs'));
+  }
+
+  get floorsCompleted(): number {
+    return Math.max(0, (this.game.state().depth || 1) - 1);
   }
 }

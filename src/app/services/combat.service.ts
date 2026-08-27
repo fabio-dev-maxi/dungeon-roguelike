@@ -9,7 +9,7 @@ import { LevelUpService } from './level-up.service';
 import { MonsterService } from './monster.service';
 
 /**
- * Logica di combattimento, attacchi, difese, abilità speciali e IA mostro
+ * Logica di combattimento, attacchi, difese, abilità speciali e IA mostro.
  */
 @Injectable({ providedIn: 'root' })
 export class CombatService {
@@ -33,7 +33,6 @@ export class CombatService {
     this.stateService.touch();
 
     const raw = await this.stateService.animateRollAsync(this.dice.rnd(20), 20, 'attack', critThreshold);
-
     const cur = this.stateService.state();
     const isCrit = raw >= critThreshold;
     const total = raw + statMod;
@@ -48,16 +47,24 @@ export class CombatService {
       const dmgMax = n * d;
       let dmg = dmgRoll + bonus;
       let critTxt = '';
+
       if (isCrit) {
         const mult = cur.player!.critMultiplier || 2;
         dmg = Math.floor(dmg * mult);
         critTxt = this.stateService.t('log.critText');
       }
+
       cur.monster!.hp = this.dice.clamp(cur.monster!.hp - dmg, 0, cur.monster!.maxHp);
       this.stateService.touch();
-      this.stateService.log(this.stateService.tf('log.attackHit', { roll: raw, mod: this.dice.fmtMod(statMod), total, ac: cur.monster!.ac, dmgRoll, dmgMax, dmg, crit: critTxt }));
+      this.stateService.log(
+        this.stateService.tf('log.attackHit', { 
+          roll: raw, mod: this.dice.fmtMod(statMod), total, ac: cur.monster!.ac, dmgRoll, dmgMax, dmg, crit: critTxt 
+        })
+      );
     } else {
-      this.stateService.log(this.stateService.tf('log.attackMiss', { roll: raw, mod: this.dice.fmtMod(statMod), total, ac: cur.monster!.ac }));
+      this.stateService.log(
+        this.stateService.tf('log.attackMiss', { roll: raw, mod: this.dice.fmtMod(statMod), total, ac: cur.monster!.ac })
+      );
     }
 
     if (cur.monster && cur.monster.hp <= 0) {
@@ -78,7 +85,7 @@ export class CombatService {
     s.combatFlags.defending = true;
     this.stateService.touch();
     this.stateService.log(this.stateService.t('log.defendFlavor'), 'flavor');
-
+    
     await this.monsterTurn();
     this.stateService.state().combatFlags.acting = false;
     this.stateService.touch();
@@ -87,20 +94,24 @@ export class CombatService {
   async playerUseSpecial(): Promise<void> {
     const s = this.stateService.state();
     if (s.combatFlags.acting || s.player!.usedSpecial) return;
-    const cls = s.player!.cls;
+    const p = s.player!;
+    const cls = p.cls;
     const specialName = this.stateService.t('classes.' + cls + '.specialName');
+    
     s.combatFlags.acting = true;
     this.stateService.touch();
 
     if (cls === 'wizard') {
-      const bonus = mod(s.player!.stats.int);
+      const bonus = mod(p.stats.int) + (p.specialBonusDmg || 0) + (p.flatDmgBonus || 0);
       const dmgRoll = this.dice.rollNdM(2, 4);
       const dmgMax = 8;
       const dmg = dmgRoll + bonus;
+      
       s.monster!.hp = this.dice.clamp(s.monster!.hp - dmg, 0, s.monster!.maxHp);
       this.stateService.touch();
       this.stateService.log(this.stateService.tf('log.specialWizard', { special: specialName, dmgRoll, dmgMax, dmg }), 'dmg');
       s.player!.usedSpecial = true;
+
       if (s.monster!.hp <= 0) {
         s.combatFlags.acting = false;
         this.monsterDefeated();
@@ -108,34 +119,35 @@ export class CombatService {
       }
       await this.monsterTurn();
     } else if (cls === 'cleric') {
-      const bonus = mod(s.player!.stats.wis);
+      const bonus = mod(p.stats.wis) + (p.specialBonusHeal || 0);
       const dmgRoll = this.dice.rollNdM(2, 6);
       const dmgMax = 12;
       const heal = dmgRoll + bonus;
+
       s.player!.hp = this.dice.clamp(s.player!.hp + heal, 0, s.player!.maxHp);
       this.stateService.touch();
       this.stateService.log(this.stateService.tf('log.specialCleric', { special: specialName, dmgRoll, dmgMax, heal }), 'heal');
       s.player!.usedSpecial = true;
+      
       await this.monsterTurn();
     } else if (cls === 'fighter') {
       const [n, d] = CLASS_DATA.fighter.weaponDice;
-      const bonus = mod(s.player!.stats[CLASS_DATA.fighter.atkStat]) + (s.player!.weapon.bonus || 0) + (s.player!.flatDmgBonus || 0);
+      const bonus = mod(p.stats[CLASS_DATA.fighter.atkStat]) + (p.weapon.bonus || 0) + (p.flatDmgBonus || 0);
       const dmgRoll = this.dice.rollNdM(n, d);
       const dmgMax = n * d;
       const dmg = (dmgRoll + bonus) * 2;
+
       s.monster!.hp = this.dice.clamp(s.monster!.hp - dmg, 0, s.monster!.maxHp);
       this.stateService.touch();
       this.stateService.log(this.stateService.tf('log.specialFighter', { special: specialName, dmgRoll, dmgMax, dmg }), 'dmg');
       s.player!.usedSpecial = true;
+
       if (s.monster!.hp <= 0) {
         s.combatFlags.acting = false;
         this.monsterDefeated();
         return;
       }
       await this.monsterTurn();
-    } else {
-      s.combatFlags.acting = false;
-      this.stateService.touch();
     }
 
     this.stateService.state().combatFlags.acting = false;
@@ -145,22 +157,27 @@ export class CombatService {
   async playerUsePotion(): Promise<void> {
     const s = this.stateService.state();
     if (s.combatFlags.acting) return;
-    const idx = s.player!.inventory.findIndex(i => i.type === 'potion');
+    const p = s.player!;
+    const idx = p.inventory.findIndex(i => i.type === 'potion');
     if (idx === -1) return;
+
     s.combatFlags.acting = true;
-    const potion = s.player!.inventory.splice(idx, 1)[0];
+    const potion = p.inventory.splice(idx, 1)[0];
     const [n, d] = potion.heal;
     const dmgRoll = this.dice.rollNdM(n, d);
     const dmgMax = n * d;
-    const heal = dmgRoll;
-    s.player!.hp = this.dice.clamp(s.player!.hp + heal, 0, s.player!.maxHp);
+    const heal = dmgRoll + (p.potionHealBonus || 0);
+
+    p.hp = this.dice.clamp(p.hp + heal, 0, p.maxHp);
     this.stateService.touch();
-    this.stateService.log(this.stateService.tf('log.drinkPotion', { potion: this.stateService.t('potionName'), dmgRoll, dmgMax, heal }), 'heal');
+    this.stateService.log(
+      this.stateService.tf('log.drinkPotion', { potion: this.stateService.t('potionName'), dmgRoll, dmgMax, heal }), 
+      'heal'
+    );
 
     if (s.phase === 'combat') {
       await this.monsterTurn();
     }
-
     this.stateService.state().combatFlags.acting = false;
     this.stateService.touch();
   }
@@ -171,13 +188,15 @@ export class CombatService {
     s.combatFlags.acting = true;
     this.stateService.touch();
 
+    const p = s.player!;
     const dc = 10 + Math.floor(s.depth / 4);
-    const statMod = mod(s.player!.stats.dex);
+    const statMod = mod(p.stats.dex) + (p.fleeBonus || 0);
     const raw = await this.stateService.animateRollAsync(this.dice.rnd(20), 20, 'flee');
-
+    
     const cur = this.stateService.state();
     const total = raw + statMod;
     const success = total >= dc;
+
     this.stateService.log(this.stateService.tf('log.fleeAttempt', {
       roll: raw, mod: this.dice.fmtMod(statMod), total, dc,
       result: success ? this.stateService.t('log.fleeSuccess') : this.stateService.t('log.fleeFail')
@@ -189,7 +208,6 @@ export class CombatService {
     } else {
       await this.monsterTurn();
     }
-
     this.stateService.state().combatFlags.acting = false;
     this.stateService.touch();
   }
@@ -197,18 +215,21 @@ export class CombatService {
   async monsterTurn(): Promise<void> {
     const s = this.stateService.state();
     if (!s.monster || s.monster.hp <= 0) return;
+
+    const p = s.player!;
     const name = this.monsterService.monsterDisplayName(s.monster);
     const defending = !!s.combatFlags.defending;
     s.combatFlags.defending = false;
+
     const acBonus = defending ? 4 : 0;
     const monsterAtkMod = 2 + Math.floor(s.depth / 5);
-    const targetAC = s.player!.ac + acBonus;
+    const targetAC = p.ac + acBonus;
     this.stateService.touch();
 
     const toHit = await this.stateService.animateRollAsync(this.dice.rnd(20), 20, 'monsterAttack');
-
     const cur = this.stateService.state();
     const total = toHit + monsterAtkMod;
+
     if (toHit === 1) {
       this.stateService.log(this.stateService.tf('log.monsterMiss1', { name }), 'flavor');
     } else if (total >= targetAC || toHit === 20) {
@@ -216,13 +237,22 @@ export class CombatService {
       const dmgRoll = this.dice.rollNdM(n, d);
       const dmgMax = n * d;
       let dmg = dmgRoll;
+      
       if (defending) dmg = Math.ceil(dmg / 2);
+
+      // Applica la Riduzione Danno passiva del giocatore (Guerriero/Reliquia)
+      if (p.damageReduction && p.damageReduction > 0) {
+        dmg = Math.max(1, dmg - p.damageReduction);
+      }
+
       cur.player!.hp = this.dice.clamp(cur.player!.hp - dmg, 0, cur.player!.maxHp);
       this.stateService.touch();
+
       this.stateService.log(this.stateService.tf('log.monsterHit', {
         name, roll: toHit, mod: this.dice.fmtMod(monsterAtkMod), total, ac: targetAC, dmgRoll, dmgMax, dmg,
         defended: defending ? this.stateService.t('log.defendedSuffix') : ''
       }), 'dmg');
+
       if (cur.player!.hp <= 0) {
         await this.stateService.wait(400);
         this.gameOver();
@@ -238,11 +268,14 @@ export class CombatService {
     const gold = this.dice.rollNdM(1, 6) + Math.floor(s.depth / 2);
     const xp = s.monster!.isBoss ? BOSS_XP[s.monster!.id] + s.depth : MONSTER_XP[s.monster!.id] + Math.floor(s.depth / 2);
     const wasBoss = s.monster!.isBoss;
+
     s.player!.gold += gold;
     s.player!.xp += xp;
     s.player!.usedSpecial = false;
     this.stateService.touch();
+
     this.stateService.log(this.stateService.tf('log.monsterDefeated', { name, gold, xp }), 'heal');
+
     const cur = this.stateService.state();
     cur.monster = null;
     this.stateService.touch();
@@ -257,6 +290,7 @@ export class CombatService {
           applyRelicEffect(cur.player!, relicId);
           cur.player!.relics.push(relicId);
           this.stateService.touch();
+
           const relicName = this.stateService.t('relics.' + relicId + '.name');
           const relicEffect = this.stateService.t('relics.' + relicId + '.effect');
           this.stateService.log(this.stateService.tf('log.relicFound', { relic: relicName, effect: relicEffect }), 'heal');
@@ -269,7 +303,13 @@ export class CombatService {
     let lvl = final.player!.level;
     let xpLeft = final.player!.xp;
     let levelsToGain = 0;
-    while (xpLeft >= xpToNext(lvl)) { xpLeft -= xpToNext(lvl); lvl++; levelsToGain++; }
+
+    while (xpLeft >= xpToNext(lvl)) { 
+      xpLeft -= xpToNext(lvl); 
+      lvl++; 
+      levelsToGain++; 
+    }
+
     final.player!.xp = xpLeft;
     final.pendingLevelUps = levelsToGain;
 
@@ -280,8 +320,12 @@ export class CombatService {
       this.stateService.touch();
     } else {
       this.stateService.touch();
-      if (levelsToGain > 0) { this.levelUpService.startLevelUp(); }
-      else { final.phase = 'explore'; this.stateService.touch(); }
+      if (levelsToGain > 0) { 
+        this.levelUpService.startLevelUp(); 
+      } else { 
+        final.phase = 'explore'; 
+        this.stateService.touch(); 
+      }
     }
   }
 
@@ -289,8 +333,13 @@ export class CombatService {
     const s = this.stateService.state();
     s.bossRewardModal = null;
     this.stateService.touch();
-    if (s.pendingLevelUps > 0) { this.levelUpService.startLevelUp(); }
-    else { s.phase = 'explore'; this.stateService.touch(); }
+
+    if (s.pendingLevelUps > 0) { 
+      this.levelUpService.startLevelUp(); 
+    } else { 
+      s.phase = 'explore'; 
+      this.stateService.touch(); 
+    }
   }
 
   gameOver(): void {
