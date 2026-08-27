@@ -1,9 +1,12 @@
 import { Injectable } from '@angular/core';
-import { GameStateService } from './game-state.service';
-import { DiceService } from './dice.service';
 import { CLASS_DATA, mod } from '../data/game.data';
 import { Armor, ClassKey, Player, Stats, Weapon } from '../models/game.models';
+import { DiceService } from './dice.service';
+import { GameStateService } from './game-state.service';
 
+/**
+ * Creazione personaggio, tiro caratteristiche ed equipaggiamento iniziale.
+ */
 @Injectable({ providedIn: 'root' })
 export class CharacterService {
   constructor(private stateService: GameStateService, private dice: DiceService) {}

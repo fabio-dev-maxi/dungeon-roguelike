@@ -1,13 +1,16 @@
 import { Injectable, Signal } from '@angular/core';
-import { GameStateService } from './game-state.service';
-import { CharacterService } from './character.service';
-import { MonsterService } from './monster.service';
-import { EncounterService } from './encounter.service';
-import { CombatService } from './combat.service';
-import { LevelUpService } from './level-up.service';
 import { LangCode } from '../data/i18n.data';
-import { ChoiceOption, ClassKey, GameState, Monster, Player, StatKey, Stats, Weapon, Armor } from '../models/game.models';
+import { Armor, ChoiceOption, ClassKey, GameState, Monster, Player, StatKey, Stats, Weapon } from '../models/game.models';
+import { CharacterService } from './character.service';
+import { CombatService } from './combat.service';
+import { EncounterService } from './encounter.service';
+import { GameStateService } from './game-state.service';
+import { LevelUpService } from './level-up.service';
+import { MonsterService } from './monster.service';
 
+/**
+ * Facade centralizzato che coordina i sotto-servizi
+ */
 @Injectable({ providedIn: 'root' })
 export class GameService {
   constructor(

@@ -1,11 +1,16 @@
 import { Injectable } from '@angular/core';
-import { GameStateService } from './game-state.service';
-import { MonsterService } from './monster.service';
-import { LevelUpService } from './level-up.service';
-import { DiceService } from './dice.service';
-import { BOSS_XP, CLASS_DATA, MONSTER_XP, RELIC_CLASS_POOLS, applyRelicEffect, mod, xpToNext } from '../data/game.data';
+import { CLASS_DATA, mod } from '../data/game.data';
+import { BOSS_XP, MONSTER_XP, xpToNext } from '../data/monster.data';
+import { applyRelicEffect, RELIC_CLASS_POOLS } from '../data/relic.data';
 import { DropInfo } from '../models/game.models';
+import { DiceService } from './dice.service';
+import { GameStateService } from './game-state.service';
+import { LevelUpService } from './level-up.service';
+import { MonsterService } from './monster.service';
 
+/**
+ * Logica di combattimento, attacchi, difese, abilità speciali e IA mostro
+ */
 @Injectable({ providedIn: 'root' })
 export class CombatService {
   constructor(

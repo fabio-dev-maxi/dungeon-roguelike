@@ -1,9 +1,12 @@
 import { Injectable } from '@angular/core';
 import { GameStateService } from './game-state.service';
 import { DiceService } from './dice.service';
-import { BOSS_IDS, BOSS_STATS, MONSTER_IDS_TIER, MONSTER_STATS } from '../data/game.data';
+import { BOSS_IDS, BOSS_STATS, MONSTER_IDS_TIER, MONSTER_STATS } from '../data/monster.data';
 import { Monster } from '../models/game.models';
 
+/**
+ * Generazione procedurale dei mostri, boss e scaling di livello
+ */
 @Injectable({ providedIn: 'root' })
 export class MonsterService {
   constructor(private stateService: GameStateService, private dice: DiceService) {}

@@ -1,9 +1,12 @@
 import { Injectable, signal } from '@angular/core';
-import { I18nService } from './i18n.service';
-import { DiceService } from './dice.service';
 import { LangCode } from '../data/i18n.data';
-import { GameState, LogMessage } from '../models/game.models';
+import { GameState } from '../models/game.models';
+import { DiceService } from './dice.service';
+import { I18nService } from './i18n.service';
 
+/**
+ * Gestione dello stato reattivo centrale (Signals), log e animazioni dadi
+ */
 @Injectable({ providedIn: 'root' })
 export class GameStateService {
   private _state: GameState = this.freshState('it');

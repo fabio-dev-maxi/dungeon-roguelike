@@ -1,6 +1,9 @@
 import { Injectable, signal } from '@angular/core';
 import { I18N, LangCode } from '../data/i18n.data';
 
+/**
+ * Risoluzione traduzioni e formattazione dinamica delle stringhe
+ */
 @Injectable({ providedIn: 'root' })
 export class I18nService {
   currentLang = signal<LangCode>('it');

@@ -3,6 +3,9 @@ import { mod } from '../data/game.data';
 
 export interface WeightedItem<T> { v: T; w: number; }
 
+/**
+ * Utility per tiri di dado (d20, dadi danno, estrazioni pesate)
+ */
 @Injectable({ providedIn: 'root' })
 export class DiceService {
   rnd(n: number): number {

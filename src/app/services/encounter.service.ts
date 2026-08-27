@@ -1,24 +1,57 @@
 import { Injectable } from '@angular/core';
+import { mod } from '../data/game.data';
+import { BOSS_IDS, BOSS_STATS } from '../data/monster.data';
+import { ChoiceOption, PendingChoice, StatKey } from '../models/game.models';
+import { DiceService, WeightedItem } from './dice.service';
 import { GameStateService } from './game-state.service';
 import { MonsterService } from './monster.service';
-import { DiceService, WeightedItem } from './dice.service';
-import { BOSS_IDS, BOSS_STATS, mod } from '../data/game.data';
-import { ChoiceOption, PendingChoice, StatKey } from '../models/game.models';
 
+/**
+ * Gestione eventi (trappole, altari, mercante, taverna, tesori)
+ */
 @Injectable({ providedIn: 'root' })
 export class EncounterService {
   constructor(
     private stateService: GameStateService,
     private monsterService: MonsterService,
     private dice: DiceService
-  ) {}
+  ) { }
 
+  /**
+   * Restituisce i pesi per i vari tipi di incontro in base alla profondità
+   * @param depth 
+   * @returns 
+   */
   encounterWeightsForDepth(depth: number): WeightedItem<string>[] {
     let weights: WeightedItem<string>[];
-    if (depth <= 5) weights = [{ v: 'combat', w: 70 }, { v: 'trap', w: 12 }, { v: 'treasure', w: 14 }, { v: 'shrine', w: 2 }, { v: 'merchant', w: 2 }, { v: 'tavern', w: 0.5 }];
-    else if (depth <= 9) weights = [{ v: 'combat', w: 52 }, { v: 'trap', w: 15 }, { v: 'treasure', w: 15 }, { v: 'shrine', w: 7 }, { v: 'merchant', w: 8 }, { v: 'tavern', w: 3 }];
-    else if (depth <= 14) weights = [{ v: 'combat', w: 45 }, { v: 'trap', w: 15 }, { v: 'treasure', w: 13 }, { v: 'shrine', w: 10 }, { v: 'merchant', w: 11 }, { v: 'tavern', w: 6 }];
-    else weights = [{ v: 'combat', w: 38 }, { v: 'trap', w: 14 }, { v: 'treasure', w: 13 }, { v: 'shrine', w: 14 }, { v: 'merchant', w: 14 }, { v: 'tavern', w: 7 }];
+    if (depth <= 5) weights = [
+      { v: 'combat', w: 76 },
+      { v: 'treasure', w: 10 },
+      { v: 'trap', w: 5 },
+      { v: 'merchant', w: 4.5 },
+      { v: 'shrine', w: 4 },
+      { v: 'tavern', w: 0.5 }];
+    else if (depth <= 9) weights = [
+      { v: 'combat', w: 60 },
+      { v: 'trap', w: 10 },
+      { v: 'treasure', w: 10 },
+      { v: 'merchant', w: 10 },
+      { v: 'shrine', w: 7 },
+      { v: 'tavern', w: 3 }];
+    else if (depth <= 14) weights = [
+      { v: 'combat', w: 50 },
+      { v: 'treasure', w: 13 },
+      { v: 'merchant', w: 11 },
+      { v: 'shrine', w: 10 },
+      { v: 'trap', w: 10 },
+      { v: 'tavern', w: 6 }];
+    else weights = [
+      { v: 'combat', w: 45 },
+      { v: 'merchant', w: 15 },
+      { v: 'treasure', w: 10 },
+      { v: 'trap', w: 10 },
+      { v: 'shrine', w: 10 },
+      { v: 'tavern', w: 10 }];
 
     if (depth - this.stateService.state().lastTavernDepth < 5) {
       weights = weights.filter(w => w.v !== 'tavern');
@@ -26,6 +59,9 @@ export class EncounterService {
     return weights;
   }
 
+  /**
+   * Inizia un nuovo piano, generando un incontro casuale in base alla profondità
+   */
   startFloor(): void {
     const s = this.stateService.state();
     s.depth++;

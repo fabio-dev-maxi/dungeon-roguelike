@@ -4,6 +4,9 @@ import { DiceService } from './dice.service';
 import { CLASS_DATA, CLASS_FEATS, mod } from '../data/game.data';
 import { Feat, StatKey } from '../models/game.models';
 
+/**
+ * Progressione di livello: dadi vita, punti caratteristica e talenti
+ */
 @Injectable({ providedIn: 'root' })
 export class LevelUpService {
   constructor(private stateService: GameStateService, private dice: DiceService) {}

@@ -2,11 +2,12 @@ import { AfterViewChecked, Component, ElementRef, ViewChild } from '@angular/cor
 import { GameService } from '../../services/game.service';
 import { I18nService } from '../../services/i18n.service';
 import { DiceService } from '../../services/dice.service';
-import { CLASS_DATA, xpToNext } from '../../data/game.data';
-import { ChoiceOption, StatKey } from '../../models/game.models';
+import { CLASS_DATA } from '../../data/game.data';
+import {  StatKey } from '../../models/game.models';
 import { DiceWidgetComponent } from '../dice-widget/dice-widget.component';
 import { LevelUpModalComponent } from '../level-up-modal/level-up-modal.component';
 import { BossRewardModalComponent } from '../boss-reward-modal/boss-reward-modal.component';
+import { xpToNext } from '../../data/monster.data';
 
 const STAT_KEYS: StatKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 
