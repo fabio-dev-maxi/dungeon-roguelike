@@ -25,12 +25,12 @@ export class EncounterService {
   encounterWeightsForDepth(depth: number): WeightedItem<string>[] {
     let weights: WeightedItem<string>[];
     if (depth <= 5) weights = [
-      { v: 'combat', w: 76 },
+      { v: 'combat', w: 78 },
       { v: 'treasure', w: 10 },
-      { v: 'trap', w: 5 },
-      { v: 'merchant', w: 4.5 },
-      { v: 'shrine', w: 4 },
-      { v: 'tavern', w: 0.5 }];
+      { v: 'trap', w: 7 },
+      { v: 'merchant', w: 2 },
+      { v: 'shrine', w: 2 },
+      { v: 'tavern', w: 1 }];
     else if (depth <= 9) weights = [
       { v: 'combat', w: 60 },
       { v: 'trap', w: 10 },

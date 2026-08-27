@@ -13,7 +13,7 @@ export class MonsterService {
 
   pickMonsterTier(depth: number): number {
     if (depth <= 4) return 1;
-    if (depth <= 9) return this.dice.weightedPick([{ v: 1, w: 60 }, { v: 2, w: 40 }]);
+    if (depth <= 9) return this.dice.weightedPick([{ v: 1, w: 50 }, { v: 2, w: 50 }]);
     if (depth <= 14) return this.dice.weightedPick([{ v: 1, w: 30 }, { v: 2, w: 50 }, { v: 3, w: 20 }]);
     if (depth <= 19) return this.dice.weightedPick([{ v: 1, w: 10 }, { v: 2, w: 60 }, { v: 3, w: 30 }]);
     if (depth <= 24) return this.dice.weightedPick([{ v: 2, w: 30 }, { v: 3, w: 50 }, { v: 4, w: 20 }]);
@@ -37,16 +37,16 @@ export class MonsterService {
     }
 
     const bracket = this.dice.clamp(Math.floor(depth / 5), 0, 4);
-    const scale = 1 + bracket * 0.35;
+    const scale = 1 + bracket * 0.15;
 
     let effectiveHpBase = base.hpBase;
     let acVariance = 0;
     if (isBoss) {
-      const factor = 1 + (Math.random() * 2 - 1) * 0.15;
+      const factor = 1 + (Math.random() * 2 - 1) * 0.15; 
       effectiveHpBase = Math.round(base.hpBase * factor);
-      acVariance = Math.floor(Math.random() * 3) - 1;
+      acVariance = Math.floor(Math.random() * 2) - 1;
     }
-    const hp = Math.round(effectiveHpBase * scale) + Math.floor(depth / 2);
+    const hp = Math.round(effectiveHpBase * scale);
     return { id, isBoss, bracket, hp, maxHp: hp, dmg: base.dmg, ac: base.ac + acVariance };
   }
 
