@@ -91,7 +91,7 @@ export interface PendingChoice {
 }
 
 export interface DropInfo {
-  type: 'relic';
+  type: 'relic' | 'weapon' | 'armor' | 'gold';
   id: string;
   name: string;
   effect: string;

@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { I18N, LangCode } from '../data/i18n.data';
 
 /**
- * Risoluzione traduzioni e formattazione dinamica delle stringhe
+ * Servizio di risoluzione traduzioni e formattazione dinamica delle stringhe.
  */
 @Injectable({ providedIn: 'root' })
 export class I18nService {
@@ -16,6 +16,8 @@ export class I18nService {
     const lang = this.currentLang();
     const keys = path.split('.');
     let cur: any = I18N[lang];
+    if (!cur) return path;
+
     for (const k of keys) {
       if (!cur) return path;
       cur = cur[k];

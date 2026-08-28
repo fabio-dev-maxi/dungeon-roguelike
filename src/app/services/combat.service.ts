@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { CLASS_DATA, mod } from '../data/game.data';
 import { BOSS_XP, MONSTER_XP, xpToNext } from '../data/monster.data';
 import { applyRelicEffect, RELIC_CLASS_POOLS } from '../data/relic.data';
+import { ARMOR_POOLS, equipArmor, equipWeapon, WEAPON_POOLS } from '../data/equipment.data';
 import { DropInfo } from '../models/game.models';
 import { DiceService } from './dice.service';
 import { GameStateService } from './game-state.service';
@@ -9,7 +10,7 @@ import { LevelUpService } from './level-up.service';
 import { MonsterService } from './monster.service';
 
 /**
- * Gestisce la logica di combattimento con tiri animati sia per il colpire che per il danno.
+ * Gestisce la logica di combattimento, attacchi speciali, animazioni dadi 3D e ricompense dei Boss.
  */
 @Injectable({ providedIn: 'root' })
 export class CombatService {
@@ -18,7 +19,7 @@ export class CombatService {
     private monsterService: MonsterService,
     private levelUpService: LevelUpService,
     private dice: DiceService
-  ) { }
+  ) {}
 
   async playerAttack(): Promise<void> {
     const s = this.stateService.state();
@@ -59,6 +60,7 @@ export class CombatService {
         critTxt = this.stateService.t('log.critText');
       }
 
+      // Se il Colpo Poderoso del Guerriero è attivo, raddoppia il danno ed esaurisci la carica
       if (cur.player!.mightyBlowActive) {
         dmg = dmg * 2;
         cur.player!.mightyBlowActive = false;
@@ -68,8 +70,8 @@ export class CombatService {
       cur.monster!.hp = this.dice.clamp(cur.monster!.hp - dmg, 0, cur.monster!.maxHp);
       this.stateService.touch();
       this.stateService.log(
-        this.stateService.tf('log.attackHit', {
-          roll: raw, mod: this.dice.fmtMod(statMod), total, ac: cur.monster!.ac, dmgRoll, dmgMax, dmg, crit: critTxt
+        this.stateService.tf('log.attackHit', { 
+          roll: raw, mod: this.dice.fmtMod(statMod), total, ac: cur.monster!.ac, dmgRoll, dmgMax, dmg, crit: critTxt 
         })
       );
     } else {
@@ -96,7 +98,7 @@ export class CombatService {
     s.combatFlags.defending = true;
     this.stateService.touch();
     this.stateService.log(this.stateService.t('log.defendFlavor'), 'flavor');
-
+    
     await this.monsterTurn();
     this.stateService.state().combatFlags.acting = false;
     this.stateService.touch();
@@ -108,7 +110,7 @@ export class CombatService {
     const p = s.player!;
     const cls = p.cls;
     const specialName = this.stateService.t('classes.' + cls + '.specialName');
-
+    
     s.combatFlags.acting = true;
     this.stateService.touch();
 
@@ -134,7 +136,7 @@ export class CombatService {
         const dmgRoll = this.dice.rollNdM(n, d);
         const dmgMax = n * d;
 
-        // 2. Animazione Dado Danno (d10)
+        // 2. Animazione Dado Danno
         await this.stateService.animateRollAsync(dmgRoll, d, 'damage');
 
         let dmg = (dmgRoll + bonus) * 2;
@@ -151,8 +153,8 @@ export class CombatService {
         s.monster!.hp = this.dice.clamp(s.monster!.hp - dmg, 0, s.monster!.maxHp);
         this.stateService.touch();
         this.stateService.log(
-          this.stateService.tf('log.attackHit', {
-            roll: raw, mod: this.dice.fmtMod(statMod), total, ac: s.monster!.ac, dmgRoll, dmgMax, dmg, crit: critTxt
+          this.stateService.tf('log.attackHit', { 
+            roll: raw, mod: this.dice.fmtMod(statMod), total, ac: s.monster!.ac, dmgRoll, dmgMax, dmg, crit: critTxt 
           })
         );
       } else {
@@ -213,7 +215,6 @@ export class CombatService {
       const roll2 = this.dice.rollDie(4);
       await this.stateService.animateRollAsync(roll2, 4, 'damage');
 
-      // Somma dei due dadi + bonus
       const dmgRoll = roll1 + roll2;
       const dmgMax = 8;
       const dmg = dmgRoll + bonus;
@@ -223,7 +224,7 @@ export class CombatService {
       this.stateService.touch();
 
       this.stateService.log(
-        this.stateService.tf('log.specialWizard', { special: specialName, dmgRoll, dmgMax, dmg }),
+        this.stateService.tf('log.specialWizard', { special: specialName, dmgRoll, dmgMax, dmg }), 
         'dmg'
       );
       p.usedSpecial = true;
@@ -234,6 +235,7 @@ export class CombatService {
         return;
       }
       await this.monsterTurn();
+
     } else if (cls === 'cleric') {
       const bonus = mod(p.stats.wis) + (p.specialBonusHeal || 0);
       const dmgRoll = this.dice.rollNdM(3, 6);
@@ -249,7 +251,7 @@ export class CombatService {
       this.stateService.touch();
       this.stateService.log(this.stateService.tf('log.specialCleric', { special: specialName, dmgRoll, dmgMax, heal }), 'heal');
       p.usedSpecial = true;
-
+      
       await this.monsterTurn();
     }
 
@@ -278,7 +280,7 @@ export class CombatService {
     p.hp = this.dice.clamp(p.hp + heal, 0, p.maxHp);
     this.stateService.touch();
     this.stateService.log(
-      this.stateService.tf('log.drinkPotion', { potion: this.stateService.t('potionName'), dmgRoll, dmgMax, heal }),
+      this.stateService.tf('log.drinkPotion', { potion: this.stateService.t('potionName'), dmgRoll, dmgMax, heal }), 
       'heal'
     );
 
@@ -299,7 +301,7 @@ export class CombatService {
     const dc = 10 + Math.floor(s.depth / 4);
     const statMod = mod(p.stats.dex) + (p.fleeBonus || 0);
     const raw = await this.stateService.animateRollAsync(this.dice.rnd(20), 20, 'flee');
-
+    
     const cur = this.stateService.state();
     const total = raw + statMod;
     const success = total >= dc;
@@ -349,7 +351,7 @@ export class CombatService {
       await this.stateService.animateRollAsync(dmgRoll, d, 'monsterDamage');
 
       let dmg = dmgRoll;
-
+      
       if (defending) dmg = Math.ceil(dmg / 2);
 
       if (p.damageReduction && p.damageReduction > 0) {
@@ -394,7 +396,71 @@ export class CombatService {
     this.stateService.touch();
 
     const drops: DropInfo[] = [];
+
     if (wasBoss) {
+      const p = cur.player!;
+      const tier = Math.min(5, Math.max(1, Math.ceil(s.depth / 10)));
+      const rollLoot = Math.random();
+
+      if (rollLoot < 0.20) {
+        // 20% ORO EXTRA
+        const bonusGold = (this.dice.rollNdM(3, 6) + s.depth) * 5;
+        p.gold += bonusGold;
+        this.stateService.touch();
+        drops.push({
+          type: 'gold',
+          id: 'bonus_gold',
+          name: this.stateService.t('ui.goldExtraTitle'),
+          effect: `+${bonusGold} Monete d'oro`
+        });
+      } else if (rollLoot < 0.60) {
+        // 40% ARMA DI CLASSE
+        const weapons = WEAPON_POOLS[p.cls]?.[tier];
+        if (weapons && weapons.length > 0) {
+          const qRoll = Math.random();
+          const weaponIdx = qRoll < 0.50 ? 0 : qRoll < 0.85 ? 1 : 2;
+          const selectedWeapon = weapons[Math.min(weaponIdx, weapons.length - 1)];
+
+          equipWeapon(p, selectedWeapon);
+          this.stateService.touch();
+
+          const wName = this.stateService.t('equipment.' + selectedWeapon.key + '.name');
+          const wEffect = `Danno: ${selectedWeapon.dice[0]}d${selectedWeapon.dice[1]} + ${selectedWeapon.bonus}`;
+          drops.push({
+            type: 'weapon',
+            id: selectedWeapon.key,
+            name: wName,
+            effect: wEffect
+          });
+        }
+      } else {
+        // 40% ARMATURA DI CLASSE
+        const armors = ARMOR_POOLS[p.cls]?.[tier];
+        if (armors && armors.length > 0) {
+          const qRoll = Math.random();
+          const armorIdx = qRoll < 0.50 ? 0 : qRoll < 0.85 ? 1 : 2;
+          const selectedArmor = armors[Math.min(armorIdx, armors.length - 1)];
+
+          equipArmor(p, selectedArmor);
+          this.stateService.touch();
+
+          const aName = this.stateService.t('equipment.' + selectedArmor.key + '.name');
+          let aEffect = `Classe Armatura: +${selectedArmor.bonus}`;
+          if (selectedArmor.drBonus) aEffect += `, Riduzione Danno: +${selectedArmor.drBonus}`;
+          if (selectedArmor.specialDmgBonus) aEffect += `, Danni Magici: +${selectedArmor.specialDmgBonus}`;
+          if (selectedArmor.specialHealBonus) aEffect += `, Cure Magiche: +${selectedArmor.specialHealBonus}`;
+          if (selectedArmor.critBonus) aEffect += `, Soglia Critico: -${selectedArmor.critBonus}`;
+
+          drops.push({
+            type: 'armor',
+            id: selectedArmor.key,
+            name: aName,
+            effect: aEffect
+          });
+        }
+      }
+
+      // Reliquie Boss
       const pool = RELIC_CLASS_POOLS[cur.player!.cls];
       if (pool) {
         const available = pool.filter(id => !cur.player!.relics.includes(id));
@@ -406,7 +472,6 @@ export class CombatService {
 
           const relicName = this.stateService.t('relics.' + relicId + '.name');
           const relicEffect = this.stateService.t('relics.' + relicId + '.effect');
-          this.stateService.log(this.stateService.tf('log.relicFound', { relic: relicName, effect: relicEffect }), 'heal');
           drops.push({ type: 'relic', id: relicId, name: relicName, effect: relicEffect });
         }
       }
@@ -417,10 +482,10 @@ export class CombatService {
     let xpLeft = final.player!.xp;
     let levelsToGain = 0;
 
-    while (xpLeft >= xpToNext(lvl)) {
-      xpLeft -= xpToNext(lvl);
-      lvl++;
-      levelsToGain++;
+    while (xpLeft >= xpToNext(lvl)) { 
+      xpLeft -= xpToNext(lvl); 
+      lvl++; 
+      levelsToGain++; 
     }
 
     final.player!.xp = xpLeft;
@@ -433,11 +498,11 @@ export class CombatService {
       this.stateService.touch();
     } else {
       this.stateService.touch();
-      if (levelsToGain > 0) {
-        this.levelUpService.startLevelUp();
-      } else {
-        final.phase = 'explore';
-        this.stateService.touch();
+      if (levelsToGain > 0) { 
+        this.levelUpService.startLevelUp(); 
+      } else { 
+        final.phase = 'explore'; 
+        this.stateService.touch(); 
       }
     }
   }
@@ -447,11 +512,11 @@ export class CombatService {
     s.bossRewardModal = null;
     this.stateService.touch();
 
-    if (s.pendingLevelUps > 0) {
-      this.levelUpService.startLevelUp();
-    } else {
-      s.phase = 'explore';
-      this.stateService.touch();
+    if (s.pendingLevelUps > 0) { 
+      this.levelUpService.startLevelUp(); 
+    } else { 
+      s.phase = 'explore'; 
+      this.stateService.touch(); 
     }
   }
 

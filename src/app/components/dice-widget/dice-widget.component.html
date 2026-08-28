@@ -1,6 +1,3 @@
-<div class="tdw-widget-wrapper">
-  <div class="tdw-label" [style.color]="labelColor" [title]="label">{{ label }}</div>
-  <div class="tdw-canvas-container" [style.borderColor]="borderColor">
-    <canvas #diceCanvas></canvas>
-  </div>
+<div class="dice-container" [class.rolling]="isActive">
+  <canvas #diceCanvas width="80" height="80"></canvas>
 </div>

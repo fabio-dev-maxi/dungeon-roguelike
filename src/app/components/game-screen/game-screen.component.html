@@ -90,14 +90,14 @@
     <!-- ARENA DADI FISSA -->
     <div class="dice-arena">
       <div class="dice-slot left">
-        <app-dice-widget [label]="p().name || 'Giocatore'" [themeColor]="'#8b0000'" [borderColor]="'#d4af37'"
+        <app-dice-widget [label]="p().name || 'Giocatore'" [themeColor]="'#8b0000'" 
           [labelColor]="'#d4af37'" [value]="playerDieValue()" [isActive]="playerDieActive()" [sides]="playerDieSides()">
         </app-dice-widget>
       </div>
 
       <div class="dice-slot right">
         @if (s().monster; as m) {
-        <app-dice-widget [label]="game.monsterDisplayName(m)" [themeColor]="'#142918'" [borderColor]="'#34d399'"
+        <app-dice-widget [label]="game.monsterDisplayName(m)" [themeColor]="'#142918'" 
           [labelColor]="'#34d399'" [value]="monsterDieValue()" [isActive]="monsterDieActive()"
           [sides]="monsterDieSides()">
         </app-dice-widget>
