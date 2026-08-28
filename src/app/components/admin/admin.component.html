@@ -28,8 +28,8 @@
     </div>
 
     <div class="config-actions">
-      <button class="btn" [disabled]="isSimulating" (click)="startSimulation()">
-        {{ isSimulating ? 'Simulazione in corso...' : '⚡ Avvia Simulazione' }}
+      <button class="btn" [disabled]="isSimulating()" (click)="startSimulation()">
+        {{ isSimulating() ? 'Simulazione in corso...' : '⚡ Avvia Simulazione' }}
       </button>
     </div>
   </div>

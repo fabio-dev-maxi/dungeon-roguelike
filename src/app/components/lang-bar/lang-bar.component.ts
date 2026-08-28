@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { GameService } from '../../services/game.service';
 import { LANGS, LANG_LABELS, LangCode } from '../../data/i18n.data';
 
@@ -6,7 +6,8 @@ import { LANGS, LANG_LABELS, LangCode } from '../../data/i18n.data';
   selector: 'app-lang-bar',
   standalone: true,
   templateUrl: './lang-bar.component.html',
-  styleUrl: './lang-bar.component.css'
+  styleUrl: './lang-bar.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LangBarComponent {
   langs = LANGS;

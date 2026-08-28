@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { GameService } from '../../services/game.service';
 import { I18nService } from '../../services/i18n.service';
@@ -13,7 +13,8 @@ const STAT_KEYS: StatKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
   standalone: true,
   imports: [FormsModule],
   templateUrl: './character-creation.component.html',
-  styleUrl: './character-creation.component.css'
+  styleUrl: './character-creation.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CharacterCreationComponent {
   name = '';

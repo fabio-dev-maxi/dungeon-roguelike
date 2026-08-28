@@ -1,4 +1,14 @@
-import { AfterViewChecked, Component, ElementRef, ViewChild } from '@angular/core';
+import {
+  AfterViewChecked,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  Signal,
+  ViewChild,
+  computed,
+  effect,
+  signal
+} from '@angular/core';
 import { GameService } from '../../services/game.service';
 import { I18nService } from '../../services/i18n.service';
 import { DiceService } from '../../services/dice.service';
@@ -16,20 +26,50 @@ const STAT_KEYS: StatKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
   standalone: true,
   imports: [DiceWidgetComponent, LevelUpModalComponent, BossRewardModalComponent],
   templateUrl: './game-screen.component.html',
-  styleUrl: './game-screen.component.css'
+  styleUrl: './game-screen.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GameScreenComponent implements AfterViewChecked {
   statKeys = STAT_KEYS;
   classData = CLASS_DATA;
-  private lastPlayerValue: number | null = null;
-  private lastMonsterValue: number | null = null;
+
+  /** Ultimo valore mostrato da ciascun dado: resta visibile anche a tiro concluso. */
+  readonly playerDieValue = signal<number | null>(null);
+  readonly monsterDieValue = signal<number | null>(null);
+
+  readonly playerDieActive: Signal<boolean>;
+  readonly monsterDieActive: Signal<boolean>;
+  readonly playerDieSides: Signal<number>;
+  readonly monsterDieSides: Signal<number>;
+
   private lastPhase: string | null = null;
   private lastLogLength = 0;
 
   @ViewChild('logbox') logboxRef?: ElementRef<HTMLDivElement>;
   @ViewChild('scrollAnchor') scrollAnchorRef?: ElementRef<HTMLDivElement>;
 
-  constructor(public game: GameService, public i18n: I18nService, public dice: DiceService) {}
+  constructor(public game: GameService, public i18n: I18nService, public dice: DiceService) {
+    const roll = computed(() => this.game.state().rollingDie);
+    const isEnemyRoll = computed(() => {
+      const rd = roll();
+      return !!(rd && (rd.tag === 'monsterAttack' || rd.tag === 'monsterDamage'));
+    });
+
+    this.playerDieActive = computed(() => !!roll()?.active && !isEnemyRoll());
+    this.monsterDieActive = computed(() => !!roll()?.active && isEnemyRoll());
+    this.playerDieSides = computed(() => (isEnemyRoll() ? 20 : roll()?.sides || 20));
+    this.monsterDieSides = computed(() => (isEnemyRoll() ? roll()?.sides || 20 : 20));
+
+    effect(() => {
+      const value = roll()?.value ?? null;
+      if (value === null) return;
+      if (isEnemyRoll()) {
+        this.monsterDieValue.set(value);
+      } else {
+        this.playerDieValue.set(value);
+      }
+    });
+  }
 
   s() { return this.game.state(); }
   p() { return this.game.state().player!; }
@@ -42,53 +82,6 @@ export class GameScreenComponent implements AfterViewChecked {
   canSpecial(): boolean {
     const cls = this.p().cls;
     return !this.p().usedSpecial && !!this.i18n.t('classes.' + cls + '.active');
-  }
-
-  private isEnemyRoll(): boolean {
-    const rd = this.s().rollingDie;
-    return !!(rd && (rd.tag === 'monsterAttack' || rd.tag === 'monsterDamage'));
-  }
-
-  playerDieActive(): boolean {
-    const rd = this.s().rollingDie;
-    return !!(rd && rd.active && !this.isEnemyRoll());
-  }
-
-  playerDieValue(): number | null {
-    const rd = this.s().rollingDie;
-    if (rd && !this.isEnemyRoll() && rd.value !== null) {
-      this.lastPlayerValue = rd.value;
-    }
-    return this.lastPlayerValue;
-  }
-
-  monsterDieActive(): boolean {
-    const rd = this.s().rollingDie;
-    return !!(rd && rd.active && this.isEnemyRoll());
-  }
-
-  monsterDieValue(): number | null {
-    const rd = this.s().rollingDie;
-    if (rd && this.isEnemyRoll() && rd.value !== null) {
-      this.lastMonsterValue = rd.value;
-    }
-    return this.lastMonsterValue;
-  }
-
-  playerDieSides(): number {
-    const rd = this.s().rollingDie;
-    if (rd && !this.isEnemyRoll() && rd.sides) {
-      return rd.sides;
-    }
-    return 20;
-  }
-
-  monsterDieSides(): number {
-    const rd = this.s().rollingDie;
-    if (rd && this.isEnemyRoll() && rd.sides) {
-      return rd.sides;
-    }
-    return 20;
   }
 
   ngAfterViewChecked(): void {

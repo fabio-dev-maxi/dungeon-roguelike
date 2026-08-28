@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { GameService } from '../../services/game.service';
 import { TitleScreenComponent } from '../title-screen/title-screen.component';
 import { CharacterCreationComponent } from '../character-creation/character-creation.component';
@@ -15,7 +15,8 @@ import { GameOverComponent } from '../game-over/game-over.component';
     GameScreenComponent,
     GameOverComponent
   ],
-  templateUrl: './main-game.component.html'
+  templateUrl: './main-game.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MainGameComponent {
   constructor(public game: GameService) {}

@@ -1,12 +1,12 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   ViewChild,
   OnDestroy,
   NgZone,
-  Input,
-  OnChanges,
-  SimpleChanges
+  effect,
+  input
 } from '@angular/core';
 import * as THREE from 'three';
 
@@ -14,15 +14,15 @@ import * as THREE from 'three';
   selector: 'app-dice-widget',
   standalone: true,
   templateUrl: './dice-widget.component.html',
-  styleUrl: './dice-widget.component.css'
+  styleUrl: './dice-widget.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DiceWidgetComponent implements OnChanges, OnDestroy {
-  @Input() value: number | null = null;
-  @Input() isActive = false;
-  @Input() sides: number = 20;
-  @Input() label = 'Dado';
-  @Input() themeColor = '#8b0000';
-  @Input() labelColor = '#ffffff'; // <- Definito qui, bianco di default
+export class DiceWidgetComponent implements OnDestroy {
+  readonly value = input<number | null>(null);
+  readonly isActive = input(false);
+  readonly sides = input(20);
+  readonly themeColor = input('#8b0000');
+  readonly labelColor = input('#ffffff');
 
   private scene?: THREE.Scene;
   private camera?: THREE.PerspectiveCamera;
@@ -32,37 +32,50 @@ export class DiceWidgetComponent implements OnChanges, OnDestroy {
   private stopAnimFrameId?: number;
   private targetQuaternions: THREE.Quaternion[] = [];
   private isRollingAnim = false;
+  private builtSides: number | null = null;
 
   @ViewChild('diceCanvas') set canvasRef(ref: ElementRef<HTMLCanvasElement> | undefined) {
     if (ref && !this.scene) {
       this.initThree(ref.nativeElement);
-      this.buildDiceMesh();
+      this.rebuildMesh();
       this.ngZone.runOutsideAngular(() => this.animate());
-      if (this.isActive) {
-        this.isRollingAnim = true;
-      }
+      this.syncRollState();
     } else if (!ref && this.scene) {
       this.destroyThree();
     }
   }
 
-  constructor(private ngZone: NgZone) {}
+  constructor(private ngZone: NgZone) {
+    effect(() => {
+      // Le letture avvengono prima di ogni uscita anticipata, così l'effect
+      // resta agganciato agli input anche quando la scena non è ancora pronta.
+      const sides = this.sides();
+      this.isActive();
+      this.value();
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['sides'] && !changes['sides'].firstChange) {
-      this.buildDiceMesh();
-    }
+      if (!this.scene) return;
+      if (this.builtSides !== sides) this.rebuildMesh();
+      this.syncRollState();
+    });
+  }
 
+  private rebuildMesh(): void {
+    this.builtSides = this.sides();
+    this.buildDiceMesh();
+  }
+
+  private syncRollState(): void {
     if (!this.diceMesh) return;
 
-    if (this.isActive) {
+    if (this.isActive()) {
       this.isRollingAnim = true;
-    } else {
-      this.isRollingAnim = false;
-      if (this.value !== null && this.targetQuaternions.length > 0) {
-        const idx = Math.max(0, Math.min(this.sides - 1, this.value - 1));
-        this.stopRollAnimation(idx);
-      }
+      return;
+    }
+
+    this.isRollingAnim = false;
+    const value = this.value();
+    if (value !== null && this.targetQuaternions.length > 0) {
+      this.stopRollAnimation(Math.max(0, Math.min(this.sides() - 1, value - 1)));
     }
   }
 
@@ -159,7 +172,7 @@ export class DiceWidgetComponent implements OnChanges, OnDestroy {
       const ctx = canvas.getContext('2d')!;
 
       // Sfondo colore tema senza bordi
-      ctx.fillStyle = this.themeColor;
+      ctx.fillStyle = this.themeColor();
       ctx.fillRect(0, 0, 256, 256);
 
       let fontSize = '60px';
@@ -195,7 +208,7 @@ export class DiceWidgetComponent implements OnChanges, OnDestroy {
       ctx.strokeText(i.toString(), 128, textY);
       
       // Riempimento testo (usa l'input labelColor)
-      ctx.fillStyle = this.labelColor;
+      ctx.fillStyle = this.labelColor();
       ctx.fillText(i.toString(), 128, textY);
 
       materials.push(
@@ -222,7 +235,7 @@ export class DiceWidgetComponent implements OnChanges, OnDestroy {
       this.diceMesh = undefined;
     }
 
-    const numSides = this.sides || 20;
+    const numSides = this.sides() || 20;
     const geometry = this.getGeometryForSides(numSides);
     this.targetQuaternions = [];
 
@@ -338,8 +351,9 @@ export class DiceWidgetComponent implements OnChanges, OnDestroy {
     this.diceMesh = new THREE.Mesh(geometry, materials);
     this.scene.add(this.diceMesh);
 
-    if (this.value !== null && this.targetQuaternions.length > 0) {
-      const idx = Math.max(0, Math.min(numSides - 1, this.value - 1));
+    const value = this.value();
+    if (value !== null && this.targetQuaternions.length > 0) {
+      const idx = Math.max(0, Math.min(numSides - 1, value - 1));
       this.diceMesh.quaternion.copy(this.targetQuaternions[idx]);
     }
   }

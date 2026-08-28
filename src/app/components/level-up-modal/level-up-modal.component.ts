@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { GameService } from '../../services/game.service';
 import { I18nService } from '../../services/i18n.service';
 import { StatKey } from '../../models/game.models';
@@ -9,7 +9,8 @@ const STAT_KEYS: StatKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
   selector: 'app-level-up-modal',
   standalone: true,
   templateUrl: './level-up-modal.component.html',
-  styleUrl: './level-up-modal.component.css'
+  styleUrl: './level-up-modal.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LevelUpModalComponent {
   statKeys = STAT_KEYS;
