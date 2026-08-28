@@ -35,34 +35,49 @@
   </div>
 
   @if (results().length > 0) {
-    <div class="results-container">
-      <h3>Esito Simulazione</h3>
+  <div class="results-container">
+    <h3>Esito Simulazione</h3>
 
-      @for (res of results(); track res.cls) {
-        <div class="result-card">
-          <h4>Classe: <span class="highlight">{{ res.cls | uppercase }}</span> (N={{ res.N }})</h4>
+    @for (res of results(); track res.cls) {
+    <div class="result-card">
+      <h4>Classe: <span class="highlight">{{ res.cls | uppercase }}</span> (N={{ res.N }})</h4>
 
-          <div class="stat-summary-grid">
-            <div class="stat-box">
-              <div class="label">Vittorie (Piano 50)</div>
-              <div class="val num gain">{{ (res.completionRate * 100).toFixed(1) }}%</div>
-            </div>
-            <div class="stat-box">
-              <div class="label">Profondità Media Morte</div>
-              <div class="val num">{{ res.avgDeathDepth ? res.avgDeathDepth.toFixed(1) : 'N/A' }}</div>
-            </div>
-            <div class="stat-box">
-              <div class="label">Completamenti Totali</div>
-              <div class="val num">{{ res.completions }} / {{ res.N }}</div>
-            </div>
-          </div>
-
-          <details class="json-details">
-            <summary class="details-toggle">Visualizza JSON di Output completo</summary>
-            <pre class="json-block">{{ formatJson(res) }}</pre>
-          </details>
+      <div class="stat-summary-grid">
+        <div class="stat-box">
+          <div class="label">Vittorie (Piano 50)</div>
+          <div class="val num gain">{{ (res.completionRate * 100).toFixed(1) }}%</div>
         </div>
-      }
+        <div class="stat-box">
+          <div class="label">Profondità Media Morte</div>
+          <div class="val num">{{ res.avgDeathDepth ? res.avgDeathDepth.toFixed(1) : 'N/A' }}</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Completamenti Totali</div>
+          <div class="val num">{{ res.completions }} / {{ res.N }}</div>
+        </div>
+      </div>
+
+      <div class="stat-summary-grid" style="margin-top: 12px;">
+        <div class="stat-box">
+          <div class="label">Reliquie Medie / Run</div>
+          <div class="val num">{{ res.dropsSummary.avgRelicsPerRun }}</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Armi / Armature Drop</div>
+          <div class="val num">{{ res.dropsSummary.weaponsCollected }} / {{ res.dropsSummary.armorsCollected }}</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">CA / DR Finale Media</div>
+          <div class="val num">{{ res.dropsSummary.avgFinalAC }} / {{ res.dropsSummary.avgFinalDR }}</div>
+        </div>
+      </div>
+
+      <details class="json-details">
+        <summary class="details-toggle">Visualizza JSON di Output completo</summary>
+        <pre class="json-block">{{ formatJson(res) }}</pre>
+      </details>
     </div>
+    }
+  </div>
   }
 </div>

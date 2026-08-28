@@ -19,9 +19,9 @@ export class EncounterService {
       { v: 'combat', w: 80 },
       { v: 'treasure', w: 10 },
       { v: 'trap', w: 5 },
-      { v: 'merchant', w: 2 },
-      { v: 'shrine', w: 2 },
-      { v: 'tavern', w: 1 }];
+      { v: 'shrine', w: 5 },
+      { v: 'merchant', w: 0 },
+      { v: 'tavern', w: 0 }];
     else if (depth <= 9) weights = [
       { v: 'combat', w: 60 },
       { v: 'trap', w: 10 },

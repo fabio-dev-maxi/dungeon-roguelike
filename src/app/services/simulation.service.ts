@@ -45,7 +45,7 @@ export class SimulationService {
     private stateService: GameStateService,
     private levelUpService: LevelUpService,
     private dice: DiceService
-  ) {}
+  ) { }
 
   private setSimulationMode(active: boolean) {
     if (active) {
@@ -54,10 +54,10 @@ export class SimulationService {
       this.origTouch = this.stateService.touch.bind(this.stateService);
       this.origAnimateRollAsync = this.stateService.animateRollAsync.bind(this.stateService);
       this.origWait = this.stateService.wait.bind(this.stateService);
-      this.stateService.log = () => {};
-      this.stateService.touch = () => {};
+      this.stateService.log = () => { };
+      this.stateService.touch = () => { };
       this.stateService.animateRollAsync = async (val) => val;
-      this.stateService.wait = async () => {};
+      this.stateService.wait = async () => { };
     } else {
       if (this.origLog) this.stateService.log = this.origLog;
       if (this.origTouch) this.stateService.touch = this.origTouch;
@@ -168,6 +168,8 @@ export class SimulationService {
 
       this.encounterService.startFloor();
 
+      // All'interno del metodo simulateSingleRun() in SimulationService:
+
       if (s.phase === 'combat' && s.monster) {
         const mId = s.monster.id;
         const isBoss = s.monster.isBoss;
@@ -181,12 +183,16 @@ export class SimulationService {
         while (s.player!.hp > 0 && s.monster && s.monster.hp > 0 && rounds < 100) {
           rounds++;
 
-          if (s.player!.hp < s.player!.maxHp * 0.35 && s.player!.inventory.some(i => i.type === 'potion')) {
-            await this.combatService.playerUsePotion();
-          } else if (!s.player!.usedSpecial &&
-                    (s.player!.cls === 'fighter' || s.player!.cls === 'rogue' || s.player!.cls === 'wizard' || (s.player!.cls === 'cleric' && s.player!.hp < s.player!.maxHp * 0.6))) {
+          // 1. Usa subito l'abilità speciale se disponibile al primo turno
+          if (!s.player!.usedSpecial) {
             await this.combatService.playerUseSpecial();
-          } else {
+          }
+          // 2. Se l'abilità è già stata usata, bevi una pozione in caso di HP critici (< 35%)
+          else if (s.player!.hp < s.player!.maxHp * 0.35 && s.player!.inventory.some(i => i.type === 'potion')) {
+            await this.combatService.playerUsePotion();
+          }
+          // 3. Attacco standard
+          else {
             await this.combatService.playerAttack();
           }
         }
