@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { GameStateService } from './game-state.service';
 import { DiceService } from './dice.service';
-import { BOSS_IDS, BOSS_STATS, MONSTER_IDS_TIER, MONSTER_STATS } from '../data/monster.data';
+import { BOSS_IDS, BOSS_STATS, MONSTER_IDS_TIER, MONSTER_STATS, MonsterStat } from '../data/monster.data';
 import { Monster } from '../models/game.models';
 
 /**
@@ -27,7 +27,7 @@ export class MonsterService {
 
   makeMonster(depth: number): Monster {
     const bossId = BOSS_IDS.find(id => BOSS_STATS[id].atDepth === depth);
-    let id: string, base: { hpBase: number; dmg: [number, number]; ac: number }, isBoss = false;
+    let id: string, base: MonsterStat, isBoss = false;
 
     if (bossId) { id = bossId; base = BOSS_STATS[bossId]; isBoss = true; }
     else {
@@ -47,7 +47,7 @@ export class MonsterService {
       acVariance = Math.floor(Math.random() * 2) - 1;
     }
     const hp = Math.round(effectiveHpBase * scale);
-    return { id, isBoss, bracket, hp, maxHp: hp, dmg: base.dmg, ac: base.ac + acVariance };
+    return { id, isBoss, bracket, hp, maxHp: hp, dmg: base.dmg, ac: base.ac + acVariance, atk: base.atk };
   }
 
   monsterDisplayName(m: Monster | null): string {

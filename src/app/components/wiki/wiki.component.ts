@@ -1,19 +1,18 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { UpperCasePipe } from '@angular/common';
-import { I18nService } from '../../services/i18n.service';
-import { CLASS_KEYS, CLASS_FEATS } from '../../data/game.data';
-import { MONSTER_IDS_TIER, MONSTER_STATS, BOSS_STATS, MONSTER_XP, BOSS_XP } from '../../data/monster.data';
-import { WEAPON_POOLS, ARMOR_POOLS } from '../../data/equipment.data';
+import { ARMOR_POOLS, WEAPON_POOLS } from '../../data/equipment.data';
+import { CLASS_FEATS, CLASS_KEYS } from '../../data/game.data';
+import { BOSS_STATS, BOSS_XP, MONSTER_IDS_TIER, MONSTER_STATS, MONSTER_XP } from '../../data/monster.data';
 import { RELICS } from '../../data/relic.data';
 import { ClassKey } from '../../models/game.models';
+import { I18nService } from '../../services/i18n.service';
 
 export type WikiTab = 'monsters' | 'bosses' | 'equipment' | 'relics_feats';
 
 @Component({
   selector: 'app-wiki',
   standalone: true,
-  imports: [RouterLink, UpperCasePipe],
+  imports: [RouterLink],
   templateUrl: './wiki.component.html',
   styleUrl: './wiki.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush

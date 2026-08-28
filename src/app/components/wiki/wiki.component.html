@@ -13,71 +13,74 @@
   </div>
 
   <!-- SEZIONE MOSTRI -->
-  @if (activeTab() === 'monsters') {
-    <div class="section-container">
-      @for (tier of monsterTiers; track tier) {
-        <div class="wiki-card">
-          <h3>Tier {{ tier }}</h3>
-          <table class="wiki-table">
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>PF Base</th>
-                <th>Danno</th>
-                <th>CA</th>
-                <th>XP Base</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (id of monsterIdsTier[tier]; track id) {
-                <tr>
-                  <td><b>{{ i18n.t('monsters.' + id) }}</b></td>
-                  <td class="num">{{ monsterStats[id].hpBase }}</td>
-                  <td class="num">{{ monsterStats[id].dmg[0] }}d{{ monsterStats[id].dmg[1] }}</td>
-                  <td class="num">{{ monsterStats[id].ac }}</td>
-                  <td class="num gain">+{{ monsterXp[id] }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      }
-    </div>
-  }
-
-  <!-- SEZIONE BOSS -->
-  @if (activeTab() === 'bosses') {
-    <div class="section-container">
+@if (activeTab() === 'monsters') {
+  <div class="section-container">
+    @for (tier of monsterTiers; track tier) {
       <div class="wiki-card">
-        <h3>I Custodi dei Piani</h3>
+        <h3>Tier {{ tier }}</h3>
         <table class="wiki-table">
           <thead>
             <tr>
-              <th>Piano</th>
-              <th>Boss</th>
+              <th>Nome</th>
               <th>PF Base</th>
               <th>Danno</th>
               <th>CA</th>
+              <th>Atk Base</th>
               <th>XP Base</th>
             </tr>
           </thead>
           <tbody>
-            @for (id of bossIds; track id) {
+            @for (id of monsterIdsTier[tier]; track id) {
               <tr>
-                <td class="num">Piano {{ bossStats[id].atDepth }}</td>
-                <td><b class="highlight">{{ i18n.t('bosses.' + id) }}</b></td>
-                <td class="num">{{ bossStats[id].hpBase }}</td>
-                <td class="num">{{ bossStats[id].dmg[0] }}d{{ bossStats[id].dmg[1] }}</td>
-                <td class="num">{{ bossStats[id].ac }}</td>
-                <td class="num gain">+{{ bossXp[id] }}</td>
+                <td><b>{{ i18n.t('monsters.' + id) }}</b></td>
+                <td class="num">{{ monsterStats[id].hpBase }}</td>
+                <td class="num">{{ monsterStats[id].dmg[0] }}d{{ monsterStats[id].dmg[1] }}</td>
+                <td class="num">{{ monsterStats[id].ac }}</td>
+                <td class="num">+{{ monsterStats[id].atk }}</td>
+                <td class="num gain">+{{ monsterXp[id] }}</td>
               </tr>
             }
           </tbody>
         </table>
       </div>
-    </div>
-  }
+    }
+  </div>
+}
 
+<!-- SEZIONE BOSS -->
+@if (activeTab() === 'bosses') {
+  <div class="section-container">
+    <div class="wiki-card">
+      <h3>I Custodi dei Piani</h3>
+      <table class="wiki-table">
+        <thead>
+          <tr>
+            <th>Piano</th>
+            <th>Boss</th>
+            <th>PF Base</th>
+            <th>Danno</th>
+            <th>CA</th>
+            <th>Atk Base</th>
+            <th>XP Base</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (id of bossIds; track id) {
+            <tr>
+              <td class="num">Piano {{ bossStats[id].atDepth }}</td>
+              <td><b class="highlight">{{ i18n.t('bosses.' + id) }}</b></td>
+              <td class="num">{{ bossStats[id].hpBase }}</td>
+              <td class="num">{{ bossStats[id].dmg[0] }}d{{ bossStats[id].dmg[1] }}</td>
+              <td class="num">{{ bossStats[id].ac }}</td>
+              <td class="num">+{{ bossStats[id].atk }}</td>
+              <td class="num gain">+{{ bossXp[id] }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}
   <!-- SEZIONE ARMI & ARMATURE -->
   @if (activeTab() === 'equipment') {
     <div class="class-selector">

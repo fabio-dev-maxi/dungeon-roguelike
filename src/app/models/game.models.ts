@@ -73,6 +73,7 @@ export interface Monster {
   maxHp: number;
   dmg: [number, number];
   ac: number;
+  atk: number; // Bonus al tiro per colpire
 }
 
 export interface ChoiceOption {

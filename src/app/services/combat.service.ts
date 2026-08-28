@@ -335,7 +335,9 @@ export class CombatService {
     s.combatFlags.defending = false;
 
     const acBonus = defending ? 4 : 0;
-    const monsterAtkMod = 2 + Math.floor(s.depth / 5);
+
+    // Utilizza il bonus del mostro anziché la formula generica fissa
+    const monsterAtkMod = s.monster.atk;
     const targetAC = p.ac + acBonus + (p.tempAcBonus || 0);
     this.stateService.touch();
 
