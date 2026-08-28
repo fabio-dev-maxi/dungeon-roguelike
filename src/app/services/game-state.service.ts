@@ -3,6 +3,10 @@ import { LangCode } from '../data/i18n.data';
 import { GameState } from '../models/game.models';
 import { DiceService } from './dice.service';
 import { I18nService } from './i18n.service';
+import { DICE_SETTLE_MS } from '../components/dice-widget/dice-widget.component';
+
+const SPIN_MS = 500;
+const READ_RESULT_MS = 950;
 
 /**
  * Gestione dello stato reattivo centrale (Signals), log e animazioni dadi
@@ -26,6 +30,7 @@ export class GameStateService {
 
   t(path: string): any { return this.i18n.t(path); }
   tf(path: string, vars: Record<string, any> = {}): string { return this.i18n.tf(path, vars); }
+  equipmentName(key: string, kind: 'weapons' | 'armors'): string { return this.i18n.equipmentName(key, kind); }
 
   wait(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -71,7 +76,7 @@ export class GameStateService {
     const s = this.state();
     s.rollingDie = { active: true, value: this.dice.rnd(sides), cls: 'rolling', sides, tag };
     this.touch();
-    await this.wait(500);
+    await this.wait(SPIN_MS);
 
     let cls = '';
     if (sides === 20) {
@@ -81,7 +86,9 @@ export class GameStateService {
 
     s.rollingDie = { active: false, value: finalValue, cls, sides, tag };
     this.touch();
-    await this.wait(800);
+    // La frenata del dado consuma la prima parte dell'attesa: va scontata,
+    // altrimenti il tiro successivo parte prima che il risultato sia leggibile.
+    await this.wait(DICE_SETTLE_MS + READ_RESULT_MS);
 
     return finalValue;
   }
@@ -89,12 +96,14 @@ export class GameStateService {
   toggleStats(): void {
     const s = this.state();
     s.statsExpanded = !s.statsExpanded;
+    s.inventoryExpanded = false;
     this.touch();
   }
 
   toggleInventory(): void {
     const s = this.state();
     s.inventoryExpanded = !s.inventoryExpanded;
+    s.statsExpanded = false;
     this.touch();
   }
 

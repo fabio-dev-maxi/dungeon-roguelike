@@ -16,9 +16,9 @@ export class EncounterService {
   encounterWeightsForDepth(depth: number): WeightedItem<string>[] {
     let weights: WeightedItem<string>[];
     if (depth <= 5) weights = [
-      { v: 'combat', w: 78 },
+      { v: 'combat', w: 80 },
       { v: 'treasure', w: 10 },
-      { v: 'trap', w: 7 },
+      { v: 'trap', w: 5 },
       { v: 'merchant', w: 2 },
       { v: 'shrine', w: 2 },
       { v: 'tavern', w: 1 }];
@@ -61,7 +61,7 @@ export class EncounterService {
     let type = forcedBoss ? 'combat' : this.dice.weightedPick(this.encounterWeightsForDepth(s.depth));
     
     this.stateService.touch();
-    this.stateService.log(`<span class="sys">${this.stateService.tf('log.floorHeader', { depth: s.depth })}</span>`);
+    this.stateService.log(this.stateService.tf('log.floorHeader', { depth: s.depth }), 'sys floor');
 
     if (type === 'combat') {
       const m = this.monsterService.makeMonster(s.depth);

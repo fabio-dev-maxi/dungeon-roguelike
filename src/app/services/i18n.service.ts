@@ -33,4 +33,17 @@ export class I18nService {
     }
     return res;
   }
+
+  /**
+   * I nomi dell'equipaggiamento avanzato stanno sotto `equipment` in alcune lingue
+   * e sotto `weapons`/`armors` in altre: senza questo fallback una delle due forme
+   * mostrerebbe la chiave grezza al posto del nome.
+   */
+  equipmentName(key: string, kind: 'weapons' | 'armors'): string {
+    const fromEquipment = this.t(`equipment.${key}.name`);
+    if (typeof fromEquipment === 'string' && !fromEquipment.startsWith('equipment.')) {
+      return fromEquipment;
+    }
+    return this.t(`${kind}.${key}`);
+  }
 }

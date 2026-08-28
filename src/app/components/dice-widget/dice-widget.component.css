@@ -9,14 +9,18 @@
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  border: 2px solid var(--gold);
+  border: 2px solid var(--gold-dim);
   box-shadow: 0 4px 14px rgba(0, 0, 0, .6);
   overflow: hidden;
-  transition: box-shadow .2s ease;
+  transition: box-shadow .18s ease, border-color .18s ease, transform .18s var(--ease-out);
 }
 
+/* Stacco visivo fra un tiro e il successivo: senza, due tiri ravvicinati
+   si leggono come un'unica animazione continua. */
 .dice-container.rolling {
-  box-shadow: 0 4px 14px rgba(0, 0, 0, .6), 0 0 18px var(--gold-glow);
+  border-color: var(--gold);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .6), 0 0 26px 4px var(--gold-glow);
+  transform: scale(1.12);
 }
 
 .dice-container canvas {

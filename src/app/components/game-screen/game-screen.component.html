@@ -1,7 +1,10 @@
 <div class="game-grid">
   <!-- PANNELLO SCHEDA PERSONAGGIO & NEMICO -->
   <div class="panel sheet-panel">
-    <div class="depth-badge">{{ i18n.t('ui.floorLabel') }} <span class="num">{{ s().depth }}</span></div>
+    <div class="depth-badge depth-badge--floor">
+      <span class="floor-label">{{ i18n.t('ui.floorLabel') }}</span>
+      <span class="num floor-number">{{ s().depth }}</span>
+    </div>
     <h3 class="char-name">{{ p().name }}</h3>
     <p class="small char-sub">
       {{ i18n.tf('ui.levelLabel', { cls: i18n.t('classes.' + p().cls + '.name'), level: p().level }) }}
@@ -48,10 +51,10 @@
     <div class="small inventory-label">{{ i18n.t('ui.inventoryLabel') }}</div>
     <ul class="inv-list">
       @if (p().inventory.length === 0) {
-      <li>&middot; {{ i18n.t('ui.emptyInventory') }}</li>
+      <li class="inv-empty"><span class="inv-icon" aria-hidden="true">—</span>{{ i18n.t('ui.emptyInventory') }}</li>
       }
       @for (item of p().inventory; track $index) {
-      <li>&middot; {{ i18n.t('potionName') }}</li>
+      <li><span class="inv-icon" aria-hidden="true">{{ itemIcon(item.type) }}</span>{{ i18n.t('potionName') }}</li>
       }
     </ul>
 
@@ -59,21 +62,27 @@
     <div class="small inventory-label">{{ i18n.t('ui.relicsLabel') }}</div>
     <ul class="inv-list">
       @for (rid of p().relics; track rid) {
-      <li>&middot; {{ i18n.t('relics.' + rid + '.name') }}</li>
+      <li><span class="inv-icon" aria-hidden="true">🔮</span>{{ i18n.t('relics.' + rid + '.name') }}</li>
       }
     </ul>
     }
     }
 
-    @if (s().monster; as m) {
     <hr class="rule">
     <div class="small">{{ i18n.t('ui.enemyLabel') }}</div>
+    @if (s().monster; as m) {
     <div class="sheet-row"><span class="enemy-name">{{ game.monsterDisplayName(m) }}</span><span class="num">{{ m.hp
         }}/{{ m.maxHp }}</span></div>
     <div class="hpbar-outer">
       <div class="hpbar-inner enemybar-inner" [style.width.%]="pct(m.hp, m.maxHp)"></div>
     </div>
     <div class="sheet-row"><span>{{ i18n.t('ui.acShort') }}</span><span class="num">{{ m.ac }}</span></div>
+    } @else {
+    <div class="sheet-row"><span class="enemy-name enemy-empty">-</span><span class="num enemy-empty">-</span></div>
+    <div class="hpbar-outer">
+      <div class="hpbar-inner enemybar-inner" [style.width.%]="0"></div>
+    </div>
+    <div class="sheet-row"><span>{{ i18n.t('ui.acShort') }}</span><span class="num enemy-empty">-</span></div>
     }
   </div>
 
@@ -93,17 +102,44 @@
     <!-- ARENA DADI FISSA -->
     <div class="dice-arena">
       <div class="dice-slot left">
-        <app-dice-widget [themeColor]="'#8b0000'"
-          [labelColor]="'#d4af37'" [value]="playerDieValue()" [isActive]="playerDieActive()" [sides]="playerDieSides()" />
+        <div class="dice-fighter">
+          <app-dice-widget [themeColor]="'#8b0000'"
+            [labelColor]="'#d4af37'" [value]="playerDieValue()" [isActive]="playerDieActive()" [sides]="playerDieSides()" />
+          <span class="dice-name player">{{ p().name || i18n.t('ui.namePlaceholder') }}</span>
+        </div>
       </div>
 
       <div class="dice-slot right">
         @if (s().monster; as m) {
-        <app-dice-widget [themeColor]="'#142918'"
-          [labelColor]="'#34d399'" [value]="monsterDieValue()" [isActive]="monsterDieActive()"
-          [sides]="monsterDieSides()" />
+        <div class="dice-fighter">
+          <app-dice-widget [themeColor]="'#142918'"
+            [labelColor]="'#34d399'" [value]="monsterDieValue()" [isActive]="monsterDieActive()"
+            [sides]="monsterDieSides()" />
+          <span class="dice-name enemy">{{ game.monsterDisplayName(m) }}</span>
+        </div>
         }
       </div>
+    </div>
+
+    <!-- Riepilogo PF: su mobile la scheda resta fuori schermo mentre si sceglie l'azione -->
+    <div class="combat-hud">
+      <div class="hud-side">
+        <span class="hud-name">{{ p().name || i18n.t('ui.namePlaceholder') }}</span>
+        <div class="hpbar-outer slim">
+          <div class="hpbar-inner" [style.width.%]="hpPct()"></div>
+        </div>
+        <span class="num hud-val">{{ p().hp }}/{{ p().maxHp }}</span>
+      </div>
+
+      @if (s().monster; as m) {
+      <div class="hud-side">
+        <span class="hud-name enemy">{{ game.monsterDisplayName(m) }}</span>
+        <div class="hpbar-outer slim">
+          <div class="hpbar-inner enemybar-inner" [style.width.%]="pct(m.hp, m.maxHp)"></div>
+        </div>
+        <span class="num hud-val">{{ m.hp }}/{{ m.maxHp }}</span>
+      </div>
+      }
     </div>
 
     <!-- PULSANTIERA AZIONI -->

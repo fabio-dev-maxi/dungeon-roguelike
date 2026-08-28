@@ -21,6 +21,15 @@ import { xpToNext } from '../../data/monster.data';
 
 const STAT_KEYS: StatKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 
+interface DieFace {
+  value: number | null;
+  sides: number;
+}
+
+const ITEM_ICONS: Record<string, string> = {
+  potion: '🧪'
+};
+
 @Component({
   selector: 'app-game-screen',
   standalone: true,
@@ -33,14 +42,20 @@ export class GameScreenComponent implements AfterViewChecked {
   statKeys = STAT_KEYS;
   classData = CLASS_DATA;
 
-  /** Ultimo valore mostrato da ciascun dado: resta visibile anche a tiro concluso. */
-  readonly playerDieValue = signal<number | null>(null);
-  readonly monsterDieValue = signal<number | null>(null);
+  /**
+   * Valore e lati restano quelli dell'ultimo tiro di quell'attore: se cambiassero
+   * quando tira l'avversario, il dado fermo si ricostruirebbe e rifarebbe la frenata.
+   */
+  private readonly playerDie = signal<DieFace>({ value: null, sides: 20 });
+  private readonly monsterDie = signal<DieFace>({ value: null, sides: 20 });
+
+  readonly playerDieValue = computed(() => this.playerDie().value);
+  readonly monsterDieValue = computed(() => this.monsterDie().value);
+  readonly playerDieSides = computed(() => this.playerDie().sides);
+  readonly monsterDieSides = computed(() => this.monsterDie().sides);
 
   readonly playerDieActive: Signal<boolean>;
   readonly monsterDieActive: Signal<boolean>;
-  readonly playerDieSides: Signal<number>;
-  readonly monsterDieSides: Signal<number>;
 
   private lastPhase: string | null = null;
   private lastLogLength = 0;
@@ -57,16 +72,16 @@ export class GameScreenComponent implements AfterViewChecked {
 
     this.playerDieActive = computed(() => !!roll()?.active && !isEnemyRoll());
     this.monsterDieActive = computed(() => !!roll()?.active && isEnemyRoll());
-    this.playerDieSides = computed(() => (isEnemyRoll() ? 20 : roll()?.sides || 20));
-    this.monsterDieSides = computed(() => (isEnemyRoll() ? roll()?.sides || 20 : 20));
 
     effect(() => {
-      const value = roll()?.value ?? null;
-      if (value === null) return;
+      const rd = roll();
+      if (!rd || rd.value === null) return;
+
+      const face: DieFace = { value: rd.value, sides: rd.sides || 20 };
       if (isEnemyRoll()) {
-        this.monsterDieValue.set(value);
+        this.monsterDie.set(face);
       } else {
-        this.playerDieValue.set(value);
+        this.playerDie.set(face);
       }
     });
   }
@@ -78,6 +93,7 @@ export class GameScreenComponent implements AfterViewChecked {
   xpNeeded(): number { return xpToNext(this.p().level); }
   xpPct(): number { return this.pct(this.p().xp, this.xpNeeded()); }
   hasPotion(): boolean { return this.p().inventory.some(i => i.type === 'potion'); }
+  itemIcon(type: string): string { return ITEM_ICONS[type] ?? '🎒'; }
   acting(): boolean { return !!this.s().combatFlags.acting; }
   canSpecial(): boolean {
     const cls = this.p().cls;

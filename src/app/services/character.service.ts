@@ -82,6 +82,6 @@ export class CharacterService {
     onFloorStart();
   }
 
-  weaponName(w: Weapon): string { return this.stateService.t('weapons.' + w.key); }
-  armorName(a: Armor): string { return this.stateService.t('armors.' + a.key); }
+  weaponName(w: Weapon): string { return this.stateService.equipmentName(w.key, 'weapons'); }
+  armorName(a: Armor): string { return this.stateService.equipmentName(a.key, 'armors'); }
 }

@@ -10,6 +10,19 @@ import {
 } from '@angular/core';
 import * as THREE from 'three';
 
+interface DiceShape {
+  geometry: THREE.BufferGeometry;
+  quaternions: THREE.Quaternion[];
+}
+
+// Geometrie e texture delle facce sono deterministiche: costruirle a ogni cambio
+// di dado bloccava il main thread e fondeva insieme le animazioni di tiri distinti.
+const SHAPE_CACHE = new Map<number, DiceShape>();
+const MATERIAL_CACHE = new Map<string, THREE.MeshStandardMaterial[]>();
+
+/** Durata della frenata del dado, scontata da GameStateService dalla pausa fra un tiro e il successivo. */
+export const DICE_SETTLE_MS = 320;
+
 @Component({
   selector: 'app-dice-widget',
   standalone: true,
@@ -68,6 +81,7 @@ export class DiceWidgetComponent implements OnDestroy {
     if (!this.diceMesh) return;
 
     if (this.isActive()) {
+      this.cancelSettle();
       this.isRollingAnim = true;
       return;
     }
@@ -76,6 +90,13 @@ export class DiceWidgetComponent implements OnDestroy {
     const value = this.value();
     if (value !== null && this.targetQuaternions.length > 0) {
       this.stopRollAnimation(Math.max(0, Math.min(this.sides() - 1, value - 1)));
+    }
+  }
+
+  private cancelSettle(): void {
+    if (this.stopAnimFrameId) {
+      cancelAnimationFrame(this.stopAnimFrameId);
+      this.stopAnimFrameId = undefined;
     }
   }
 
@@ -226,18 +247,50 @@ export class DiceWidgetComponent implements OnDestroy {
   private buildDiceMesh(): void {
     if (!this.scene) return;
 
+    // La frenata in corso punta ai quaternioni della vecchia geometria.
+    this.cancelSettle();
+
     if (this.diceMesh) {
       this.scene.remove(this.diceMesh);
-      this.diceMesh.geometry.dispose();
-      if (Array.isArray(this.diceMesh.material)) {
-        this.diceMesh.material.forEach(m => m.dispose());
-      }
       this.diceMesh = undefined;
     }
 
     const numSides = this.sides() || 20;
+    const shape = this.getShape(numSides);
+    this.targetQuaternions = shape.quaternions;
+
+    this.diceMesh = new THREE.Mesh(shape.geometry, this.getMaterials(numSides));
+    this.scene.add(this.diceMesh);
+
+    const value = this.value();
+    if (value !== null && this.targetQuaternions.length > 0) {
+      const idx = Math.max(0, Math.min(numSides - 1, value - 1));
+      this.diceMesh.quaternion.copy(this.targetQuaternions[idx]);
+    }
+  }
+
+  private getShape(numSides: number): DiceShape {
+    let shape = SHAPE_CACHE.get(numSides);
+    if (!shape) {
+      shape = this.createShape(numSides);
+      SHAPE_CACHE.set(numSides, shape);
+    }
+    return shape;
+  }
+
+  private getMaterials(numSides: number): THREE.MeshStandardMaterial[] {
+    const key = `${numSides}|${this.themeColor()}|${this.labelColor()}`;
+    let materials = MATERIAL_CACHE.get(key);
+    if (!materials) {
+      materials = this.createDiceMaterials(numSides);
+      MATERIAL_CACHE.set(key, materials);
+    }
+    return materials;
+  }
+
+  private createShape(numSides: number): DiceShape {
     const geometry = this.getGeometryForSides(numSides);
-    this.targetQuaternions = [];
+    const quaternions: THREE.Quaternion[] = [];
 
     if (numSides === 6) {
       const eulers = [
@@ -249,7 +302,7 @@ export class DiceWidgetComponent implements OnDestroy {
         new THREE.Euler(0, Math.PI, 0)
       ];
       for (let i = 0; i < 6; i++) {
-        this.targetQuaternions.push(new THREE.Quaternion().setFromEuler(eulers[i]));
+        quaternions.push(new THREE.Quaternion().setFromEuler(eulers[i]));
       }
     } else {
       geometry.clearGroups();
@@ -278,7 +331,7 @@ export class DiceWidgetComponent implements OnDestroy {
           const xPrime = new THREE.Vector3().crossVectors(yPrime, normal).normalize();
 
           const m = new THREE.Matrix4().set(xPrime.x, xPrime.y, xPrime.z, 0, yPrime.x, yPrime.y, yPrime.z, 0, normal.x, normal.y, normal.z, 0, 0, 0, 0, 1);
-          this.targetQuaternions.push(new THREE.Quaternion().setFromRotationMatrix(m));
+          quaternions.push(new THREE.Quaternion().setFromRotationMatrix(m));
 
           for (let j = 0; j < 9; j++) {
             const v = new THREE.Vector3().fromBufferAttribute(pos, i * 9 + j);
@@ -312,7 +365,7 @@ export class DiceWidgetComponent implements OnDestroy {
             normal.x, normal.y, normal.z, 0,
             0, 0, 0, 1
           );
-          this.targetQuaternions.push(new THREE.Quaternion().setFromRotationMatrix(m));
+          quaternions.push(new THREE.Quaternion().setFromRotationMatrix(m));
         }
       } else {
         const uvs: number[] = [];
@@ -341,35 +394,25 @@ export class DiceWidgetComponent implements OnDestroy {
             normal.x, normal.y, normal.z, 0,
             0, 0, 0, 1
           );
-          this.targetQuaternions.push(new THREE.Quaternion().setFromRotationMatrix(m));
+          quaternions.push(new THREE.Quaternion().setFromRotationMatrix(m));
         }
         geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
       }
     }
 
-    const materials = this.createDiceMaterials(numSides);
-    this.diceMesh = new THREE.Mesh(geometry, materials);
-    this.scene.add(this.diceMesh);
-
-    const value = this.value();
-    if (value !== null && this.targetQuaternions.length > 0) {
-      const idx = Math.max(0, Math.min(numSides - 1, value - 1));
-      this.diceMesh.quaternion.copy(this.targetQuaternions[idx]);
-    }
+    return { geometry, quaternions };
   }
 
   private stopRollAnimation(targetIdx: number): void {
     if (!this.diceMesh || this.targetQuaternions.length === 0) return;
     this.isRollingAnim = false;
-    if (this.stopAnimFrameId) {
-      cancelAnimationFrame(this.stopAnimFrameId);
-    }
+    this.cancelSettle();
 
     const validIdx = Math.max(0, Math.min(this.targetQuaternions.length - 1, targetIdx));
     const targetQ = this.targetQuaternions[validIdx];
     const snapQ = this.diceMesh.quaternion.clone();
 
-    const duration = 600;
+    const duration = DICE_SETTLE_MS;
     const startTime = performance.now();
 
     const animateStop = (now: number) => {

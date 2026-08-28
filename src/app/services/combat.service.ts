@@ -41,7 +41,7 @@ export class CombatService {
     const hit = raw === 20 || isCrit || total >= cur.monster!.ac;
 
     if (raw === 1) {
-      this.stateService.log(this.stateService.t('log.attackMissNat1'), 'dmg');
+      this.stateService.log(this.stateService.t('log.attackMissNat1'), 'dmg hero');
     } else if (hit) {
       const [n, d] = cur.player!.weapon.dice;
       const bonus = mod(cur.player!.stats[c.atkStat]) + (cur.player!.weapon.bonus || 0) + (cur.player!.flatDmgBonus || 0);
@@ -72,11 +72,13 @@ export class CombatService {
       this.stateService.log(
         this.stateService.tf('log.attackHit', { 
           roll: raw, mod: this.dice.fmtMod(statMod), total, ac: cur.monster!.ac, dmgRoll, dmgMax, dmg, crit: critTxt 
-        })
+        }),
+        'hero'
       );
     } else {
       this.stateService.log(
-        this.stateService.tf('log.attackMiss', { roll: raw, mod: this.dice.fmtMod(statMod), total, ac: cur.monster!.ac })
+        this.stateService.tf('log.attackMiss', { roll: raw, mod: this.dice.fmtMod(statMod), total, ac: cur.monster!.ac }),
+        'hero'
       );
     }
 
@@ -97,7 +99,7 @@ export class CombatService {
     s.combatFlags.acting = true;
     s.combatFlags.defending = true;
     this.stateService.touch();
-    this.stateService.log(this.stateService.t('log.defendFlavor'), 'flavor');
+    this.stateService.log(this.stateService.t('log.defendFlavor'), 'flavor hero');
     
     await this.monsterTurn();
     this.stateService.state().combatFlags.acting = false;
@@ -129,7 +131,7 @@ export class CombatService {
       const hit = raw === 20 || isCrit || total >= s.monster!.ac;
 
       if (raw === 1) {
-        this.stateService.log(this.stateService.t('log.attackMissNat1'), 'dmg');
+        this.stateService.log(this.stateService.t('log.attackMissNat1'), 'dmg hero');
       } else if (hit) {
         const [n, d] = CLASS_DATA.fighter.weaponDice;
         const bonus = mod(p.stats.str) + (p.weapon.bonus || 0) + (p.flatDmgBonus || 0);
@@ -155,11 +157,13 @@ export class CombatService {
         this.stateService.log(
           this.stateService.tf('log.attackHit', { 
             roll: raw, mod: this.dice.fmtMod(statMod), total, ac: s.monster!.ac, dmgRoll, dmgMax, dmg, crit: critTxt 
-          })
+          }),
+          'hero'
         );
       } else {
         this.stateService.log(
-          this.stateService.tf('log.attackMiss', { roll: raw, mod: this.dice.fmtMod(statMod), total, ac: s.monster!.ac })
+          this.stateService.tf('log.attackMiss', { roll: raw, mod: this.dice.fmtMod(statMod), total, ac: s.monster!.ac }),
+          'hero'
         );
       }
 
@@ -191,9 +195,9 @@ export class CombatService {
 
         s.monster!.hp = this.dice.clamp(s.monster!.hp - dmg, 0, s.monster!.maxHp);
         this.stateService.touch();
-        this.stateService.log(this.stateService.tf('log.specialRogueHit', { special: specialName, dmgRoll, dmgMax: 18, dmg }), 'dmg');
+        this.stateService.log(this.stateService.tf('log.specialRogueHit', { special: specialName, dmgRoll, dmgMax: 18, dmg }), 'dmg hero');
       } else {
-        this.stateService.log(this.stateService.tf('log.specialRogueMiss', { special: specialName }), 'flavor');
+        this.stateService.log(this.stateService.tf('log.specialRogueMiss', { special: specialName }), 'flavor hero');
       }
 
       p.usedSpecial = true;
@@ -225,7 +229,7 @@ export class CombatService {
 
       this.stateService.log(
         this.stateService.tf('log.specialWizard', { special: specialName, dmgRoll, dmgMax, dmg }), 
-        'dmg'
+        'dmg hero'
       );
       p.usedSpecial = true;
 
@@ -249,7 +253,7 @@ export class CombatService {
       p.hp = this.dice.clamp(p.hp + heal, 0, p.maxHp);
       p.tempAcBonus = (p.tempAcBonus || 0) + 2;
       this.stateService.touch();
-      this.stateService.log(this.stateService.tf('log.specialCleric', { special: specialName, dmgRoll, dmgMax, heal }), 'heal');
+      this.stateService.log(this.stateService.tf('log.specialCleric', { special: specialName, dmgRoll, dmgMax, heal }), 'heal hero');
       p.usedSpecial = true;
       
       await this.monsterTurn();
@@ -281,7 +285,7 @@ export class CombatService {
     this.stateService.touch();
     this.stateService.log(
       this.stateService.tf('log.drinkPotion', { potion: this.stateService.t('potionName'), dmgRoll, dmgMax, heal }), 
-      'heal'
+      'heal hero'
     );
 
     if (s.phase === 'combat') {
@@ -309,7 +313,7 @@ export class CombatService {
     this.stateService.log(this.stateService.tf('log.fleeAttempt', {
       roll: raw, mod: this.dice.fmtMod(statMod), total, dc,
       result: success ? this.stateService.t('log.fleeSuccess') : this.stateService.t('log.fleeFail')
-    }));
+    }), 'hero');
 
     if (success) {
       cur.monster = null;
@@ -341,7 +345,7 @@ export class CombatService {
     const total = toHit + monsterAtkMod;
 
     if (toHit === 1) {
-      this.stateService.log(this.stateService.tf('log.monsterMiss1', { name }), 'flavor');
+      this.stateService.log(this.stateService.tf('log.monsterMiss1', { name }), 'flavor enemy');
     } else if (total >= targetAC || toHit === 20) {
       const [n, d] = cur.monster!.dmg;
       const dmgRoll = this.dice.rollNdM(n, d);
@@ -364,14 +368,14 @@ export class CombatService {
       this.stateService.log(this.stateService.tf('log.monsterHit', {
         name, roll: toHit, mod: this.dice.fmtMod(monsterAtkMod), total, ac: targetAC, dmgRoll, dmgMax, dmg,
         defended: defending ? this.stateService.t('log.defendedSuffix') : ''
-      }), 'dmg');
+      }), 'dmg enemy');
 
       if (cur.player!.hp <= 0) {
         await this.stateService.wait(400);
         this.gameOver();
       }
     } else {
-      this.stateService.log(this.stateService.tf('log.monsterMissGuard', { name, roll: toHit, mod: this.dice.fmtMod(monsterAtkMod), total, ac: targetAC }));
+      this.stateService.log(this.stateService.tf('log.monsterMissGuard', { name, roll: toHit, mod: this.dice.fmtMod(monsterAtkMod), total, ac: targetAC }), 'enemy');
     }
   }
 
@@ -424,7 +428,7 @@ export class CombatService {
           equipWeapon(p, selectedWeapon);
           this.stateService.touch();
 
-          const wName = this.stateService.t('equipment.' + selectedWeapon.key + '.name');
+          const wName = this.stateService.equipmentName(selectedWeapon.key, 'weapons');
           const wEffect = `Danno: ${selectedWeapon.dice[0]}d${selectedWeapon.dice[1]} + ${selectedWeapon.bonus}`;
           drops.push({
             type: 'weapon',
@@ -444,7 +448,7 @@ export class CombatService {
           equipArmor(p, selectedArmor);
           this.stateService.touch();
 
-          const aName = this.stateService.t('equipment.' + selectedArmor.key + '.name');
+          const aName = this.stateService.equipmentName(selectedArmor.key, 'armors');
           let aEffect = `Classe Armatura: +${selectedArmor.bonus}`;
           if (selectedArmor.drBonus) aEffect += `, Riduzione Danno: +${selectedArmor.drBonus}`;
           if (selectedArmor.specialDmgBonus) aEffect += `, Danni Magici: +${selectedArmor.specialDmgBonus}`;

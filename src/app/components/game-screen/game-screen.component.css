@@ -2,10 +2,10 @@
    LAYOUT DELLA SCHERMATA DI GIOCO
    ========================================================================== */
 .game-grid {
+  --game-panel-h: 640px;
   display: grid;
   grid-template-columns: 290px 1fr;
   gap: 16px;
-  align-items: start;
 }
 
 /* --------------------------------------------------------------------------
@@ -13,6 +13,38 @@
    -------------------------------------------------------------------------- */
 .sheet-panel {
   box-sizing: border-box;
+  height: var(--game-panel-h);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-dim) transparent;
+}
+
+.sheet-panel::-webkit-scrollbar { width: 6px; }
+.sheet-panel::-webkit-scrollbar-track { background: rgba(0, 0, 0, .3); border-radius: 4px; }
+.sheet-panel::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 4px; }
+
+.depth-badge--floor {
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px;
+  margin-bottom: 12px;
+  border-color: var(--gold-dim);
+  background: linear-gradient(180deg, rgba(212, 175, 55, .12), rgba(0, 0, 0, .3));
+  box-shadow: 0 0 18px rgba(212, 175, 55, .12), inset 0 0 18px rgba(0, 0, 0, .5);
+}
+
+.floor-label {
+  font-size: .68rem;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+}
+
+.floor-number {
+  font-size: 1.7rem;
+  line-height: 1;
+  color: var(--gold);
+  text-shadow: 0 0 14px var(--gold-glow);
 }
 
 .char-name,
@@ -67,30 +99,40 @@
   background: linear-gradient(90deg, var(--emerald-dim), var(--emerald));
 }
 
+.enemy-empty {
+  color: var(--parchment-faint);
+}
+
 .toggle-row {
   display: flex;
   gap: 8px;
-  margin: 14px 0 4px;
+  margin: 10px 0 4px;
 }
 
 .stats-toggle {
   flex: 1;
-  font-family: var(--font-mono);
-  font-size: .7rem;
-  letter-spacing: .05em;
+  min-width: 0;
+  font-family: var(--font-heading);
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .04em;
   text-transform: uppercase;
-  background: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: rgba(0, 0, 0, .25);
   border: 1px solid var(--stone-line);
   border-radius: var(--radius-sm);
-  color: var(--parchment-dim);
-  padding: 8px 10px;
+  color: var(--parchment);
+  padding: 8px 6px;
   cursor: pointer;
-  transition: border-color .15s ease, color .15s ease;
+  transition: border-color .15s ease, color .15s ease, background .15s ease;
 }
 
 .stats-toggle:hover {
   border-color: var(--gold);
-  color: var(--parchment);
+  color: var(--gold);
+  background: rgba(212, 175, 55, .08);
 }
 
 .inv-list {
@@ -104,21 +146,39 @@
   color: var(--parchment-dim);
 }
 
+.inv-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inv-icon {
+  flex-shrink: 0;
+  width: 1.2em;
+  text-align: center;
+  font-size: .95rem;
+  line-height: 1;
+}
+
+.inv-empty {
+  font-style: italic;
+  color: var(--parchment-faint);
+}
+
 /* --------------------------------------------------------------------------
    PANNELLO CENTRALE: log, arena dei dadi, azioni
-   Le tre fasce hanno altezze fisse su desktop per evitare che il layout
-   "salti" quando cambiano il numero di righe di log o di pulsanti.
+   L'altezza è fissa: quando le azioni occupano più righe lo spazio lo cede il
+   log, così il pannello non si allunga verso il basso.
    -------------------------------------------------------------------------- */
 .main-panel {
   display: flex;
   flex-direction: column;
-  height: 640px;
-  overflow: hidden;
+  height: var(--game-panel-h);
 }
 
 .log {
   flex: 1 1 auto;
-  min-height: 140px;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 8px;
@@ -166,9 +226,51 @@
 .log .heal { color: var(--emerald); }
 .log .flavor { color: var(--parchment-dim); font-style: italic; }
 
+/* Le due parti del combattimento si affrontano dai lati opposti, come in una chat. */
+.log .hero,
+.log .enemy {
+  max-width: 88%;
+}
+
+.log .hero {
+  padding-left: 9px;
+  border-left: 2px solid var(--blood-bright);
+}
+
+.log .enemy {
+  margin-left: auto;
+  text-align: right;
+  padding-right: 9px;
+  border-right: 2px solid var(--emerald-dim);
+}
+
+/* Il passaggio di piano scandisce la partita: va letto come una cesura. */
+.log .floor {
+  margin: 20px 0 16px;
+  font-family: var(--font-heading);
+  font-size: .95rem;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--gold);
+  text-shadow: 0 0 14px var(--gold-glow);
+}
+
+.log .floor::before,
+.log .floor::after {
+  max-width: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+}
+
+.log p:first-child.floor {
+  margin-top: 0;
+}
+
 .dice-arena {
   position: relative;
-  flex: 0 0 115px;
+  flex: 0 0 140px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -197,21 +299,49 @@
   flex: 0 0 200px;
   display: flex;
   align-items: center;
-  height: 105px;
+  height: 130px;
 }
 
 .dice-slot.left { justify-content: flex-start; }
 .dice-slot.right { justify-content: flex-end; }
 
+.dice-fighter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.dice-name {
+  max-width: 100%;
+  font-family: var(--font-heading);
+  font-size: .72rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dice-name.player { color: var(--gold); }
+.dice-name.enemy { color: var(--emerald); }
+
+/* Visibile solo su mobile: a schermo largo la scheda di sinistra mostra gli stessi dati. */
+.combat-hud {
+  display: none;
+}
+
 .actions {
-  flex: 0 0 115px;
+  flex: 0 0 auto;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   align-content: center;
   justify-content: center;
   gap: 8px;
-  overflow: hidden;
+  min-height: 115px;
 }
 
 .actions .btn {
@@ -236,13 +366,57 @@
    ========================================================================== */
 @media (max-width: 720px) {
   .game-grid {
+    --game-panel-h: auto;
     grid-template-columns: 1fr;
     gap: 12px;
   }
 
   .main-panel {
     height: auto;
+    min-height: 0;
     gap: 12px;
+  }
+
+  .sheet-panel {
+    height: auto;
+    overflow: visible;
+  }
+
+  .combat-hud {
+    display: flex;
+    gap: 12px;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, .35);
+    border: 1px solid var(--stone-line-soft);
+    border-radius: var(--radius-sm);
+  }
+
+  .hud-side {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .hud-name {
+    font-family: var(--font-heading);
+    font-size: .68rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--gold);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .hud-name.enemy {
+    color: var(--emerald);
+  }
+
+  .hud-val {
+    font-size: .72rem;
+    color: var(--parchment-dim);
   }
 
   .log {
@@ -253,15 +427,24 @@
 
   .dice-arena {
     flex: none;
-    height: 100px;
+    height: 130px;
     margin: 0;
     padding: 0 8px;
   }
 
   .dice-slot {
     flex: 0 0 50%;
-    height: 95px;
+    height: 122px;
     justify-content: center;
+  }
+
+  .dice-fighter {
+    width: 100%;
+  }
+
+  .dice-name {
+    font-size: .66rem;
+    letter-spacing: .04em;
   }
 
   .actions {
@@ -273,7 +456,6 @@
     margin-top: 4px;
     padding-bottom: 16px;
   }
-
   .actions .btn,
   .actions:has(.btn:nth-child(5)) .btn {
     width: 100%;
