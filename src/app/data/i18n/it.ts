@@ -1,7 +1,7 @@
 export const IT = {
   htmlLang: 'it',
   ui: {
-    title: 'La Guglia Cava', subtitle: 'Discesa Infinita',
+    title: 'Endless Pitfall', subtitle: 'Discesa Infinita',
     lore: "Sotto le rovine di un regno dimenticato si apre una spirale di pietra che non ha fondo. Chi vi entra cerca oro, potere, o semplicemente una fine diversa da quella che lo attende in superficie. Nessuno e mai risalito per raccontarlo, ma le monete che ne escono, di tanto in tanto, dicono che qualcosa, laggiu, si puo ancora trovare.",
     startButton: 'Comincia la Discesa', bestDepthLabel: 'Record di questa sessione: piano {depth}',
     forgeTitle: 'Forgia il tuo Personaggio', nameLabel: "Nome dell'avventuriero", namePlaceholder: 'Senza Nome',

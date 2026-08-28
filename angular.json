@@ -28,6 +28,10 @@
                 { "type": "initial", "maximumWarning": "1mb", "maximumError": "1.5mb" },
                 { "type": "anyComponentStyle", "maximumWarning": "8kb", "maximumError": "16kb" }
               ],
+              "optimization": true,
+              "aot": true,
+              "sourceMap": false,
+              "extractLicenses": true,
               "outputHashing": "all"
             },
             "development": {
