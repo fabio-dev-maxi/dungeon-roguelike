@@ -89,3 +89,99 @@
   font-size: 0.85rem;
   color: var(--parchment-dim);
 }
+
+/* ==========================================================================
+   STILI CAMPI FORM & EDITOR WIKI
+   ========================================================================== */
+
+/* Stile base per tutti gli input presenti nelle tabelle e schede della Wiki */
+.wiki-table input[type="number"],
+.wiki-table input[type="text"],
+.wiki-card input[type="number"],
+.admin-input {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid var(--stone-line);
+  border-radius: var(--radius-sm);
+  color: var(--gold);
+  padding: 5px 8px;
+  text-align: center;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+/* Stato di Focus (selezione del campo) */
+.wiki-table input[type="number"]:focus,
+.wiki-table input[type="text"]:focus,
+.wiki-card input[type="number"]:focus,
+.admin-input:focus {
+  border-color: var(--gold);
+  background: rgba(0, 0, 0, 0.85);
+  box-shadow: 0 0 10px var(--gold-glow);
+  outline: none;
+}
+
+/* Larghezza ottimizzata per i numeri dentro le tabelle */
+.wiki-table input[type="number"] {
+  width: 62px;
+}
+
+/* Gestione discreta delle freccette degli input numerici (spinners) */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  opacity: 0.2;
+}
+
+input[type="number"]:hover::-webkit-inner-spin-button,
+input[type="number"]:hover::-webkit-outer-spin-button {
+  opacity: 0.8;
+}
+
+/* Allineamento verticale compatto dentro le tabelle */
+.wiki-table td {
+  vertical-align: middle;
+  padding: 6px 8px;
+}
+
+/* Rimozione completa delle frecce su Chrome, Safari, Edge e Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Rimozione frecce su Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Stile unico pulito per le text box */
+.wiki-table input,
+.wiki-card input,
+.admin-input {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid var(--stone-line);
+  border-radius: var(--radius-sm);
+  color: var(--gold);
+  padding: 6px 4px;
+  text-align: center;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.wiki-table input {
+  width: 52px;
+}
+
+.wiki-table input:focus,
+.wiki-card input:focus,
+.admin-input:focus {
+  border-color: var(--gold);
+  background: rgba(0, 0, 0, 0.85);
+  box-shadow: 0 0 8px var(--gold-glow);
+  outline: none;
+}

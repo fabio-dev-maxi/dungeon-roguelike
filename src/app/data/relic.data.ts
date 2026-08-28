@@ -1,7 +1,7 @@
 import { ClassKey, Player, StatKey } from '../models/game.models';
 
 /** Modificatori applicati al giocatore quando la reliquia viene raccolta. */
-interface RelicEffect {
+export interface RelicEffect {
   stats?: Partial<Record<StatKey, number>>;
   ac?: number;
   maxHp?: number;

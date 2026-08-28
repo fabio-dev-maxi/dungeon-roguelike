@@ -3,13 +3,17 @@ import { GameStateService } from './game-state.service';
 import { DiceService } from './dice.service';
 import { BOSS_IDS, BOSS_STATS, MONSTER_IDS_TIER, MONSTER_STATS, MonsterStat } from '../data/monster.data';
 import { Monster } from '../models/game.models';
+import { CustomDataService } from './custom-data.service';
 
 /**
  * Generazione procedurale dei mostri, boss e scaling di livello
  */
 @Injectable({ providedIn: 'root' })
 export class MonsterService {
-  constructor(private stateService: GameStateService, private dice: DiceService) {}
+  constructor(
+    private stateService: GameStateService, 
+    private dice: DiceService,
+    private customData: CustomDataService) {}
 
   pickMonsterTier(depth: number): number {
     if (depth <= 4) return 1;
@@ -26,28 +30,35 @@ export class MonsterService {
   }
 
   makeMonster(depth: number): Monster {
-    const bossId = BOSS_IDS.find(id => BOSS_STATS[id].atDepth === depth);
+    const bossId = BOSS_IDS.find(id => this.customData.bosses()[id]?.atDepth === depth);
     let id: string, base: MonsterStat, isBoss = false;
-
-    if (bossId) { id = bossId; base = BOSS_STATS[bossId]; isBoss = true; }
-    else {
+    
+    if (bossId) { 
+      id = bossId; 
+      base = this.customData.bosses()[bossId]; 
+      isBoss = true; 
+    } else {
       const tier = this.pickMonsterTier(depth);
       id = this.dice.pick(MONSTER_IDS_TIER[tier]);
-      base = MONSTER_STATS[id];
+      base = this.customData.monsters()[id];
     }
 
-    const bracket = this.dice.clamp(Math.floor(depth / 5), 0, 4);
-    const scale = 1 + bracket * 0.15;
+    const bracket = Math.floor(depth / 5);
+    const scale = 1 + bracket * 0.22 + (depth > 25 ? (depth - 25) * 0.03 : 0);
 
     let effectiveHpBase = base.hpBase;
     let acVariance = 0;
     if (isBoss) {
-      const factor = 1 + (Math.random() * 2 - 1) * 0.15; 
+      const factor = 1 + (Math.random() * 0.2 - 0.1);
       effectiveHpBase = Math.round(base.hpBase * factor);
-      acVariance = Math.floor(Math.random() * 2) - 1;
+      acVariance = Math.floor(Math.random() * 2);
     }
+
     const hp = Math.round(effectiveHpBase * scale);
-    return { id, isBoss, bracket, hp, maxHp: hp, dmg: base.dmg, ac: base.ac + acVariance, atk: base.atk };
+    const extraAc = Math.floor(depth / 12);
+    const depthAtkBonus = Math.floor(depth / 10);
+
+    return { id, isBoss, bracket, hp, maxHp: hp, dmg: base.dmg, ac: base.ac + acVariance + extraAc, atk: base.atk + depthAtkBonus };
   }
 
   monsterDisplayName(m: Monster | null): string {

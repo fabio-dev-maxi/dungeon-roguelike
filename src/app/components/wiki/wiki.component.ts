@@ -1,23 +1,27 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ARMOR_POOLS, WEAPON_POOLS } from '../../data/equipment.data';
-import { CLASS_FEATS, CLASS_KEYS } from '../../data/game.data';
-import { BOSS_STATS, BOSS_XP, MONSTER_IDS_TIER, MONSTER_STATS, MONSTER_XP } from '../../data/monster.data';
-import { RELICS } from '../../data/relic.data';
-import { ClassKey } from '../../models/game.models';
+import { FormsModule } from '@angular/forms';
 import { I18nService } from '../../services/i18n.service';
+import { CustomDataService } from '../../services/custom-data.service';
+import { CLASS_KEYS, CLASS_FEATS } from '../../data/game.data';
+import { MONSTER_IDS_TIER, MONSTER_XP, BOSS_XP } from '../../data/monster.data';
+import { ClassKey } from '../../models/game.models';
+import { RELICS } from '../../data/relic.data';
 
 export type WikiTab = 'monsters' | 'bosses' | 'equipment' | 'relics_feats';
 
 @Component({
   selector: 'app-wiki',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, FormsModule],
   templateUrl: './wiki.component.html',
   styleUrl: './wiki.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class WikiComponent {
+    // Espone l'oggetto globale Object al template HTML
+  readonly Object = Object;
+
   readonly activeTab = signal<WikiTab>('monsters');
   readonly selectedClass = signal<ClassKey>('fighter');
 
@@ -26,14 +30,9 @@ export class WikiComponent {
   readonly equipmentTiers = [1, 2, 3, 4, 5];
 
   readonly monsterIdsTier = MONSTER_IDS_TIER;
-  readonly monsterStats = MONSTER_STATS;
   readonly monsterXp = MONSTER_XP;
-  readonly bossStats = BOSS_STATS;
   readonly bossXp = BOSS_XP;
-  readonly bossIds = Object.keys(BOSS_STATS);
-
-  readonly weaponPools = WEAPON_POOLS;
-  readonly armorPools = ARMOR_POOLS;
+  readonly classFeats = CLASS_FEATS;
 
   // Calcolo reattivo senza cicli nidificati nel DOM per risposta immediata al click
   readonly selectedClassRelics = computed(() => {
@@ -55,13 +54,11 @@ export class WikiComponent {
     }));
   });
 
-  constructor(public i18n: I18nService) {}
+  constructor(public i18n: I18nService,
+    public customData: CustomDataService,
+  ) {}
 
-  setTab(tab: WikiTab): void {
-    this.activeTab.set(tab);
-  }
-
-  setClass(cls: ClassKey): void {
-    this.selectedClass.set(cls);
-  }
+  setTab(tab: WikiTab): void { this.activeTab.set(tab); }
+  setClass(cls: ClassKey): void { this.selectedClass.set(cls); }
+  resetDefaults(): void { this.customData.resetToDefaults(); }
 }

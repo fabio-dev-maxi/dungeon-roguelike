@@ -1,10 +1,12 @@
 <div class="panel">
-  <div class="wiki-header">
-    <h2>Wiki &amp; Compendio della Guglia Cava</h2>
-    <a routerLink="/admin" class="btn btn--ghost">&larr; Torna ad Admin</a>
+  <div class="wiki-header" style="display: flex; justify-content: space-between; align-items: center;">
+    <h2>Wiki &amp; Editor Statistiche</h2>
+    <div>
+      <button type="button" class="btn danger" (click)="resetDefaults()">Ripristina Default</button>
+      <a routerLink="/admin" class="btn btn--ghost">&larr; Torna ad Admin</a>
+    </div>
   </div>
 
-  <!-- Tab Principali -->
   <div class="wiki-tabs">
     <button type="button" class="btn" [class.primary]="activeTab() === 'monsters'" (click)="setTab('monsters')">Mostri</button>
     <button type="button" class="btn" [class.primary]="activeTab() === 'bosses'" (click)="setTab('bosses')">Boss</button>
@@ -12,76 +14,81 @@
     <button type="button" class="btn" [class.primary]="activeTab() === 'relics_feats'" (click)="setTab('relics_feats')">Reliquie &amp; Talenti</button>
   </div>
 
-  <!-- SEZIONE MOSTRI -->
-@if (activeTab() === 'monsters') {
-  <div class="section-container">
-    @for (tier of monsterTiers; track tier) {
+  <!-- MOSTRI ED ITABILI -->
+  @if (activeTab() === 'monsters') {
+    <div class="section-container">
+      @for (tier of monsterTiers; track tier) {
+        <div class="wiki-card">
+          <h3>Tier {{ tier }}</h3>
+          <table class="wiki-table">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>PF Base</th>
+                <th>Dado Danno</th>
+                <th>CA</th>
+                <th>Atk Base</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (id of monsterIdsTier[tier]; track id) {
+                @if (customData.monsters()[id]; as m) {
+                  <tr>
+                    <td><b>{{ i18n.t('monsters.' + id) }}</b></td>
+                    <td><input class="admin-input" type="number" [(ngModel)]="m.hpBase"></td>
+                    <td>
+                      <input class="admin-input" style="width: 45px;" type="number" [(ngModel)]="m.dmg[0]">d<input class="admin-input" style="width: 45px;" type="number" [(ngModel)]="m.dmg[1]">
+                    </td>
+                    <td><input class="admin-input" type="number" [(ngModel)]="m.ac"></td>
+                    <td><input class="admin-input" type="number" [(ngModel)]="m.atk"></td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- BOSS EDITABILI -->
+  @if (activeTab() === 'bosses') {
+    <div class="section-container">
       <div class="wiki-card">
-        <h3>Tier {{ tier }}</h3>
+        <h3>I Custodi dei Piani</h3>
         <table class="wiki-table">
           <thead>
             <tr>
-              <th>Nome</th>
+              <th>Piano</th>
+              <th>Boss</th>
               <th>PF Base</th>
               <th>Danno</th>
               <th>CA</th>
               <th>Atk Base</th>
-              <th>XP Base</th>
             </tr>
           </thead>
           <tbody>
-            @for (id of monsterIdsTier[tier]; track id) {
-              <tr>
-                <td><b>{{ i18n.t('monsters.' + id) }}</b></td>
-                <td class="num">{{ monsterStats[id].hpBase }}</td>
-                <td class="num">{{ monsterStats[id].dmg[0] }}d{{ monsterStats[id].dmg[1] }}</td>
-                <td class="num">{{ monsterStats[id].ac }}</td>
-                <td class="num">+{{ monsterStats[id].atk }}</td>
-                <td class="num gain">+{{ monsterXp[id] }}</td>
-              </tr>
+            @for (id of Object.keys(customData.bosses()); track id) {
+              @if (customData.bosses()[id]; as b) {
+                <tr>
+                  <td class="num">Piano {{ b.atDepth }}</td>
+                  <td><b class="highlight">{{ i18n.t('bosses.' + id) }}</b></td>
+                  <td><input class="admin-input" type="number" [(ngModel)]="b.hpBase"></td>
+                  <td>
+                    <input class="admin-input" style="width: 45px;" type="number" [(ngModel)]="b.dmg[0]">d<input class="admin-input" style="width: 45px;" type="number" [(ngModel)]="b.dmg[1]">
+                  </td>
+                  <td><input class="admin-input" type="number" [(ngModel)]="b.ac"></td>
+                  <td><input class="admin-input" type="number" [(ngModel)]="b.atk"></td>
+                </tr>
+              }
             }
           </tbody>
         </table>
       </div>
-    }
-  </div>
-}
-
-<!-- SEZIONE BOSS -->
-@if (activeTab() === 'bosses') {
-  <div class="section-container">
-    <div class="wiki-card">
-      <h3>I Custodi dei Piani</h3>
-      <table class="wiki-table">
-        <thead>
-          <tr>
-            <th>Piano</th>
-            <th>Boss</th>
-            <th>PF Base</th>
-            <th>Danno</th>
-            <th>CA</th>
-            <th>Atk Base</th>
-            <th>XP Base</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (id of bossIds; track id) {
-            <tr>
-              <td class="num">Piano {{ bossStats[id].atDepth }}</td>
-              <td><b class="highlight">{{ i18n.t('bosses.' + id) }}</b></td>
-              <td class="num">{{ bossStats[id].hpBase }}</td>
-              <td class="num">{{ bossStats[id].dmg[0] }}d{{ bossStats[id].dmg[1] }}</td>
-              <td class="num">{{ bossStats[id].ac }}</td>
-              <td class="num">+{{ bossStats[id].atk }}</td>
-              <td class="num gain">+{{ bossXp[id] }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
     </div>
-  </div>
-}
-  <!-- SEZIONE ARMI & ARMATURE -->
+  }
+
+  <!-- ARMI E ARMATURE EDITABILI -->
   @if (activeTab() === 'equipment') {
     <div class="class-selector">
       @for (cls of classKeys; track cls) {
@@ -99,20 +106,20 @@
             <tr>
               <th>Tier</th>
               <th>Nome</th>
-              <th>Qualità</th>
-              <th>Danno</th>
-              <th>Bonus</th>
+              <th>Dadi Danno</th>
+              <th>Bonus Fisso</th>
             </tr>
           </thead>
           <tbody>
             @for (tier of equipmentTiers; track tier) {
-              @for (w of weaponPools[selectedClass()][tier]; track w.key) {
+              @for (w of customData.weapons()[selectedClass()][tier]; track w.key) {
                 <tr>
                   <td class="num">Tier {{ tier }}</td>
                   <td><b>{{ i18n.equipmentName(w.key, 'weapons') }}</b></td>
-                  <td><span class="quality-badge {{ w.quality }}">{{ w.quality }}</span></td>
-                  <td class="num">{{ w.dice[0] }}d{{ w.dice[1] }}</td>
-                  <td class="num">+{{ w.bonus }}</td>
+                  <td>
+                    <input class="admin-input" style="width: 45px;" type="number" [(ngModel)]="w.dice[0]">d<input class="admin-input" style="width: 45px;" type="number" [(ngModel)]="w.dice[1]">
+                  </td>
+                  <td><input class="admin-input" type="number" [(ngModel)]="w.bonus"></td>
                 </tr>
               }
             }
@@ -127,26 +134,18 @@
             <tr>
               <th>Tier</th>
               <th>Nome</th>
-              <th>Qualità</th>
               <th>Bonus CA</th>
-              <th>Effetti Speciali</th>
+              <th>Riduzione Danno (DR)</th>
             </tr>
           </thead>
           <tbody>
             @for (tier of equipmentTiers; track tier) {
-              @for (a of armorPools[selectedClass()][tier]; track a.key) {
+              @for (a of customData.armors()[selectedClass()][tier]; track a.key) {
                 <tr>
                   <td class="num">Tier {{ tier }}</td>
                   <td><b>{{ i18n.equipmentName(a.key, 'armors') }}</b></td>
-                  <td><span class="quality-badge {{ a.quality }}">{{ a.quality }}</span></td>
-                  <td class="num">+{{ a.bonus }}</td>
-                  <td class="small">
-                    @if (a.drBonus) { RD +{{ a.drBonus }} }
-                    @if (a.critBonus) { Critico -{{ a.critBonus }} }
-                    @if (a.specialDmgBonus) { Danni Magici +{{ a.specialDmgBonus }} }
-                    @if (a.specialHealBonus) { Cure Magiche +{{ a.specialHealBonus }} }
-                    @if (!a.drBonus && !a.critBonus && !a.specialDmgBonus && !a.specialHealBonus) { - }
-                  </td>
+                  <td><input class="admin-input" type="number" [(ngModel)]="a.bonus"></td>
+                  <td><input class="admin-input" type="number" [(ngModel)]="a.drBonus"></td>
                 </tr>
               }
             }
@@ -156,7 +155,7 @@
     </div>
   }
 
-  <!-- SEZIONE RELIQUIE & TALENTI -->
+  <!-- RELIQUIE ED EDITABILI -->
   @if (activeTab() === 'relics_feats') {
     <div class="class-selector">
       @for (cls of classKeys; track cls) {
@@ -168,25 +167,20 @@
 
     <div class="section-container">
       <div class="wiki-card">
-        <h3>Reliquie di Classe ({{ i18n.t('classes.' + selectedClass() + '.name') }})</h3>
+        <h3>Reliquie di Classe Modificabili</h3>
         <div class="grid-list">
-          @for (r of selectedClassRelics(); track r.key) {
-            <div class="wiki-item">
-              <div class="item-title">{{ i18n.t(r.nameKey) }}</div>
-              <div class="item-desc">{{ i18n.t(r.effectKey) }}</div>
-            </div>
-          }
-        </div>
-      </div>
-
-      <div class="wiki-card">
-        <h3>Talenti di Classe ({{ i18n.t('classes.' + selectedClass() + '.name') }})</h3>
-        <div class="grid-list">
-          @for (f of selectedClassFeats(); track f.id) {
-            <div class="wiki-item">
-              <div class="item-title">{{ i18n.t(f.nameKey) }}</div>
-              <div class="item-desc">{{ i18n.t(f.descKey) }}</div>
-            </div>
+          @for (relicKey of Object.keys(customData.relics()[selectedClass()]); track relicKey) {
+            @if (customData.relics()[selectedClass()][relicKey]; as r) {
+              <div class="wiki-item">
+                <div class="item-title">{{ i18n.t('relics.' + relicKey + '.name') }}</div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px;">
+                  <label class="small">CA: <input class="admin-input" style="width: 50px;" type="number" [(ngModel)]="r.ac"></label>
+                  <label class="small">Max HP: <input class="admin-input" style="width: 50px;" type="number" [(ngModel)]="r.maxHp"></label>
+                  <label class="small">Dmg: <input class="admin-input" style="width: 50px;" type="number" [(ngModel)]="r.dmg"></label>
+                  <label class="small">Atk: <input class="admin-input" style="width: 50px;" type="number" [(ngModel)]="r.atk"></label>
+                </div>
+              </div>
+            }
           }
         </div>
       </div>
