@@ -5,16 +5,8 @@ import { LANGS, LANG_LABELS, LangCode } from '../../data/i18n.data';
 @Component({
   selector: 'app-lang-bar',
   standalone: true,
-  template: `
-    <div class="langbar">
-      @for (l of langs; track l) {
-        <button
-          class="langbtn"
-          [class.active]="l === game.state().lang"
-          (click)="select(l)">{{ labels[l] }}</button>
-      }
-    </div>
-  `
+  templateUrl: './lang-bar.component.html',
+  styleUrl: './lang-bar.component.css'
 })
 export class LangBarComponent {
   langs = LANGS;

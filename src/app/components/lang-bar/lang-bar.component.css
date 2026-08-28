@@ -1,0 +1,29 @@
+.langbar {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  background: rgba(0, 0, 0, .35);
+  border: 1px solid var(--stone-line);
+  border-radius: 999px;
+}
+
+.langbtn {
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  padding: 6px 11px;
+  background: transparent;
+  border: none;
+  color: var(--parchment-dim);
+  cursor: pointer;
+  border-radius: 999px;
+  letter-spacing: .05em;
+  transition: color .15s ease, background .15s ease;
+}
+
+.langbtn:hover { color: var(--parchment); }
+
+.langbtn.active {
+  color: var(--void);
+  background: var(--gold);
+  font-weight: 700;
+}

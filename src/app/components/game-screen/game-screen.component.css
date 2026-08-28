@@ -1,206 +1,292 @@
-.char-name, .enemy-name {
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  max-width: 170px !important;
-  display: inline-block !important;
+/* ==========================================================================
+   LAYOUT DELLA SCHERMATA DI GIOCO
+   ========================================================================== */
+.game-grid {
+  display: grid;
+  grid-template-columns: 290px 1fr;
+  gap: 16px;
+  align-items: start;
 }
 
-/* ==========================================
-   DESKTOP LAYOUT (DEFAULT > 720px)
-   ========================================== */
+/* --------------------------------------------------------------------------
+   SCHEDA PERSONAGGIO (colonna sinistra)
+   -------------------------------------------------------------------------- */
+.sheet-panel {
+  box-sizing: border-box;
+}
+
+.char-name,
+.enemy-name {
+  display: block;
+  max-width: 170px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.char-name {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  color: var(--parchment);
+  text-transform: none;
+  margin: 0;
+}
+
+.char-sub {
+  margin-top: -6px;
+}
+
+.inventory-label {
+  margin-top: 6px;
+}
+
+.hpbar-outer {
+  height: 14px;
+  background: rgba(0, 0, 0, .4);
+  border: 1px solid var(--stone-line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.hpbar-outer.slim {
+  height: 8px;
+}
+
+.hpbar-inner {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--blood), var(--blood-bright));
+  transition: width .35s ease;
+}
+
+.xpbar-inner {
+  background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+}
+
+.enemybar-inner {
+  background: linear-gradient(90deg, var(--emerald-dim), var(--emerald));
+}
+
+.toggle-row {
+  display: flex;
+  gap: 8px;
+  margin: 14px 0 4px;
+}
+
+.stats-toggle {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: .7rem;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  background: none;
+  border: 1px solid var(--stone-line);
+  border-radius: var(--radius-sm);
+  color: var(--parchment-dim);
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: border-color .15s ease, color .15s ease;
+}
+
+.stats-toggle:hover {
+  border-color: var(--gold);
+  color: var(--parchment);
+}
+
+.inv-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: .85rem;
+  color: var(--parchment-dim);
+}
+
+/* --------------------------------------------------------------------------
+   PANNELLO CENTRALE: log, arena dei dadi, azioni
+   Le tre fasce hanno altezze fisse su desktop per evitare che il layout
+   "salti" quando cambiano il numero di righe di log o di pulsanti.
+   -------------------------------------------------------------------------- */
 .main-panel {
-  display: flex !important;
-  flex-direction: column !important;
-  height: 640px !important;
-  min-height: 640px !important;
-  max-height: 640px !important;
-  box-sizing: border-box !important;
-  overflow: hidden !important;
+  display: flex;
+  flex-direction: column;
+  height: 640px;
+  overflow: hidden;
 }
 
 .log {
-  flex: 1 1 auto !important;
-  min-height: 140px !important;
-  width: 100% !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  padding-right: 8px !important;
-  box-sizing: border-box !important;
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
+  flex: 1 1 auto;
+  min-height: 140px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 8px;
+  margin-bottom: 14px;
+  overflow-wrap: anywhere;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-dim) transparent;
 }
 
-.log::-webkit-scrollbar {
-  width: 6px;
+.log::-webkit-scrollbar { width: 6px; }
+.log::-webkit-scrollbar-track { background: rgba(0, 0, 0, .3); border-radius: 4px; }
+.log::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 4px; }
+
+.log p {
+  margin: 0 0 11px;
+  line-height: 1.55;
+  animation: logIn .4s var(--ease-out) both;
 }
-.log::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 4px;
+
+@keyframes logIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
 }
-.log::-webkit-scrollbar-thumb {
-  background: #d4af37;
-  border-radius: 4px;
+
+.log .sys {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--gold);
+  font-style: italic;
+  text-align: center;
 }
+
+.log .sys::before,
+.log .sys::after {
+  content: '';
+  flex: 1;
+  max-width: 60px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--stone-line), transparent);
+}
+
+.log .dmg { color: var(--blood-bright); }
+.log .heal { color: var(--emerald); }
+.log .flavor { color: var(--parchment-dim); font-style: italic; }
 
 .dice-arena {
-  flex: 0 0 115px !important;
-  height: 115px !important;
-  min-height: 115px !important;
-  max-height: 115px !important;
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  width: 100% !important;
-  margin: 6px 0 !important;
-  padding: 0 16px !important;
-  background: rgba(0, 0, 0, 0.35) !important;
-  border-radius: 10px !important;
-  border: 1px solid rgba(212, 175, 55, 0.2) !important;
-  box-sizing: border-box !important;
-  overflow: hidden !important;
+  position: relative;
+  flex: 0 0 115px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 6px 0;
+  padding: 0 16px;
+  background: rgba(0, 0, 0, .35);
+  border: 1px solid var(--stone-line-soft);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.dice-arena::before {
+  content: 'VS';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-heading);
+  font-size: .7rem;
+  letter-spacing: .2em;
+  color: var(--parchment-faint);
+  opacity: .5;
 }
 
 .dice-slot {
-  width: 200px !important;
-  min-width: 200px !important;
-  max-width: 200px !important;
-  height: 105px !important;
-  min-height: 105px !important;
-  max-height: 105px !important;
-  display: flex !important;
-  align-items: center !important;
-  flex-shrink: 0 !important;
+  flex: 0 0 200px;
+  display: flex;
+  align-items: center;
+  height: 105px;
 }
 
-.dice-slot.left {
-  justify-content: flex-start !important;
-}
-
-.dice-slot.right {
-  justify-content: flex-end !important;
-}
+.dice-slot.left { justify-content: flex-start; }
+.dice-slot.right { justify-content: flex-end; }
 
 .actions {
-  flex: 0 0 115px !important;
-  height: 115px !important;
-  min-height: 115px !important;
-  max-height: 115px !important;
-  display: flex !important;
-  flex-wrap: wrap !important;
-  align-items: center !important;
-  justify-content: center !important;
-  align-content: center !important;
-  gap: 8px !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-  overflow: hidden !important;
+  flex: 0 0 115px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  gap: 8px;
+  overflow: hidden;
 }
 
 .actions .btn {
-  padding: 10px 18px !important;
-  font-size: 0.9rem !important;
-  font-family: 'Cinzel', serif, sans-serif !important;
-  font-weight: bold !important;
-  box-sizing: border-box !important;
-  min-height: 40px !important;
+  min-height: 40px;
+  padding: 10px 18px;
+  font-size: .9rem;
 }
 
-.actions:has(button:nth-child(5)) .btn {
-  padding: 6px 12px !important;
-  font-size: 0.82rem !important;
-  min-height: 36px !important;
+/* Con cinque o più azioni i pulsanti si stringono per restare su una fascia. */
+.actions:has(.btn:nth-child(5)) .btn {
+  min-height: 36px;
+  padding: 6px 12px;
+  font-size: .82rem;
 }
 
-/* ==========================================
-   MOBILE / SAMSUNG S25 (<= 720px)
-   ========================================== */
+.scroll-anchor {
+  height: 1px;
+}
+
+/* ==========================================================================
+   MOBILE (<= 720px) — colonna unica, altezze libere
+   ========================================================================== */
 @media (max-width: 720px) {
-  #sheet-panel {
-    position: relative !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    margin: 0 0 12px 0 !important;
-    box-sizing: border-box !important;
-  }
-
   .game-grid {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 12px !important;
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .main-panel {
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 12px !important;
+    height: auto;
+    gap: 12px;
   }
 
   .log {
-    height: 180px !important;
-    min-height: 180px !important;
-    max-height: 180px !important;
+    flex: none;
+    height: 180px;
+    margin-bottom: 0;
   }
 
   .dice-arena {
-    flex: none !important;
-    height: 100px !important;
-    min-height: 100px !important;
-    max-height: 100px !important;
-    padding: 0 8px !important;
-    margin: 0 !important;
-    position: relative !important;
-    z-index: 1 !important;
+    flex: none;
+    height: 100px;
+    margin: 0;
+    padding: 0 8px;
   }
 
   .dice-slot {
-    width: 50% !important;
-    min-width: 0 !important;
-    max-width: 50% !important;
-    height: 95px !important;
-    min-height: 95px !important;
-    max-height: 95px !important;
-  }
-
-  .dice-slot.left,
-  .dice-slot.right {
-    justify-content: center !important;
+    flex: 0 0 50%;
+    height: 95px;
+    justify-content: center;
   }
 
   .actions {
-    flex: none !important;
-    display: grid !important;
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 8px !important;
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    margin-top: 4px !important;
-    padding-bottom: 16px !important;
-    position: relative !important;
-    z-index: 2 !important;
+    flex: none;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    height: auto;
+    overflow: visible;
+    margin-top: 4px;
+    padding-bottom: 16px;
   }
 
   .actions .btn,
-  .actions:has(button:nth-child(5)) .btn {
-    width: 100% !important;
-    min-height: 46px !important;
-    font-size: 0.85rem !important;
-    padding: 8px 6px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-align: center !important;
-    white-space: normal !important;
-    line-height: 1.1 !important;
+  .actions:has(.btn:nth-child(5)) .btn {
+    width: 100%;
+    min-height: 46px;
+    padding: 8px 6px;
+    font-size: .85rem;
+    text-align: center;
+    white-space: normal;
+    line-height: 1.1;
   }
 
   .actions .btn:only-child,
   .actions .btn:last-child:nth-child(odd) {
-    grid-column: span 2 !important;
+    grid-column: span 2;
   }
 }

@@ -1,0 +1,20 @@
+<div class="panel center">
+  <h2>{{ i18n.t('ui.gameOverTitle') }}</h2>
+
+  <div class="score-box">
+    <span class="n">{{ floorsCompleted }}</span>
+    <span class="l">{{ i18n.t('ui.floorsDescended') }}</span>
+  </div>
+
+  <p class="epitaph">"{{ epitaph }}"</p>
+
+  <p class="small gameover-stats">
+    {{ i18n.tf('ui.goldCollected', { gold: game.state().player!.gold }) }}
+    &middot;
+    {{ i18n.tf('ui.sessionRecord', { depth: game.bestDepth() }) }}
+  </p>
+
+  <div class="gameover-actions">
+    <button class="btn" (click)="game.restartGame()">{{ i18n.t('ui.restartButton') }}</button>
+  </div>
+</div>

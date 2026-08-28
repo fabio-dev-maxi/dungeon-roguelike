@@ -15,7 +15,7 @@ export const DE = {
     dieRolling: 'Der Würfel rollt...', dieDone: 'Ergebnis erfasst', gameOverTitle: 'Du bist in die Dunkelheit gefallen', floorsDescended: 'Abgestiegene Ebenen',
     goldCollected: 'Gesammeltes Gold: {gold}', sessionRecord: 'Sitzungsrekord: Ebene {depth}', restartButton: 'Erneut hinabsteigen', langLabel: 'Sprache', diceLetter: 'W',
     bossDefeatedTitle: 'Boss Besiegt: {name}', xpGainedLabel: 'Erhaltene Erfahrung', goldGainedLabel: 'Erhaltenes Gold', dropsLabel: 'Beute', noDropsText: 'Diesmal kein seltenes Objekt.', continueButton: 'Weiter',
-    xpLabel: 'Erfahrung', levelUpTitle: 'Stufenaufstieg!', levelUpHeader: 'Stufe {level} Erreicht!', chooseStatPrompt: 'Wähle einen Wert zum Erhöhen (+1):',
+    xpLabel: 'Erfahrung', levelUpTitle: 'Stufenaufstieg!', levelUpHeader: 'Stufe {level} Erreicht!', chooseStatPrompt: 'Wähle einen Wert zum Erhöhen (+1):', chooseFeatPrompt: 'Wähle ein neues Talent für deinen Charakter:',
     hpRollPrompt: 'Trefferpunkte-Wurf:', rerollHpButton: 'Neu würfeln (einmal)', confirmButton: 'Bestätigen', goldExtraTitle: 'Truhe voller Goldmünzen'
   },
   stats: { str: 'Stärke', dex: 'Geschicklichkeit', con: 'Konstitution', int: 'Intelligenz', wis: 'Weisheit', cha: 'Charisma' },

@@ -1,9 +1,9 @@
 <div class="game-grid">
   <!-- PANNELLO SCHEDA PERSONAGGIO & NEMICO -->
-  <div class="panel" id="sheet-panel">
+  <div class="panel sheet-panel">
     <div class="depth-badge">{{ i18n.t('ui.floorLabel') }} <span class="num">{{ s().depth }}</span></div>
     <h3 class="char-name">{{ p().name }}</h3>
-    <p class="small" style="margin-top:-6px;">
+    <p class="small char-sub">
       {{ i18n.tf('ui.levelLabel', { cls: i18n.t('classes.' + p().cls + '.name'), level: p().level }) }}
     </p>
 
@@ -14,7 +14,7 @@
         }}</span></div>
     <div class="sheet-row"><span>{{ i18n.t('ui.xpLabel') }}</span><span class="num">{{ p().xp }} / {{ xpNeeded()
         }}</span></div>
-    <div class="hpbar-outer" style="height:8px;">
+    <div class="hpbar-outer slim">
       <div class="hpbar-inner xpbar-inner" [style.width.%]="xpPct()"></div>
     </div>
     <div class="sheet-row"><span>{{ i18n.t('ui.acLabel') }}</span><span class="num">{{ p().ac }}</span></div>
@@ -45,7 +45,7 @@
     }
 
     @if (s().inventoryExpanded) {
-    <div class="small" style="margin-top:6px;">{{ i18n.t('ui.inventoryLabel') }}</div>
+    <div class="small inventory-label">{{ i18n.t('ui.inventoryLabel') }}</div>
     <ul class="inv-list">
       @if (p().inventory.length === 0) {
       <li>&middot; {{ i18n.t('ui.emptyInventory') }}</li>
@@ -56,7 +56,7 @@
     </ul>
 
     @if (p().relics.length > 0) {
-    <div class="small" style="margin-top:6px;">{{ i18n.t('ui.relicsLabel') }}</div>
+    <div class="small inventory-label">{{ i18n.t('ui.relicsLabel') }}</div>
     <ul class="inv-list">
       @for (rid of p().relics; track rid) {
       <li>&middot; {{ i18n.t('relics.' + rid + '.name') }}</li>
@@ -70,13 +70,16 @@
     <div class="small">{{ i18n.t('ui.enemyLabel') }}</div>
     <div class="sheet-row"><span class="enemy-name">{{ game.monsterDisplayName(m) }}</span><span class="num">{{ m.hp
         }}/{{ m.maxHp }}</span></div>
+    <div class="hpbar-outer">
+      <div class="hpbar-inner enemybar-inner" [style.width.%]="pct(m.hp, m.maxHp)"></div>
+    </div>
     <div class="sheet-row"><span>{{ i18n.t('ui.acShort') }}</span><span class="num">{{ m.ac }}</span></div>
     }
   </div>
 
   <!-- PANNELLO CENTRALE COMBAT LOG & AZIONI -->
   <div class="panel main-panel">
-    <div class="log" id="logbox" #logbox>
+    <div class="log" #logbox>
       @for (l of s().log; track $index) {
       <p [class]="l.cls" [innerHTML]="l.html"></p>
       }
@@ -90,17 +93,15 @@
     <!-- ARENA DADI FISSA -->
     <div class="dice-arena">
       <div class="dice-slot left">
-        <app-dice-widget [label]="p().name || 'Giocatore'" [themeColor]="'#8b0000'" 
-          [labelColor]="'#d4af37'" [value]="playerDieValue()" [isActive]="playerDieActive()" [sides]="playerDieSides()">
-        </app-dice-widget>
+        <app-dice-widget [label]="p().name || 'Giocatore'" [themeColor]="'#8b0000'"
+          [labelColor]="'#d4af37'" [value]="playerDieValue()" [isActive]="playerDieActive()" [sides]="playerDieSides()" />
       </div>
 
       <div class="dice-slot right">
         @if (s().monster; as m) {
-        <app-dice-widget [label]="game.monsterDisplayName(m)" [themeColor]="'#142918'" 
+        <app-dice-widget [label]="game.monsterDisplayName(m)" [themeColor]="'#142918'"
           [labelColor]="'#34d399'" [value]="monsterDieValue()" [isActive]="monsterDieActive()"
-          [sides]="monsterDieSides()">
-        </app-dice-widget>
+          [sides]="monsterDieSides()" />
         }
       </div>
     </div>
@@ -139,14 +140,14 @@
       <button class="btn heal" (click)="game.confirmLevelUp()">{{ i18n.t('ui.confirmButton') }}</button>
       }
     </div>
-    <div id="scroll-anchor" style="height:1px;"></div>
+    <div class="scroll-anchor" #scrollAnchor></div>
   </div>
 </div>
 
 @if (s().phase === 'levelup' && (s().levelUp?.step === 'stat' || s().levelUp?.step === 'feat')) {
-<app-level-up-modal></app-level-up-modal>
+<app-level-up-modal />
 }
 
 @if (s().bossRewardModal) {
-<app-boss-reward-modal></app-boss-reward-modal>
+<app-boss-reward-modal />
 }

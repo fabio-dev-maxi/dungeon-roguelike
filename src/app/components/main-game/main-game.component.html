@@ -1,0 +1,8 @@
+<div class="game-wrapper">
+  @switch (game.state().screen) {
+    @case ('title') { <app-title-screen /> }
+    @case ('create') { <app-character-creation /> }
+    @case ('run') { <app-game-screen /> }
+    @case ('gameover') { <app-game-over /> }
+  }
+</div>

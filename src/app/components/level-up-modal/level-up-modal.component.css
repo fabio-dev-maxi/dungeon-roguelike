@@ -1,127 +1,67 @@
-.modal-overlay {
-  position: fixed !important;
-  inset: 0 !important;
-  background: rgba(0, 0, 0, 0.82) !important;
-  backdrop-filter: blur(4px) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  z-index: 9999 !important;
-  padding: 16px !important;
-  box-sizing: border-box !important;
-}
-
-.modal-box {
-  background: linear-gradient(180deg, #241c15 0%, #15100c 100%) !important;
-  border: 1px solid var(--torch-dim, #96702f) !important;
-  border-radius: 4px !important;
-  padding: 22px 20px !important;
-  width: 100% !important;
-  max-width: 520px !important;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.95), inset 0 0 30px rgba(210, 154, 68, 0.05) !important;
-  text-align: center !important;
-  box-sizing: border-box !important;
-  max-height: 88vh !important;
-  display: flex !important;
-  flex-direction: column !important;
-}
-
-.modal-box h2 {
-  font-family: 'Cinzel', serif, sans-serif !important;
-  color: var(--torch, #d29a44) !important;
-  margin: 6px 0 4px !important;
-  font-size: 1.35rem !important;
-  letter-spacing: 0.05em !important;
-}
-
 .prompt {
-  font-size: 0.88rem !important;
-  color: var(--parchment-dim, #cabb95) !important;
-  margin-top: 0 !important;
-  margin-bottom: 16px !important;
+  font-size: .88rem;
+  color: var(--parchment-dim);
+  margin: 0 0 16px;
 }
 
-/* GRIGLIA STATISTICHE */
 .stats-grid {
-  display: grid !important;
-  grid-template-columns: repeat(2, 1fr) !important;
-  gap: 10px !important;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
 }
 
 .stat-btn {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 10px !important;
-  min-height: 52px !important;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px;
+  min-height: 52px;
 }
 
 .stat-name {
-  font-weight: bold !important;
-  font-size: 0.85rem !important;
+  font-weight: 700;
+  font-size: .85rem;
 }
 
 .stat-val {
-  font-size: 0.8rem !important;
-  color: var(--moss, #5c7350) !important;
-  margin-top: 2px !important;
+  font-family: var(--font-mono);
+  font-size: .8rem;
+  color: var(--emerald);
+  text-transform: none;
+  letter-spacing: 0;
 }
 
-/* LISTA TALENTI */
 .feats-list {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 10px !important;
-  max-height: 55vh !important;
-  overflow-y: auto !important;
-  padding-right: 6px !important;
-  scrollbar-width: thin !important;
-  scrollbar-color: var(--torch-dim, #96702f) transparent !important;
-}
-
-.feats-list::-webkit-scrollbar {
-  width: 5px !important;
-}
-
-.feats-list::-webkit-scrollbar-thumb {
-  background: var(--torch-dim, #96702f) !important;
-  border-radius: 3px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  padding-right: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-dim) transparent;
 }
 
 .feat-btn {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: flex-start !important;
-  text-align: left !important;
-  padding: 12px 14px !important;
-  width: 100% !important;
-  background: rgba(0, 0, 0, 0.35) !important;
-  border: 1px solid #4a3a26 !important;
-  border-radius: 2px !important;
-  cursor: pointer !important;
-  transition: all 0.15s ease !important;
-  box-sizing: border-box !important;
-}
-
-.feat-btn:hover {
-  border-color: var(--torch, #d29a44) !important;
-  background: rgba(210, 154, 68, 0.08) !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  padding: 12px 14px;
+  width: 100%;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .feat-title {
-  font-family: 'Cinzel', serif, sans-serif !important;
-  font-weight: bold !important;
-  font-size: 0.95rem !important;
-  color: var(--torch, #d29a44) !important;
-  letter-spacing: 0.03em !important;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: .95rem;
+  color: var(--gold);
+  letter-spacing: .03em;
 }
 
 .feat-desc {
-  font-size: 0.82rem !important;
-  color: var(--parchment, #e9dcbe) !important;
-  margin-top: 4px !important;
-  line-height: 1.35 !important;
+  font-family: var(--font-body);
+  font-size: .82rem;
+  color: var(--parchment);
+  margin-top: 4px;
+  line-height: 1.35;
 }

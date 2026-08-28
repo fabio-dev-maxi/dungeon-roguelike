@@ -1,0 +1,46 @@
+.app-shell {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 18px 14px 48px;
+}
+
+.top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed rgba(212, 175, 55, .3);
+}
+
+.nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.nav-link {
+  font-family: var(--font-mono);
+  font-size: .8rem;
+  color: var(--parchment-dim);
+  text-decoration: none;
+  letter-spacing: .05em;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: color .15s ease, background .15s ease;
+}
+
+.nav-link:hover {
+  color: var(--gold);
+  background: rgba(212, 175, 55, .1);
+}
+
+@media (max-width: 720px) {
+  .app-shell {
+    padding: 14px 10px 24px;
+  }
+}

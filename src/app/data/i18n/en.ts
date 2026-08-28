@@ -15,7 +15,7 @@ export const EN = {
     dieRolling: 'The die is rolling...', dieDone: 'result recorded', gameOverTitle: 'You have fallen into the dark', floorsDescended: 'Floors descended',
     goldCollected: 'Gold collected: {gold}', sessionRecord: 'Session record: floor {depth}', restartButton: 'Descend Again', langLabel: 'Language', diceLetter: 'd',
     bossDefeatedTitle: 'Boss Defeated: {name}', xpGainedLabel: 'Experience Gained', goldGainedLabel: 'Gold Gained', dropsLabel: 'Loot', noDropsText: 'No rare item this time.', continueButton: 'Continue',
-    xpLabel: 'Experience', levelUpTitle: 'Level Up!', levelUpHeader: 'Level {level} Reached!', chooseStatPrompt: 'Choose a stat to increase (+1):',
+    xpLabel: 'Experience', levelUpTitle: 'Level Up!', levelUpHeader: 'Level {level} Reached!', chooseStatPrompt: 'Choose a stat to increase (+1):', chooseFeatPrompt: 'Choose a new feat for your character:',
     hpRollPrompt: 'Hit Point roll:', rerollHpButton: 'Reroll (once)', confirmButton: 'Confirm', goldExtraTitle: 'Gold Coin Chest'
   },
   stats: { str: 'Strength', dex: 'Dexterity', con: 'Constitution', int: 'Intelligence', wis: 'Wisdom', cha: 'Charisma' },

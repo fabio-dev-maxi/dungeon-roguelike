@@ -1,0 +1,9 @@
+<div class="langbar">
+  @for (l of langs; track l) {
+    <button
+      type="button"
+      class="langbtn"
+      [class.active]="l === game.state().lang"
+      (click)="select(l)">{{ labels[l] }}</button>
+  }
+</div>

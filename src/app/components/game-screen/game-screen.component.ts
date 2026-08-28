@@ -27,14 +27,16 @@ export class GameScreenComponent implements AfterViewChecked {
   private lastLogLength = 0;
 
   @ViewChild('logbox') logboxRef?: ElementRef<HTMLDivElement>;
+  @ViewChild('scrollAnchor') scrollAnchorRef?: ElementRef<HTMLDivElement>;
 
   constructor(public game: GameService, public i18n: I18nService, public dice: DiceService) {}
 
   s() { return this.game.state(); }
   p() { return this.game.state().player!; }
-  hpPct(): number { return Math.round((this.p().hp / this.p().maxHp) * 100); }
+  pct(current: number, max: number): number { return max > 0 ? Math.round((current / max) * 100) : 0; }
+  hpPct(): number { return this.pct(this.p().hp, this.p().maxHp); }
   xpNeeded(): number { return xpToNext(this.p().level); }
-  xpPct(): number { return Math.round((this.p().xp / this.xpNeeded()) * 100); }
+  xpPct(): number { return this.pct(this.p().xp, this.xpNeeded()); }
   hasPotion(): boolean { return this.p().inventory.some(i => i.type === 'potion'); }
   acting(): boolean { return !!this.s().combatFlags.acting; }
   canSpecial(): boolean {
@@ -93,23 +95,22 @@ export class GameScreenComponent implements AfterViewChecked {
     const el = this.logboxRef?.nativeElement;
     if (el) el.scrollTop = el.scrollHeight;
 
+    const anchor = this.scrollAnchorRef?.nativeElement;
+    if (!anchor) return;
+
     const curPhase = this.s().phase;
     const curLogLen = this.s().log.length;
 
+    // Su mobile la pagina scorre solo quando cambia davvero qualcosa, per non
+    // interrompere lo scroll manuale dell'utente.
     if (window.innerWidth <= 720) {
       if (this.lastPhase !== curPhase || this.lastLogLength !== curLogLen) {
         this.lastPhase = curPhase;
         this.lastLogLength = curLogLen;
-        const anchor = document.getElementById('scroll-anchor');
-        anchor?.scrollIntoView({ block: 'end', behavior: 'smooth' });
+        anchor.scrollIntoView({ block: 'end', behavior: 'smooth' });
       }
     } else {
-      const anchor = document.getElementById('scroll-anchor');
-      if (anchor) {
-        anchor.scrollIntoView({ block: 'end', behavior: 'auto' });
-      }
+      anchor.scrollIntoView({ block: 'end', behavior: 'auto' });
     }
-    document.body.style.paddingTop = '';
-    document.body.classList.remove('has-topbar');
   }
 }

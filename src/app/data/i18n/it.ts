@@ -15,7 +15,7 @@ export const IT = {
     dieRolling: 'Il dado rotola...', dieDone: 'esito registrato', gameOverTitle: "Sei caduto nell'oscurita", floorsDescended: 'Piani discesi',
     goldCollected: 'Oro raccolto: {gold}', sessionRecord: 'Record di sessione: piano {depth}', restartButton: 'Ricomincia la Discesa', langLabel: 'Lingua', diceLetter: 'd',
     bossDefeatedTitle: 'Boss Sconfitto: {name}', xpGainedLabel: 'Esperienza Guadagnata', goldGainedLabel: 'Oro Guadagnato', dropsLabel: 'Bottino', noDropsText: 'Nessun oggetto raro questa volta.', continueButton: 'Continua',
-    xpLabel: 'Esperienza', levelUpTitle: 'Sali di Livello!', levelUpHeader: 'Livello {level} Raggiunto!', chooseStatPrompt: 'Scegli una caratteristica da aumentare (+1):',
+    xpLabel: 'Esperienza', levelUpTitle: 'Sali di Livello!', levelUpHeader: 'Livello {level} Raggiunto!', chooseStatPrompt: 'Scegli una caratteristica da aumentare (+1):', chooseFeatPrompt: 'Scegli un nuovo talento per il tuo personaggio:',
     hpRollPrompt: 'Tiro per i Punti Ferita:', rerollHpButton: 'Ritira (1 volta)', confirmButton: 'Conferma', goldExtraTitle: 'Forziere di Monete d\'Oro'
   },
   stats: { str: 'Forza', dex: 'Destrezza', con: 'Costituzione', int: 'Intelligenza', wis: 'Saggezza', cha: 'Carisma' },

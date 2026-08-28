@@ -15,7 +15,7 @@ export const ES = {
     dieRolling: 'El dado está rodando...', dieDone: 'resultado registrado', gameOverTitle: 'Has caído en la oscuridad', floorsDescended: 'Pisos descendidos',
     goldCollected: 'Oro recolectado: {gold}', sessionRecord: 'Récord de sesión: piso {depth}', restartButton: 'Descender de Nuevo', langLabel: 'Idioma', diceLetter: 'd',
     bossDefeatedTitle: 'Jefe Derrotado: {name}', xpGainedLabel: 'Experiencia Ganada', goldGainedLabel: 'Oro Ganado', dropsLabel: 'Botín', noDropsText: 'Ningún objeto raro esta vez.', continueButton: 'Continuar',
-    xpLabel: 'Experiencia', levelUpTitle: '¡Subida de Nivel!', levelUpHeader: '¡Nivel {level} Alcanzado!', chooseStatPrompt: 'Elige una característica para aumentar (+1):',
+    xpLabel: 'Experiencia', levelUpTitle: '¡Subida de Nivel!', levelUpHeader: '¡Nivel {level} Alcanzado!', chooseStatPrompt: 'Elige una característica para aumentar (+1):', chooseFeatPrompt: 'Elige un nuevo talento para tu personaje:',
     hpRollPrompt: 'Tirada de Puntos de Golpe:', rerollHpButton: 'Repetir (una vez)', confirmButton: 'Confirmar', goldExtraTitle: 'Cofre de Monedas de Oro'
   },
   stats: { str: 'Fuerza', dex: 'Destreza', con: 'Constitución', int: 'Inteligencia', wis: 'Sabiduría', cha: 'Carisma' },

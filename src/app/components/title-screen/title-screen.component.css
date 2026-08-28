@@ -1,0 +1,40 @@
+.title-wrap {
+  position: relative;
+  text-align: center;
+  padding: 36px 10px 30px;
+}
+
+.title-wrap h1 {
+  font-family: var(--font-display);
+  text-transform: none;
+  font-size: clamp(2.6rem, 8vw, 4.6rem);
+  color: var(--parchment);
+  text-shadow: 0 0 22px rgba(212, 175, 55, .4), 0 2px 0 #000;
+  letter-spacing: .02em;
+  margin: 0 0 4px;
+}
+
+.title-sub {
+  font-family: var(--font-heading);
+  color: var(--gold-dim);
+  font-size: .9rem;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  margin-bottom: 26px;
+}
+
+.lore {
+  max-width: 560px;
+  margin: 0 auto 30px;
+  font-style: italic;
+  color: var(--parchment-dim);
+  line-height: 1.7;
+  font-size: 1.05rem;
+}
+
+.record-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+}

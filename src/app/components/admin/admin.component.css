@@ -5,24 +5,27 @@
   margin-bottom: 20px;
 }
 
-.small-btn {
-  padding: 6px 14px !important;
-  font-size: 0.75rem !important;
+.config-card {
+  background: rgba(0, 0, 0, .3);
+  border: 1px solid var(--stone-line);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  margin-bottom: 20px;
 }
 
-.config-card {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid #4a3a26;
-  padding: 16px;
-  border-radius: 3px;
-  margin-bottom: 20px;
+.config-intro {
+  margin-bottom: 12px;
+}
+
+.config-actions {
+  margin-top: 16px;
 }
 
 .form-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   margin-top: 14px;
-  flex-wrap: wrap;
 }
 
 .form-group {
@@ -30,16 +33,22 @@
   min-width: 180px;
 }
 
-.admin-select, .admin-input {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.9rem;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid #4a3a26;
+.admin-select,
+.admin-input {
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: .9rem;
+  background: rgba(0, 0, 0, .4);
+  border: 1px solid var(--stone-line);
+  border-radius: var(--radius-sm);
   color: var(--parchment);
   padding: 8px 10px;
-  width: 100%;
-  border-radius: 2px;
-  box-sizing: border-box;
+}
+
+.admin-select:focus,
+.admin-input:focus {
+  border-color: var(--gold);
+  outline: none;
 }
 
 .results-container {
@@ -47,21 +56,21 @@
 }
 
 .result-card {
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid var(--torch-dim);
+  background: rgba(0, 0, 0, .25);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-sm);
   padding: 16px;
-  border-radius: 3px;
   margin-top: 14px;
 }
 
 .result-card h4 {
   margin: 0 0 12px;
+  font-family: var(--font-heading);
   color: var(--parchment);
-  font-family: 'Cinzel', serif;
 }
 
 .highlight {
-  color: var(--torch);
+  color: var(--gold);
 }
 
 .stat-summary-grid {
@@ -70,26 +79,32 @@
   gap: 10px;
 }
 
+.json-details {
+  margin-top: 16px;
+}
+
 .details-toggle {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.8rem;
-  color: var(--torch-dim);
+  font-family: var(--font-mono);
+  font-size: .8rem;
+  color: var(--gold-dim);
   cursor: pointer;
   padding: 6px 0;
 }
 
 .details-toggle:hover {
-  color: var(--torch);
+  color: var(--gold);
 }
 
 .json-block {
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, .6);
   border: 1px solid #33261a;
+  border-radius: var(--radius-sm);
   padding: 12px;
-  font-family: 'Space Mono', monospace;
-  font-size: 0.75rem;
-  color: #a7f3d0;
+  font-family: var(--font-mono);
+  font-size: .75rem;
+  color: var(--emerald);
   max-height: 350px;
   overflow-y: auto;
-  border-radius: 2px;
+  white-space: pre-wrap;
+  word-break: break-all;
 }

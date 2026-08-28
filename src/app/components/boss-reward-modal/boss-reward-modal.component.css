@@ -1,0 +1,27 @@
+.drop-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  background: rgba(212, 175, 55, .06);
+  border: 1px solid var(--stone-line-soft);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin: 10px 0;
+}
+
+.drop-card b {
+  color: var(--gold);
+}
+
+.drop-card .small {
+  margin: 0;
+}
+
+.no-drops {
+  margin-top: 10px;
+}
+
+.reward-actions {
+  margin-top: 20px;
+}

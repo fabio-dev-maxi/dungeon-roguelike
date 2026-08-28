@@ -15,7 +15,7 @@ export const FR = {
         dieRolling: 'Le dé roule...', dieDone: 'résultat enregistré', gameOverTitle: "Tu es tombé dans l'obscurité", floorsDescended: 'Étages descendus',
         goldCollected: 'Or récolté : {gold}', sessionRecord: 'Record de session : étage {depth}', restartButton: 'Redescendre', langLabel: 'Langue', diceLetter: 'd',
         bossDefeatedTitle: 'Boss Vaincu : {name}', xpGainedLabel: 'Expérience Gagnée', goldGainedLabel: 'Or Gagné', dropsLabel: 'Butin', noDropsText: 'Aucun objet rare cette fois.', continueButton: 'Continuer',
-        xpLabel: 'Expérience', levelUpTitle: 'Montée de Niveau !', levelUpHeader: 'Niveau {level} Atteint !', chooseStatPrompt: 'Choisis une caractéristique à augmenter (+1) :',
+        xpLabel: 'Expérience', levelUpTitle: 'Montée de Niveau !', levelUpHeader: 'Niveau {level} Atteint !', chooseStatPrompt: 'Choisis une caractéristique à augmenter (+1) :', chooseFeatPrompt: 'Choisis un nouveau talent pour ton personnage :',
         hpRollPrompt: 'Jet de Points de Vie :', rerollHpButton: 'Relancer (une fois)', confirmButton: 'Confirmer', goldExtraTitle: 'Coffre de Pièces d\'Or'
     },
     stats: { str: 'Force', dex: 'Dextérité', con: 'Constitution', int: 'Intelligence', wis: 'Sagesse', cha: 'Charisme' },

@@ -1,0 +1,32 @@
+@if (reward(); as r) {
+  <div class="modal-backdrop">
+    <div class="panel modal-box">
+      <div class="depth-badge">{{ i18n.tf('ui.bossDefeatedTitle', { name: r.name }) }}</div>
+
+      <div class="sheet-row">
+        <span>{{ i18n.t('ui.xpGainedLabel') }}</span><span class="num gain">+{{ r.xp }}</span>
+      </div>
+      <div class="sheet-row">
+        <span>{{ i18n.t('ui.goldGainedLabel') }}</span><span class="num gain">+{{ r.gold }}</span>
+      </div>
+
+      <hr class="rule">
+      <div class="small">{{ i18n.t('ui.dropsLabel') }}</div>
+
+      @if (r.drops.length > 0) {
+        @for (d of r.drops; track d.id) {
+          <div class="drop-card">
+            <b>{{ d.name }}</b>
+            <p class="small">{{ d.effect }}</p>
+          </div>
+        }
+      } @else {
+        <p class="small no-drops">{{ i18n.t('ui.noDropsText') }}</p>
+      }
+
+      <div class="reward-actions">
+        <button class="btn" (click)="game.confirmBossReward()">{{ i18n.t('ui.continueButton') }}</button>
+      </div>
+    </div>
+  </div>
+}

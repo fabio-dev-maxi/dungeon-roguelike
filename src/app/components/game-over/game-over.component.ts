@@ -6,24 +6,8 @@ import { DiceService } from '../../services/dice.service';
 @Component({
   selector: 'app-game-over',
   standalone: true,
-  template: `
-    <div class="panel center">
-      <h2>{{ i18n.t('ui.gameOverTitle') }}</h2>
-      <div class="score-box">
-        <span class="n">{{ floorsCompleted }}</span>
-        <span class="l">{{ i18n.t('ui.floorsDescended') }}</span>
-      </div>
-      <p class="epitaph">"{{ epitaph }}"</p>
-      <p class="small">
-        {{ i18n.tf('ui.goldCollected', { gold: game.state().player!.gold }) }}
-        &middot;
-        {{ i18n.tf('ui.sessionRecord', { depth: game.bestDepth() }) }}
-      </p>
-      <div style="margin-top:24px;">
-        <button class="btn" (click)="game.restartGame()">{{ i18n.t('ui.restartButton') }}</button>
-      </div>
-    </div>
-  `
+  templateUrl: './game-over.component.html',
+  styleUrl: './game-over.component.css'
 })
 export class GameOverComponent {
   epitaph: string;

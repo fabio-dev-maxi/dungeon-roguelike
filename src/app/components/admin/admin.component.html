@@ -1,0 +1,68 @@
+<div class="panel">
+  <div class="admin-header">
+    <h2>Pannello Admin &amp; Simulatore</h2>
+  </div>
+
+  <div class="config-card">
+    <h3>Simulazione Bilanciamento</h3>
+    <p class="small config-intro">
+      Esegue simulazioni automatiche in batch sfruttando le regole TypeScript reali del gioco.
+    </p>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="field-label" for="admin-class">Classe da Testare</label>
+        <select id="admin-class" class="admin-select" [(ngModel)]="selectedClass">
+          <option value="fighter">Guerriero</option>
+          <option value="rogue">Ladro</option>
+          <option value="wizard">Mago</option>
+          <option value="cleric">Chierico</option>
+          <option value="all">Tutte le Classi</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="field-label" for="admin-runs">Numero di Run (N)</label>
+        <input id="admin-runs" class="admin-input" type="number" min="10" max="5000" [(ngModel)]="runsCount">
+      </div>
+    </div>
+
+    <div class="config-actions">
+      <button class="btn" [disabled]="isSimulating" (click)="startSimulation()">
+        {{ isSimulating ? 'Simulazione in corso...' : '⚡ Avvia Simulazione' }}
+      </button>
+    </div>
+  </div>
+
+  @if (results().length > 0) {
+    <div class="results-container">
+      <h3>Esito Simulazione</h3>
+
+      @for (res of results(); track res.cls) {
+        <div class="result-card">
+          <h4>Classe: <span class="highlight">{{ res.cls | uppercase }}</span> (N={{ res.N }})</h4>
+
+          <div class="stat-summary-grid">
+            <div class="stat-box">
+              <div class="label">Vittorie (Piano 50)</div>
+              <div class="val num gain">{{ (res.completionRate * 100).toFixed(1) }}%</div>
+            </div>
+            <div class="stat-box">
+              <div class="label">Profondità Media Morte</div>
+              <div class="val num">{{ res.avgDeathDepth ? res.avgDeathDepth.toFixed(1) : 'N/A' }}</div>
+            </div>
+            <div class="stat-box">
+              <div class="label">Completamenti Totali</div>
+              <div class="val num">{{ res.completions }} / {{ res.N }}</div>
+            </div>
+          </div>
+
+          <details class="json-details">
+            <summary class="details-toggle">Visualizza JSON di Output completo</summary>
+            <pre class="json-block">{{ formatJson(res) }}</pre>
+          </details>
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,40 @@
+.score-box {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.score-box .n {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 3rem;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.score-box .l {
+  font-family: var(--font-heading);
+  font-size: .78rem;
+  letter-spacing: .16em;
+  color: var(--parchment-dim);
+  text-transform: uppercase;
+}
+
+.epitaph {
+  max-width: 440px;
+  margin: 14px auto 26px;
+  font-style: italic;
+  color: var(--parchment-dim);
+  text-align: center;
+  line-height: 1.7;
+}
+
+.gameover-stats {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.gameover-actions {
+  margin-top: 24px;
+}
