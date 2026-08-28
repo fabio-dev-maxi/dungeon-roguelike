@@ -1,13 +1,14 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { UpperCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router'; // 1. Importa RouterLink
 import { SimulationService, SimulationResult } from '../../services/simulation.service';
 import { ClassKey } from '../../models/game.models';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [FormsModule, UpperCasePipe],
+  imports: [FormsModule, UpperCasePipe, RouterLink], // 2. Aggiungi RouterLink agli imports
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -23,10 +24,7 @@ export class AdminComponent {
   async startSimulation(): Promise<void> {
     this.isSimulating.set(true);
     this.results.set([]);
-
-    // Lascia al browser un frame per mostrare lo stato "in corso" prima del batch sincrono.
     await new Promise(r => setTimeout(r, 50));
-
     try {
       if (this.selectedClass === 'all') {
         const classes: ClassKey[] = ['fighter', 'rogue', 'wizard', 'cleric'];
