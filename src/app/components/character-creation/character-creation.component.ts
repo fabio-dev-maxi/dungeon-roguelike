@@ -6,12 +6,15 @@ import { DiceService } from '../../services/dice.service';
 import { CLASS_DATA, CLASS_KEYS } from '../../data/game.data';
 import { ClassKey, StatKey } from '../../models/game.models';
 
+import { IconComponent, IconName } from '../../shared/icon/icon.component';
+import { CLASS_ICONS } from '../../shared/icon/icon-maps';
+
 const STAT_KEYS: StatKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 
 @Component({
   selector: 'app-character-creation',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, IconComponent],
   templateUrl: './character-creation.component.html',
   styleUrl: './character-creation.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -32,6 +35,8 @@ export class CharacterCreationComponent {
     const [n, d] = this.classData[key].weaponDice;
     return n + this.i18n.t('ui.diceLetter') + d;
   }
+
+  classIcon(key: ClassKey): IconName { return CLASS_ICONS[key]; }
 
   rollStats(): void {
     this.game.rollStatsForCreate(this.name);

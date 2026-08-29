@@ -1,16 +1,21 @@
 <div class="panel">
-  <h2>{{ i18n.t('ui.forgeTitle') }}</h2>
+  <h2>
+    <app-icon name="scroll" [size]="20" style="margin-right: 8px;"></app-icon>
+    {{ i18n.t('ui.forgeTitle') }}
+  </h2>
 
   <label class="field-label" for="char-name">{{ i18n.t('ui.nameLabel') }}</label>
   <input id="char-name" type="text" [placeholder]="i18n.t('ui.namePlaceholder')" [(ngModel)]="name">
 
   <div class="roll-actions">
-    <button class="btn" (click)="rollStats()">
+    <button class="btn" (click)="rollStats()" style="display: inline-flex; align-items: center; gap: 8px;">
+      <app-icon name="dice" [size]="16"></app-icon>
       {{ stats ? i18n.t('ui.rerollButton') : i18n.t('ui.rollButton') }}
     </button>
   </div>
 
   @if (stats; as rolled) {
+    <!-- GRIGLIA STATISTICHE PULITA (SENZA ICONE) -->
     <div class="stat-grid">
       @for (k of statKeys; track k) {
         <div class="stat-box">
@@ -32,10 +37,16 @@
           (click)="choose(key)"
           (keyup.enter)="choose(key)"
           (keyup.space)="choose(key)">
-          <h3>{{ i18n.t('classes.' + key + '.name') }}</h3>
+          
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+            <div class="sigil sigil--sm"><app-icon [name]="classIcon(key)" [size]="20"></app-icon></div>
+            <h3 style="margin: 0;">{{ i18n.t('classes.' + key + '.name') }}</h3>
+          </div>
+
           <p class="desc">{{ i18n.t('classes.' + key + '.desc') }}</p>
 
-          <p class="small">
+          <p class="small" style="display: flex; align-items: center; gap: 6px; margin: 2px 0;">
+            <app-icon name="sword" [size]="14"></app-icon>
             {{ i18n.tf('ui.weaponCharLabel', {
               weapon: i18n.t('weapons.' + classData[key].weaponKey),
               dice: diceStr(key),
@@ -43,7 +54,8 @@
             }) }}
           </p>
 
-          <p class="small">
+          <p class="small" style="display: flex; align-items: center; gap: 6px; margin: 2px 0;">
+            <app-icon name="shield" [size]="14"></app-icon>
             {{ i18n.tf('ui.armorCharLabel', {
               armor: i18n.t('armors.' + classData[key].armorKey),
               bonus: classData[key].armor
@@ -51,7 +63,8 @@
           </p>
 
           @if (classData[key].atkStat !== classData[key].primary) {
-            <p class="small">
+            <p class="small" style="display: flex; align-items: center; gap: 6px; margin: 2px 0;">
+              <app-icon name="star" [size]="14"></app-icon>
               {{ i18n.tf('ui.castingStatLabel', {
                 stat: i18n.t('stats.' + classData[key].primary),
                 mod: dice.fmtMod(dice.mod(rolled[classData[key].primary]))
@@ -59,7 +72,10 @@
             </p>
           }
 
-          <span class="tag">{{ i18n.t('classes.' + key + '.special') }}</span>
+          <span class="tag" style="display: flex; align-items: center; gap: 6px;">
+            <app-icon name="scroll" [size]="14"></app-icon>
+            {{ i18n.t('classes.' + key + '.special') }}
+          </span>
         </div>
       }
     </div>

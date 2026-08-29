@@ -7,7 +7,7 @@ export type IconName =
   | 'boot' | 'stairs' | 'layers' | 'book'
   | 'eye' | 'fist' | 'feather' | 'backpack'
   | 'key' | 'hammer' | 'cup' | 'crown'
-  | 'arrow-right' | 'globe' | 'check' | 'x' | 'dot';
+  | 'arrow-right' | 'globe' | 'check' | 'x' | 'dot'| 'dice';
 
 @Component({
   selector: 'app-icon',
@@ -124,6 +124,23 @@ export type IconName =
         }
         @case ('globe') {
           <circle cx="12" cy="12" r="9"/> <ellipse cx="12" cy="12" rx="4" ry="9"/> <line x1="3.2" y1="12" x2="20.8" y2="12"/>
+        }
+        @case ('dice') {
+          <!-- Sagoma Dado 3D Isometrico -->
+          <path d="M12 2.5 L20.5 7 V17 L12 21.5 L3.5 17 V7 Z"/>
+          <path d="M12 12 V21.5 M12 12 L20.5 7 M12 12 L3.5 7"/>
+          
+          <!-- Faccia Superiore (1 punto centrale) -->
+          <circle cx="12" cy="7" r="1.2" fill="currentColor" stroke="none"/>
+          
+          <!-- Faccia Sinistra (2 punti) -->
+          <circle cx="7.5" cy="11" r="1" fill="currentColor" stroke="none"/>
+          <circle cx="8.5" cy="16" r="1" fill="currentColor" stroke="none"/>
+          
+          <!-- Faccia Destra (3 punti) -->
+          <circle cx="15" cy="10.5" r="1" fill="currentColor" stroke="none"/>
+          <circle cx="16.2" cy="14.2" r="1" fill="currentColor" stroke="none"/>
+          <circle cx="17.5" cy="18" r="1" fill="currentColor" stroke="none"/>
         }
         @case ('check') { <polyline points="4,13 9,18 20,6"/> }
         @case ('x') { <line x1="6" y1="6" x2="18" y2="18"/> <line x1="18" y1="6" x2="6" y2="18"/> }
