@@ -2,7 +2,7 @@
    LAYOUT DELLA SCHERMATA DI GIOCO
    ========================================================================== */
 .game-grid {
-  --game-panel-h: 640px;
+  --game-panel-h: 700px; /* Aumentato da 640px a 780px per contenere tutti i dati */
   display: grid;
   grid-template-columns: 290px 1fr;
   gap: 16px;
@@ -19,9 +19,19 @@
   scrollbar-color: var(--gold-dim) transparent;
 }
 
-.sheet-panel::-webkit-scrollbar { width: 6px; }
-.sheet-panel::-webkit-scrollbar-track { background: rgba(0, 0, 0, .3); border-radius: 4px; }
-.sheet-panel::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 4px; }
+.sheet-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sheet-panel::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, .3);
+  border-radius: 4px;
+}
+
+.sheet-panel::-webkit-scrollbar-thumb {
+  background: var(--gold-dim);
+  border-radius: 4px;
+}
 
 .depth-badge--floor {
   flex-direction: column;
@@ -188,9 +198,19 @@
   scrollbar-color: var(--gold-dim) transparent;
 }
 
-.log::-webkit-scrollbar { width: 6px; }
-.log::-webkit-scrollbar-track { background: rgba(0, 0, 0, .3); border-radius: 4px; }
-.log::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 4px; }
+.log::-webkit-scrollbar {
+  width: 6px;
+}
+
+.log::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, .3);
+  border-radius: 4px;
+}
+
+.log::-webkit-scrollbar-thumb {
+  background: var(--gold);
+  border-radius: 4px;
+}
 
 .log p {
   margin: 0 0 11px;
@@ -199,8 +219,15 @@
 }
 
 @keyframes logIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .log .sys {
@@ -222,9 +249,18 @@
   background: linear-gradient(90deg, transparent, var(--stone-line), transparent);
 }
 
-.log .dmg { color: var(--blood-bright); }
-.log .heal { color: var(--emerald); }
-.log .flavor { color: var(--parchment-dim); font-style: italic; }
+.log .dmg {
+  color: var(--blood-bright);
+}
+
+.log .heal {
+  color: var(--emerald);
+}
+
+.log .flavor {
+  color: var(--parchment-dim);
+  font-style: italic;
+}
 
 /* Le due parti del combattimento si affrontano dai lati opposti, come in una chat. */
 .log .hero,
@@ -302,8 +338,13 @@
   height: 130px;
 }
 
-.dice-slot.left { justify-content: flex-start; }
-.dice-slot.right { justify-content: flex-end; }
+.dice-slot.left {
+  justify-content: flex-start;
+}
+
+.dice-slot.right {
+  justify-content: flex-end;
+}
 
 .dice-fighter {
   display: flex;
@@ -325,8 +366,13 @@
   text-overflow: ellipsis;
 }
 
-.dice-name.player { color: var(--gold); }
-.dice-name.enemy { color: var(--emerald); }
+.dice-name.player {
+  color: var(--gold);
+}
+
+.dice-name.enemy {
+  color: var(--emerald);
+}
 
 /* Visibile solo su mobile: a schermo largo la scheda di sinistra mostra gli stessi dati. */
 .combat-hud {
@@ -359,6 +405,43 @@
 
 .scroll-anchor {
   height: 1px;
+}
+
+/* Cornice circolare in pietra usata per contenere le icone grandi. */
+.sigil {
+  --sigil-size: 56px;
+  position: relative;
+  width: var(--sigil-size);
+  height: var(--sigil-size);
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 33% 28%, rgba(212, 175, 55, .2), transparent 60%), var(--stone-700);
+  border: 1.5px solid var(--stone-line);
+  color: var(--gold);
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, .55), 0 2px 6px rgba(0, 0, 0, .4);
+}
+
+.sigil::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  border: 1px solid rgba(212, 175, 55, .22);
+}
+
+.sigil--sm {
+  --sigil-size: 36px;
+}
+
+.sigil--lg {
+  --sigil-size: 80px;
+}
+
+.sigil--danger {
+  color: var(--blood-bright);
 }
 
 /* ==========================================================================
@@ -456,6 +539,7 @@
     margin-top: 4px;
     padding-bottom: 16px;
   }
+
   .actions .btn,
   .actions:has(.btn:nth-child(5)) .btn {
     width: 100%;
