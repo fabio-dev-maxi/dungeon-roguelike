@@ -1,13 +1,55 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { GameService } from '../../services/game.service';
 import { I18nService } from '../../services/i18n.service';
+import { IconComponent } from '../../shared/icon/icon.component';
 
 @Component({
   selector: 'app-boss-reward-modal',
   standalone: true,
-  templateUrl: './boss-reward-modal.component.html',
-  styleUrl: './boss-reward-modal.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  imports: [IconComponent],
+  template: `
+    @if (reward(); as r) {
+      <div class="modal-backdrop">
+        <div class="panel modal-box">
+          <div class="modal-icon"><div class="sigil sigil--lg"><app-icon name="crown" [size]="34"></app-icon></div></div>
+          <div class="floor-badge" style="justify-content:center;">
+            {{ i18n.tf('ui.bossDefeatedTitle', { name: r.name }) }}
+          </div>
+
+          <div class="reward-row">
+            <span class="lbl"><app-icon name="star" [size]="15"></app-icon>{{ i18n.t('ui.xpGainedLabel') }}</span>
+            <span class="num gain">+{{ r.xp }}</span>
+          </div>
+          <div class="reward-row">
+            <span class="lbl"><app-icon name="coin" [size]="15"></app-icon>{{ i18n.t('ui.goldGainedLabel') }}</span>
+            <span class="num gain">+{{ r.gold }}</span>
+          </div>
+
+          <hr class="rule">
+          <div class="small"><app-icon name="gem" [size]="13"></app-icon> {{ i18n.t('ui.dropsLabel') }}</div>
+          @if (r.drops.length > 0) {
+            @for (d of r.drops; track d.id) {
+              <div class="drop-card">
+                <app-icon name="gem" [size]="20"></app-icon>
+                <div class="txt">
+                  <b>{{ d.name }}</b>
+                  <p class="small" style="margin:2px 0 0;">{{ d.effect }}</p>
+                </div>
+              </div>
+            }
+          } @else {
+            <p class="small" style="margin-top:10px;">{{ i18n.t('ui.noDropsText') }}</p>
+          }
+
+          <div class="center" style="margin-top:20px;">
+            <button class="btn primary" (click)="game.confirmBossReward()">
+              <app-icon name="arrow-right" [size]="16"></app-icon>{{ i18n.t('ui.continueButton') }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  `
 })
 export class BossRewardModalComponent {
   constructor(public game: GameService, public i18n: I18nService) {}

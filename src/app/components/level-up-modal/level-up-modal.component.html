@@ -1,13 +1,18 @@
-<div class="modal-backdrop">
-  <div class="panel modal-box">
+<div class="modal-overlay">
+  <div class="modal-box panel">
     <!-- FASE 1: SELEZIONE STATISTICA (Ogni 2 Livelli) -->
     @if (levelUp()?.step === 'stat') {
-      <div class="depth-badge">{{ i18n.t('ui.levelUpTitle') }}</div>
+      <div class="modal-icon"><div class="sigil sigil--lg"><app-icon name="star" [size]="30"></app-icon></div></div>
+      <div class="floor-badge" style="justify-content:center;">
+        <app-icon name="layers" [size]="16"></app-icon>{{ i18n.t('ui.levelUpTitle') }}
+      </div>
       <h2>{{ i18n.tf('ui.levelUpHeader', { level: p().level }) }}</h2>
       <p class="prompt">{{ i18n.t('ui.chooseStatPrompt') }}</p>
+
       <div class="stats-grid">
         @for (k of statKeys; track k) {
           <button class="btn stat-btn" (click)="selectStat(k)">
+            <app-icon [name]="statIcon(k)" [size]="18"></app-icon>
             <span class="stat-name">{{ i18n.t('stats.' + k) }}</span>
             <span class="stat-val">{{ p().stats[k] }} &rarr; <strong>{{ p().stats[k] + 1 }}</strong></span>
           </button>
@@ -17,14 +22,21 @@
 
     <!-- FASE 2: SELEZIONE TALENTO (Ogni 3 Livelli) -->
     @if (levelUp()?.step === 'feat') {
-      <div class="depth-badge">{{ i18n.t('ui.levelUpTitle') }}</div>
+      <div class="modal-icon"><div class="sigil sigil--lg"><app-icon name="scroll" [size]="30"></app-icon></div></div>
+      <div class="floor-badge" style="justify-content:center;">
+        <app-icon name="layers" [size]="16"></app-icon>{{ i18n.t('ui.levelUpTitle') }}
+      </div>
       <h2>{{ i18n.tf('ui.levelUpHeader', { level: p().level }) }}</h2>
-      <p class="prompt">{{ i18n.t('ui.chooseFeatPrompt') }}</p>
+      <p class="prompt">Scegli un nuovo talento per il tuo personaggio:</p>
+
       <div class="feats-list">
         @for (f of levelUp()?.availableFeats; track f.id) {
           <button class="btn feat-btn" (click)="selectFeat(f.id)">
-            <span class="feat-title">{{ i18n.t('feats.' + f.id + '.name') }}</span>
-            <span class="feat-desc">{{ i18n.t('feats.' + f.id + '.desc') }}</span>
+            <div class="sigil sigil--sm"><app-icon [name]="featIcon(f.id)" [size]="16"></app-icon></div>
+            <div class="feat-txt">
+              <div class="feat-title">{{ i18n.t('feats.' + f.id + '.name') }}</div>
+              <div class="feat-desc">{{ i18n.t('feats.' + f.id + '.desc') }}</div>
+            </div>
           </button>
         }
       </div>
