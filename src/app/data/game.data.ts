@@ -30,27 +30,35 @@ export const CLASS_FEATS: Record<ClassKey, Feat[]> = {
     { id: 'colossus_strike', cls: 'fighter', name: '', desc: '' },
     { id: 'bloodlust_vigor', cls: 'fighter', name: '', desc: '' },
     { id: 'titan_defense', cls: 'fighter', name: '', desc: '' },
-    { id: 'devastating_crit', cls: 'fighter', name: '', desc: '' }
+    { id: 'devastating_crit', cls: 'fighter', name: '', desc: '' },
+    { id: 'relentless_strike', cls: 'fighter', name: '', desc: '' },
+    { id: 'battle_rage', cls: 'fighter', name: '', desc: '' }
   ],
   rogue: [
     { id: 'shadow_step', cls: 'rogue', name: '', desc: '' },
     { id: 'lethal_precision', cls: 'rogue', name: '', desc: '' },
     { id: 'assassin_blade', cls: 'rogue', name: '', desc: '' },
     { id: 'evasion_master', cls: 'rogue', name: '', desc: '' },
-    { id: 'venomous_strike', cls: 'rogue', name: '', desc: '' }
+    { id: 'venomous_strike', cls: 'rogue', name: '', desc: '' },
+    { id: 'shadow_strike', cls: 'rogue', name: '', desc: '' },
+    { id: 'opportunist', cls: 'rogue', name: '', desc: '' }
   ],
   wizard: [
     { id: 'arcane_mind', cls: 'wizard', name: '', desc: '' },
     { id: 'spell_amplification', cls: 'wizard', name: '', desc: '' },
     { id: 'mana_barrier', cls: 'wizard', name: '', desc: '' },
     { id: 'overcharge_spell', cls: 'wizard', name: '', desc: '' },
-    { id: 'archmage_focus', cls: 'wizard', name: '', desc: '' }
+    { id: 'archmage_focus', cls: 'wizard', name: '', desc: '' },
+    { id: 'pyroclasm', cls: 'wizard', name: '', desc: '' },
+    { id: 'vital_transmutation', cls: 'wizard', name: '', desc: '' }
   ],
   cleric: [
     { id: 'divine_grace', cls: 'cleric', name: '', desc: '' },
     { id: 'radiant_cure', cls: 'cleric', name: '', desc: '' },
     { id: 'holy_armor', cls: 'cleric', name: '', desc: '' },
     { id: 'blessed_strikes', cls: 'cleric', name: '', desc: '' },
-    { id: 'renewing_faith', cls: 'cleric', name: '', desc: '' }
+    { id: 'renewing_faith', cls: 'cleric', name: '', desc: '' },
+    { id: 'smite_evil', cls: 'cleric', name: '', desc: '' },
+    { id: 'sacred_vigor', cls: 'cleric', name: '', desc: '' }
   ]
 };

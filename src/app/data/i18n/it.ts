@@ -201,6 +201,14 @@ export const IT = {
     radiant_cure: { name: 'Guglia di Luce', desc: '+6 Punti Ferita restituiti dalla Preghiera Guaritrice.' },
     holy_armor: { name: 'Egida del Martire', desc: '+2 alla CA e +8 Punti Ferita Massimi.' },
     blessed_strikes: { name: 'Colpo Benedetto', desc: '+2 ai tiri per Colpire e +2 ai Danni fissi.' },
-    renewing_faith: { name: 'Fede Rigenerante', desc: '+5 Punti Ferita aggiuntivi ottenuti da ogni Pozione di Guarigione.' }
+    renewing_faith: { name: 'Fede Rigenerante', desc: '+5 Punti Ferita aggiuntivi ottenuti da ogni Pozione di Guarigione.' },
+    relentless_strike: { name: 'Assalto Incalzante', desc: '+2 ai tiri per Colpire e +2 ai Danni fissi.' },
+    battle_rage: { name: 'Furia da Battaglia', desc: '+12 Punti Ferita Massimi e +2 ai Danni fissi.' },
+    shadow_strike: { name: 'Colpo delle Ombre', desc: '+2 ai tiri per Colpire e +3 ai Danni fissi.' },
+    opportunist: { name: 'Opportunista Letale', desc: 'Riduce la soglia del Colpo Critico di 1 e +2 alla Fuga.' },
+    pyroclasm: { name: 'Piroclasma Arcano', desc: '+3 ai Danni del Dardo Incantato e +2 ai Danni fissi.' },
+    vital_transmutation: { name: 'Trasmutazione Vitale', desc: '+2 all\'Intelligenza e +12 Punti Ferita Massimi.' },
+    smite_evil: { name: 'Punizione Divina', desc: '+2 ai tiri per Colpire e +3 ai Danni fissi.' },
+    sacred_vigor: { name: 'Vigore Sacro', desc: '+12 Punti Ferita Massimi e +4 alla Preghiera Guaritrice.' }
   }
 };

@@ -132,6 +132,15 @@ export class LevelUpService {
       case 'devastating_crit':
         p.critMultiplier = 2.5;
         break;
+      case 'relentless_strike':
+        p.flatAtkBonus = (p.flatAtkBonus || 0) + 2;
+        p.flatDmgBonus = (p.flatDmgBonus || 0) + 2;
+        break;
+      case 'battle_rage':
+        p.maxHp += 12;
+        p.hp += 12;
+        p.flatDmgBonus = (p.flatDmgBonus || 0) + 2;
+        break;
 
       // LADRO
       case 'shadow_step':
@@ -150,6 +159,14 @@ export class LevelUpService {
         break;
       case 'venomous_strike':
         p.flatDmgBonus = (p.flatDmgBonus || 0) + 2;
+        break;
+      case 'shadow_strike':
+        p.flatAtkBonus = (p.flatAtkBonus || 0) + 2;
+        p.flatDmgBonus = (p.flatDmgBonus || 0) + 3;
+        break;
+      case 'opportunist':
+        p.critThreshold = Math.max(15, p.critThreshold - 1);
+        p.fleeBonus = (p.fleeBonus || 0) + 2;
         break;
 
       // MAGO
@@ -172,6 +189,15 @@ export class LevelUpService {
         p.flatAtkBonus = (p.flatAtkBonus || 0) + 2;
         p.flatDmgBonus = (p.flatDmgBonus || 0) + 2;
         break;
+      case 'pyroclasm':
+        p.specialBonusDmg = (p.specialBonusDmg || 0) + 3;
+        p.flatDmgBonus = (p.flatDmgBonus || 0) + 2;
+        break;
+      case 'vital_transmutation':
+        p.stats.int += 2;
+        p.maxHp += 12;
+        p.hp += 12;
+        break;
 
       // CHIERICO
       case 'divine_grace':
@@ -192,6 +218,15 @@ export class LevelUpService {
         break;
       case 'renewing_faith':
         p.potionHealBonus = (p.potionHealBonus || 0) + 5;
+        break;
+      case 'smite_evil':
+        p.flatAtkBonus = (p.flatAtkBonus || 0) + 2;
+        p.flatDmgBonus = (p.flatDmgBonus || 0) + 3;
+        break;
+      case 'sacred_vigor':
+        p.maxHp += 12;
+        p.hp += 12;
+        p.specialBonusHeal = (p.specialBonusHeal || 0) + 4;
         break;
     }
 
