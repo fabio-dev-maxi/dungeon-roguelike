@@ -86,6 +86,7 @@ export class DiceWidgetComponent implements OnDestroy {
       cancelAnimationFrame(this.animFrameId);
       this.animFrameId = undefined;
     }
+    this.clearCaches();
   };
 
   private onContextRestored = (): void => {
@@ -97,13 +98,30 @@ export class DiceWidgetComponent implements OnDestroy {
       cancelAnimationFrame(this.animFrameId);
       this.animFrameId = undefined;
     }
+    this.clearCaches();
     this.destroyThree();
     setTimeout(() => this.recreateDiceEngine(), 150);
+  }
+
+  private clearCaches(): void {
+    MATERIAL_CACHE.forEach(materials => {
+      materials.forEach(mat => {
+        if (mat.map) mat.map.dispose();
+        mat.dispose();
+      });
+    });
+    MATERIAL_CACHE.clear();
+
+    SHAPE_CACHE.forEach(shape => {
+      shape.geometry.dispose();
+    });
+    SHAPE_CACHE.clear();
   }
 
   private recreateDiceEngine(): void {
     if (!this.canvasEl) return;
     try {
+      this.clearCaches();
       this.initThree(this.canvasEl);
       this.rebuildMesh();
       this.ngZone.runOutsideAngular(() => this.animate());
@@ -144,12 +162,17 @@ export class DiceWidgetComponent implements OnDestroy {
     this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
     this.camera.position.z = 3.4;
     
-    this.scene.add(new THREE.AmbientLight(0xffffff, 1.4));
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1.6);
+    this.scene.add(new THREE.AmbientLight(0xffffff, 1.8));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
     dirLight.position.set(3, 4, 5);
     this.scene.add(dirLight);
 
-    this.renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'low-power' });
+    this.renderer = new THREE.WebGLRenderer({
+      canvas,
+      alpha: true,
+      antialias: true,
+      powerPreference: 'low-power'
+    });
     this.renderer.setSize(80, 80);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   }
@@ -227,6 +250,7 @@ export class DiceWidgetComponent implements OnDestroy {
       ctx.fillText(i.toString(), 128, textY);
 
       const texture = new THREE.CanvasTexture(canvas);
+      texture.needsUpdate = true;
       materials.push(
         new THREE.MeshStandardMaterial({
           map: texture,

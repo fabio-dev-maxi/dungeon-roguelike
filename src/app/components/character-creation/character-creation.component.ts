@@ -30,8 +30,10 @@ export class CharacterCreationComponent {
   classData = CLASS_DATA;
 
   assignedStats = signal<Partial<Record<StatKey, number>>>({});
+  usedHeroIds = signal<string[]>([]);
   isSpinning = signal(false);
   displayHeroName = signal('???');
+  displayHeroClass = signal<ClassKey>('fighter');
   currentHero = signal<PremadeHero | null>(null);
 
   assignedCount = computed(() => Object.keys(this.assignedStats()).length);
@@ -51,40 +53,70 @@ export class CharacterCreationComponent {
   proceedToDraft(): void {
     if (!this.selectedClass()) return;
     this.step.set(2);
+    this.assignedStats.set({});
+    this.usedHeroIds.set([]);
+    
+    // Imposta come icona iniziale quella della classe scelta
+    this.displayHeroClass.set(this.selectedClass()!);
+    setTimeout(() => this.spinRoulette(), 150);
   }
 
   spinRoulette(): void {
-    const cls = this.selectedClass();
-    if (!cls || this.isSpinning() || this.isDraftComplete()) return;
+    if (this.isSpinning() || this.isDraftComplete()) return;
 
     this.isSpinning.set(true);
     this.currentHero.set(null);
 
-    const pool = this.customData.heroes()[cls];
+    // Raccoglie TUTTI gli eroi di qualsiasi classe in un unico pool globale
+    const heroesData = this.customData.heroes();
+    const fullPool: (PremadeHero & { heroClass: ClassKey })[] = [];
+
+    (Object.keys(heroesData) as ClassKey[]).forEach(cKey => {
+      (heroesData[cKey] || []).forEach(h => {
+        fullPool.push({ ...h, heroClass: cKey });
+      });
+    });
+
+    // Filtra gli eroi già usati per evitare duplicati
+    let availablePool = fullPool.filter(h => !this.usedHeroIds().includes(h.id));
+    if (availablePool.length === 0) {
+      availablePool = fullPool;
+    }
+
     let counter = 0;
-    const totalTicks = 20;
+    const totalTicks = 18;
 
     const interval = setInterval(() => {
-      const randomIdx = Math.floor(Math.random() * pool.length);
-      this.displayHeroName.set(pool[randomIdx].name);
+      const randomIdx = Math.floor(Math.random() * availablePool.length);
+      const randomHero = availablePool[randomIdx];
+      
+      this.displayHeroName.set(randomHero.name);
+      this.displayHeroClass.set(randomHero.heroClass);
       counter++;
 
       if (counter >= totalTicks) {
         clearInterval(interval);
-        const finalHero = pool[this.dice.rnd(pool.length) - 1];
+        const finalHero = availablePool[this.dice.rnd(availablePool.length) - 1];
+        
         this.displayHeroName.set(finalHero.name);
+        this.displayHeroClass.set(finalHero.heroClass);
         this.currentHero.set(finalHero);
+        this.usedHeroIds.update(ids => [...ids, finalHero.id]);
         this.isSpinning.set(false);
       }
-    }, 60);
+    }, 55);
   }
 
   assignStat(key: StatKey, value: number): void {
-    if (this.assignedStats()[key] !== undefined) return;
+    if (this.assignedStats()[key] !== undefined || this.isSpinning()) return;
 
     this.assignedStats.update(curr => ({ ...curr, [key]: value }));
     this.currentHero.set(null);
     this.displayHeroName.set('???');
+
+    if (!this.isDraftComplete()) {
+      setTimeout(() => this.spinRoulette(), 250);
+    }
   }
 
   finishCreation(): void {
