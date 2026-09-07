@@ -133,7 +133,7 @@ export class CombatService {
       if (raw === 1) {
         this.stateService.log(this.stateService.t('log.attackMissNat1'), 'dmg hero');
       } else if (hit) {
-        const [n, d] = CLASS_DATA.fighter.weaponDice;
+        const [n, d] = p.weapon.dice;
         const bonus = mod(p.stats.str) + (p.weapon.bonus || 0) + (p.flatDmgBonus || 0);
         const dmgRoll = this.dice.rollNdM(n, d);
         const dmgMax = n * d;
@@ -328,38 +328,38 @@ export class CombatService {
   async monsterTurn(): Promise<void> {
     const s = this.stateService.state();
     if (!s.monster || s.monster.hp <= 0) return;
-
     const p = s.player!;
     const name = this.monsterService.monsterDisplayName(s.monster);
     const defending = !!s.combatFlags.defending;
     s.combatFlags.defending = false;
-
     const acBonus = defending ? 4 : 0;
-
-    // Utilizza il bonus del mostro anziché la formula generica fissa
     const monsterAtkMod = s.monster.atk;
     const targetAC = p.ac + acBonus + (p.tempAcBonus || 0);
     this.stateService.touch();
 
-    // 1. Tiro per Colpire del Nemico (d20)
-    const toHit = await this.stateService.animateRollAsync(this.dice.rnd(20), 20, 'monsterAttack');
+    // 1. Tiro per Colpire del Nemico (d20) - Passa 20 come soglia critico per evidenziare il dado
+    const toHit = await this.stateService.animateRollAsync(this.dice.rnd(20), 20, 'monsterAttack', 20);
     const cur = this.stateService.state();
     const total = toHit + monsterAtkMod;
+    const isCrit = toHit === 20;
 
     if (toHit === 1) {
       this.stateService.log(this.stateService.tf('log.monsterMiss1', { name }), 'flavor enemy');
-    } else if (total >= targetAC || toHit === 20) {
+    } else if (total >= targetAC || isCrit) {
       const [n, d] = cur.monster!.dmg;
       const dmgRoll = this.dice.rollNdM(n, d);
       const dmgMax = n * d;
 
-      // 2. Animazione Dado Danno del Nemico (d4, d6, d8, d10)
+      // 2. Animazione Dado Danno del Nemico
       await this.stateService.animateRollAsync(dmgRoll, d, 'monsterDamage');
-
       let dmg = dmgRoll;
-      
-      if (defending) dmg = Math.ceil(dmg / 2);
 
+      // Se è un 20 naturale, raddoppia il danno inflitto
+      if (isCrit) {
+        dmg = dmg * 2;
+      }
+
+      if (defending) dmg = Math.ceil(dmg / 2);
       if (p.damageReduction && p.damageReduction > 0) {
         dmg = Math.max(1, dmg - p.damageReduction);
       }
@@ -367,10 +367,23 @@ export class CombatService {
       cur.player!.hp = this.dice.clamp(cur.player!.hp - dmg, 0, cur.player!.maxHp);
       this.stateService.touch();
 
-      this.stateService.log(this.stateService.tf('log.monsterHit', {
-        name, roll: toHit, mod: this.dice.fmtMod(monsterAtkMod), total, ac: targetAC, dmgRoll, dmgMax, dmg,
+      let hitLog = this.stateService.tf('log.monsterHit', {
+        name,
+        roll: toHit,
+        mod: this.dice.fmtMod(monsterAtkMod),
+        total,
+        ac: targetAC,
+        dmgRoll,
+        dmgMax,
+        dmg,
         defended: defending ? this.stateService.t('log.defendedSuffix') : ''
-      }), 'dmg enemy');
+      });
+
+      if (isCrit) {
+        hitLog += this.stateService.t('log.critText');
+      }
+
+      this.stateService.log(hitLog, 'dmg enemy');
 
       if (cur.player!.hp <= 0) {
         await this.stateService.wait(400);

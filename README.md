@@ -17,7 +17,7 @@ L'applicazione sarà disponibile all'indirizzo `http://localhost:4200`.
 npm run build
 ```
 
-I file compilati verranno generati nella cartella `dist/guglia-cava-roguelike`.
+I file compilati verranno generati nella cartella `dist/endless-pitfall`.
 
 ---
 

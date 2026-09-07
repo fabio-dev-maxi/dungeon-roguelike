@@ -72,7 +72,43 @@ export const IT = {
     angelic_mail_n: 'Cotta dell\'Angelo Guardiano', angelic_mail_s: 'Cotta dell\'Angelo Guardiano +1', angelic_mail_e: 'Cotta dell\'Angelo Guardiano Sacra (+5 Cura Magica)',
     armageddon_mail_n: 'Egida di Luce Divina', armageddon_mail_s: 'Egida di Luce Divina +1', armageddon_mail_e: 'Egida di Luce Divina Sacra (+6 Cura Magica)'
   },
-  monsters: { rat: 'Ratto Gigante', goblin: 'Goblin', skeleton: 'Scheletro', raven: 'Corvo Maledetto', orc: 'Orco', wolf: 'Lupo Spettrale', ghoul: 'Ghoul Putrescente', knight: 'Cavaliere Decaduto', ogre: 'Ogre', wraith: 'Spettro Errante', troll: 'Troll Rigenerante', basilisk: 'Basilisco Cieco' },
+  monsters: { 
+    // Tier 1
+    rat: 'Ratto Gigante', 
+    goblin: 'Goblin', 
+    skeleton: 'Scheletro', 
+    raven: 'Corvo Maledetto', 
+
+    // Tier 2
+    orc: 'Orco', 
+    wolf: 'Lupo Spettrale', 
+    ghoul: 'Ghoul Putrescente', 
+    knight: 'Cavaliere Decaduto', 
+
+    // Tier 3
+    ogre: 'Ogre', 
+    wraith: 'Spettro Errante', 
+    troll: 'Troll Rigenerante', 
+    basilisk: 'Basilisco Cieco',
+
+    // Tier 4
+    manticore: 'Manticora',
+    minotaur: 'Minotauro',
+    gargoyle: 'Gargoyle',
+    vampire_spawn: 'Progenie Vampirica',
+
+    // Tier 5
+    wyvern: 'Viverna',
+    vampire: 'Vampiro Antico',
+    demon: 'Demone dell\'Abisso',
+    beholder: 'Beholder',
+
+    // Tier 6
+    archmage: 'Arcimago Decaduto',
+    death_knight: 'Cavaliere della Morte',
+    storm_giant: 'Gigante delle Tempeste',
+    iron_golem: 'Golem di Ferro'
+  },
   bosses: { boss1: 'Il Necroforgiato', boss2: "La Sposa dell'Abisso", boss3: 'Il Divoratore di Corone', chimera: 'La Chimera Infuocata', archdemon: "L'Arcidemone", lich: 'Il Lich', hydra: "L'Idra dai Sette Capi", dragon_red: 'Il Drago Rosso', kraken: 'Il Kraken degli Abissi', tarrasque: 'Il Tarrasque' },
   prefixes: ['', '', 'Grande ', 'Antico ', 'Immane '],
   epitaphs: [

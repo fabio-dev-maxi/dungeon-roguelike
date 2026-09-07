@@ -8,8 +8,19 @@ export interface WeightedItem<T> { v: T; w: number; }
  */
 @Injectable({ providedIn: 'root' })
 export class DiceService {
+
+  /**
+   * Genera un numero decimale casuale nell'intervallo [0, 1) crittograficamente sicuro
+   */
+  private secureRandom(): number {
+    const array = new Uint32Array(1);
+    crypto.getRandomValues(array);
+    return array[0] / 4294967296; // Divisione per 2^32
+  }
+
   rnd(n: number): number {
-    return Math.floor(Math.random() * n) + 1;
+    if (n <= 0) return 1;
+    return Math.floor(this.secureRandom() * n) + 1;
   }
 
   rollDie(d: number): number {
@@ -30,25 +41,17 @@ export class DiceService {
     return (m >= 0 ? '+' + m : '' + m);
   }
 
-  /**
-   *  Questo metodo prende il minimo tra b e v, e poi il massimo tra a e il risultato precedente
-   */
   clamp(v: number, a: number, b: number): number {
     return Math.max(a, Math.min(b, v));
   }
 
   pick<T>(arr: T[]): T {
-    return arr[Math.floor(Math.random() * arr.length)];
+    return arr[Math.floor(this.secureRandom() * arr.length)];
   }
 
-  /**
-   * Picks an item from an array based on weighted probabilities.
-   * @param items 
-   * @returns 
-   */
   weightedPick<T>(items: WeightedItem<T>[]): T {
     const total = items.reduce((s, i) => s + i.w, 0);
-    let r = Math.random() * total;
+    let r = this.secureRandom() * total;
     for (const it of items) {
       if (r < it.w) return it.v;
       r -= it.w;

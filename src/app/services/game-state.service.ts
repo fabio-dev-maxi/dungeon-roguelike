@@ -36,28 +36,31 @@ export class GameStateService {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  freshState(prevLang: LangCode): GameState {
-    return {
-      screen: 'title',
-      lang: prevLang || 'it',
-      player: null,
-      depth: 0,
-      monster: null,
-      phase: null,
-      combatFlags: {},
-      log: [],
-      pendingChoice: null,
-      pendingLevelUps: 0,
-      levelUp: null,
-      bossRewardModal: null,
-      lastTavernDepth: -99,
-      statsExpanded: false,
-      inventoryExpanded: false,
-      rollingDie: { active: false, value: null, cls: '' },
-      tempStats: null,
-      tempName: ''
-    };
-  }
+freshState(prevLang: LangCode): GameState {
+  return {
+    screen: 'title',
+    lang: prevLang || 'it',
+    player: null,
+    depth: 0,
+    monster: null,
+    phase: null,
+    combatFlags: {},
+    log: [],
+    pendingChoice: null,
+    pendingLevelUps: 0,
+    levelUp: null,
+    bossRewardModal: null,
+    lastTavernDepth: -99,
+    lastTrapDepth: -99,
+    lastMerchantDepth: -99,
+    lastShrineDepth: -99,
+    statsExpanded: false,
+    inventoryExpanded: false,
+    rollingDie: { active: false, value: null, cls: '' },
+    tempStats: null,
+    tempName: ''
+  };
+}
 
   setLang(lang: LangCode): void {
     const s = this.state();

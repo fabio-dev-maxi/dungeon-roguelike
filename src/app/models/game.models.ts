@@ -147,6 +147,9 @@ export interface GameState {
   levelUp: LevelUpState | null;
   bossRewardModal: BossRewardModalData | null;
   lastTavernDepth: number;
+  lastTrapDepth: number;
+  lastMerchantDepth: number;
+  lastShrineDepth: number;
   statsExpanded: boolean;
   inventoryExpanded: boolean;
   rollingDie: RollingDieState;

@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 function resolveDistFolder() {
-  const rootDist = path.join(__dirname, 'dist', 'guglia-cava-roguelike');
+  const rootDist = path.join(__dirname, 'dist', 'endless-pitfall');
   const browserDist = path.join(rootDist, 'browser');
 
   if (fs.existsSync(browserDist)) {

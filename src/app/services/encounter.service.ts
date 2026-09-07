@@ -11,7 +11,7 @@ export class EncounterService {
     private stateService: GameStateService,
     private monsterService: MonsterService,
     private dice: DiceService
-  ) {}
+  ) { }
 
   encounterWeightsForDepth(depth: number): WeightedItem<string>[] {
     let weights: WeightedItem<string>[];
@@ -47,19 +47,28 @@ export class EncounterService {
     if (depth - this.stateService.state().lastTavernDepth < 5) {
       weights = weights.filter(w => w.v !== 'tavern');
     }
+    if (depth - this.stateService.state().lastTrapDepth < 5) {
+      weights = weights.filter(w => w.v !== 'trap');
+    }
+    if (depth - this.stateService.state().lastMerchantDepth < 5) {
+      weights = weights.filter(w => w.v !== 'merchant');
+    }
+    if (depth - this.stateService.state().lastShrineDepth < 5) {
+      weights = weights.filter(w => w.v !== 'shrine');
+    }
     return weights;
   }
 
   startFloor(): void {
     const s = this.stateService.state();
     s.depth++;
-    
+
     const completedFloors = Math.max(0, s.depth - 1);
     this.stateService.bestDepth.set(Math.max(this.stateService.bestDepth(), completedFloors));
-    
+
     const forcedBoss = BOSS_IDS.some(id => BOSS_STATS[id].atDepth === s.depth);
     let type = forcedBoss ? 'combat' : this.dice.weightedPick(this.encounterWeightsForDepth(s.depth));
-    
+
     this.stateService.touch();
     this.stateService.log(this.stateService.tf('log.floorHeader', { depth: s.depth }), 'sys floor');
 
@@ -72,6 +81,7 @@ export class EncounterService {
       const name = this.monsterService.monsterDisplayName(m);
       this.stateService.log(m.isBoss ? this.stateService.tf('log.bossAppear', { name }) : this.stateService.tf('log.monsterAppear', { name }));
     } else if (type === 'trap') {
+      s.lastTrapDepth = s.depth;
       s.phase = 'choice';
       s.pendingChoice = this.makeTrapChoice();
       this.stateService.touch();
@@ -79,11 +89,13 @@ export class EncounterService {
     } else if (type === 'treasure') {
       this.resolveTreasure();
     } else if (type === 'shrine') {
+      s.lastShrineDepth = s.depth;
       s.phase = 'choice';
       s.pendingChoice = this.makeShrineChoice();
       this.stateService.touch();
       this.stateService.log(this.stateService.t('log.shrineIntro'), 'flavor');
     } else if (type === 'merchant') {
+      s.lastMerchantDepth = s.depth;
       s.phase = 'choice';
       s.pendingChoice = this.makeMerchantChoice();
       this.stateService.touch();
@@ -102,12 +114,12 @@ export class EncounterService {
     let n = 2;
     let d = 6;
     let cost = 8 + Math.floor(depth / 5) * 5; // Il costo sale progressivamente
-    
+
     if (depth > 10) {
       d = 8; // Dal piano 11 passano a d8
       n = 2 + Math.floor((depth - 11) / 10); // 11-20: 2d8, 21-30: 3d8, 31-40: 4d8, 41-50: 5d8
     }
-    
+
     return { dice: [n, d], cost };
   }
 
@@ -117,7 +129,7 @@ export class EncounterService {
     s.player!.gold += gold;
     this.stateService.touch();
     this.stateService.log(this.stateService.tf('log.treasureFound', { gold }), 'flavor');
-    
+
     // Possibilità di trovare una pozione scalata
     if (Math.random() < 0.4) {
       const potionConfig = this.getPotionConfigForDepth(s.depth);
@@ -125,7 +137,7 @@ export class EncounterService {
       this.stateService.touch();
       this.stateService.log(this.stateService.tf('log.treasurePotion', { potion: this.stateService.t('potionName') }), 'heal');
     }
-    
+
     s.phase = 'explore';
     this.stateService.touch();
   }
@@ -188,11 +200,11 @@ export class EncounterService {
 
   makeMerchantChoice(): PendingChoice {
     const s = this.stateService.state();
-    
+
     // Determina statistiche e costo della pozione
     const potionConfig = this.getPotionConfigForDepth(s.depth);
     const potionLabel = `${this.stateService.tf('choices.buyPotion', { cost: potionConfig.cost })} [${potionConfig.dice[0]}d${potionConfig.dice[1]}]`;
-    
+
     const upgradeCost = 15 + (s.depth * 2);
 
     return {
@@ -215,9 +227,15 @@ export class EncounterService {
           this.stateService.log(this.stateService.tf('log.merchantBuyPotion', { potion: this.stateService.t('potionName') }), 'heal');
         } else if (opt.action === 'upgrade') {
           state.player!.gold -= opt.cost || 0;
+          // Incrementa il bonus dell'arma CORRENTE (verrà sostituito al cambio arma)
           state.player!.weapon.bonus = (state.player!.weapon.bonus || 0) + 1;
           this.stateService.touch();
-          this.stateService.log(this.stateService.tf('log.merchantUpgrade', { weapon: this.stateService.t('weapons.' + state.player!.weapon.key) }), 'heal');
+          this.stateService.log(
+            this.stateService.tf('log.merchantUpgrade', {
+              weapon: this.stateService.equipmentName(state.player!.weapon.key, 'weapons')
+            }),
+            'heal'
+          );
         } else {
           this.stateService.log(this.stateService.t('log.merchantSkip'), 'flavor');
         }
@@ -229,7 +247,7 @@ export class EncounterService {
   makeTavernChoice(): PendingChoice {
     const s = this.stateService.state();
     const restCost = 18 + Math.floor(s.depth * 1.8);
-    
+
     return {
       dc: null, canFail: true,
       options: [
@@ -278,23 +296,23 @@ export class EncounterService {
       pc.onChoose(opt);
       s.phase = 'explore'; s.pendingChoice = null; this.stateService.touch(); return;
     }
-    
+
     // Per Scelte con Tiro Caratteristica (es: Trappole)
     const statMod = this.dice.mod(s.player!.stats[opt.stat as StatKey]);
     const raw = await this.stateService.animateRollAsync(this.dice.rnd(20), 20, 'check');
     const cur = this.stateService.state();
     const total = raw + statMod;
     const success = total >= pc.dc!;
-    
+
     this.stateService.log(this.stateService.tf('log.checkResult', {
       stat: this.stateService.t('statAbbr.' + opt.stat), roll: raw, mod: this.dice.fmtMod(statMod),
       total, dc: pc.dc, result: success ? this.stateService.t('log.checkSuccess') : this.stateService.t('log.checkFail')
     }));
-    
+
     pc.onResolve!(success);
     cur.phase = 'explore'; cur.pendingChoice = null;
     this.stateService.touch();
-    
+
     if (cur.player!.hp <= 0) { onGameOver(); }
   }
 }

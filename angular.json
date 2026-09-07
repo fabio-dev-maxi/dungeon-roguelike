@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "guglia-cava-roguelike": {
+    "endless-pitfall": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/guglia-cava-roguelike",
+            "outputPath": "dist/endless-pitfall",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": ["zone.js"],
@@ -46,8 +46,8 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
-            "production": { "buildTarget": "guglia-cava-roguelike:build:production" },
-            "development": { "buildTarget": "guglia-cava-roguelike:build:development" }
+            "production": { "buildTarget": "endless-pitfall:build:production" },
+            "development": { "buildTarget": "endless-pitfall:build:development" }
           },
           "defaultConfiguration": "development"
         }

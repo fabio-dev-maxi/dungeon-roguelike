@@ -25,7 +25,32 @@ export class GameService {
   get bestDepth(): Signal<number> { return this.stateService.bestDepth; }
 
   state(): GameState { return this.stateService.state(); }
-  freshState(prevLang: LangCode): GameState { return this.stateService.freshState(prevLang); }
+  // Dentro freshState() in src/app/services/game-state.service.ts
+freshState(prevLang: LangCode): GameState {
+  return {
+    screen: 'title',
+    lang: prevLang || 'it',
+    player: null,
+    depth: 0,
+    monster: null,
+    phase: null,
+    combatFlags: {},
+    log: [],
+    pendingChoice: null,
+    pendingLevelUps: 0,
+    levelUp: null,
+    bossRewardModal: null,
+    lastTavernDepth: -99,
+    lastTrapDepth: -99,
+    lastMerchantDepth: -99,
+    lastShrineDepth: -99,
+    statsExpanded: false,
+    inventoryExpanded: false,
+    rollingDie: { active: false, value: null, cls: '' },
+    tempStats: null,
+    tempName: ''
+  };
+}
   setLang(lang: LangCode): void { this.stateService.setLang(lang); }
   log(html: string, cls = ''): void { this.stateService.log(html, cls); }
 
