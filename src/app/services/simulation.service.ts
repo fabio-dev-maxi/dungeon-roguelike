@@ -5,7 +5,7 @@ import { EncounterService } from './encounter.service';
 import { GameStateService } from './game-state.service';
 import { DiceService } from './dice.service';
 import { LevelUpService } from './level-up.service';
-import { ClassKey, ChoiceOption, PendingChoice } from '../models/game.models';
+import { ClassKey, ChoiceOption, PendingChoice, Stats, StatKey } from '../models/game.models';
 import { CLASS_DATA } from '../data/game.data';
 
 export interface DropsSummary {
@@ -68,19 +68,55 @@ export class SimulationService {
     }
   }
 
+  /** Genera una scheda statistiche ottimizzata e forte per la classe indicata */
+  private generateStrongStats(cls: ClassKey): Stats {
+    const rolls: number[] = [];
+    for (let i = 0; i < 6; i++) {
+      const r = [this.dice.rollDie(6), this.dice.rollDie(6), this.dice.rollDie(6), this.dice.rollDie(6)];
+      r.sort((a, b) => a - b);
+      r.shift();
+      rolls.push(r.reduce((a, b) => a + b, 0));
+    }
+
+    rolls.sort((a, b) => b - a);
+
+    // Garantisce una baseline solida (stat primaria >= 16 e Costituzione >= 14)
+    rolls[0] = Math.max(rolls[0], 16);
+    rolls[1] = Math.max(rolls[1], 14);
+
+    const primary = CLASS_DATA[cls].primary;
+    const atkStat = CLASS_DATA[cls].atkStat;
+    const stats: Stats = { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 };
+
+    stats[primary] = rolls[0];
+
+    if (atkStat !== primary) {
+      stats['con'] = rolls[1];
+      stats[atkStat] = rolls[2];
+      const remainingKeys: StatKey[] = (['str', 'dex', 'con', 'int', 'wis', 'cha'] as StatKey[])
+        .filter(k => k !== primary && k !== 'con' && k !== atkStat);
+      remainingKeys.forEach((k, idx) => stats[k] = rolls[3 + idx]);
+    } else {
+      stats['con'] = rolls[1];
+      const remainingKeys: StatKey[] = (['str', 'dex', 'con', 'int', 'wis', 'cha'] as StatKey[])
+        .filter(k => k !== primary && k !== 'con');
+      remainingKeys.forEach((k, idx) => stats[k] = rolls[2 + idx]);
+    }
+
+    return stats;
+  }
+
   async runBatch(cls: ClassKey, N: number): Promise<SimulationResult> {
     this.setSimulationMode(true);
     const deathsByDepth: Record<number, number> = {};
     const deathsByBoss: Record<string, number> = {};
     const bossReach: Record<string, { reach: number; survive: number; levels: number[] }> = {};
-
     const BOSS_IDS = ['boss1', 'boss2', 'boss3', 'chimera', 'archdemon', 'lich', 'hydra', 'dragon_red', 'kraken', 'tarrasque'];
     BOSS_IDS.forEach(id => bossReach[id] = { reach: 0, survive: 0, levels: [] });
 
     let completions = 0;
     let totalDeathDepth = 0;
     let deathCount = 0;
-
     let relicsCollected = 0;
     let weaponsCollected = 0;
     let armorsCollected = 0;
@@ -91,7 +127,6 @@ export class SimulationService {
     try {
       for (let i = 0; i < N; i++) {
         const runResult = await this.simulateSingleRun(cls);
-
         relicsCollected += runResult.runDrops.relics;
         weaponsCollected += runResult.runDrops.weapons;
         armorsCollected += runResult.runDrops.armors;
@@ -104,7 +139,6 @@ export class SimulationService {
           totalDeathDepth += runResult.depth;
           const bucket = Math.ceil(runResult.depth / 5) * 5;
           deathsByDepth[bucket] = (deathsByDepth[bucket] || 0) + 1;
-
           if (runResult.bossId) {
             deathsByBoss[runResult.bossId] = (deathsByBoss[runResult.bossId] || 0) + 1;
           }
@@ -149,10 +183,9 @@ export class SimulationService {
 
   private async simulateSingleRun(cls: ClassKey) {
     const s = this.stateService.freshState('it');
-    const stats = this.characterService.rollAllStats();
+    const stats = this.generateStrongStats(cls);
     s.player = this.characterService.buildPlayer('Sim', cls, stats);
     s.screen = 'run';
-
     (this.stateService as any)._state = s;
 
     let isDead = false;
@@ -165,15 +198,11 @@ export class SimulationService {
     for (let depth = 1; depth <= 50; depth++) {
       s.depth = depth;
       currentDepth = depth;
-
       this.encounterService.startFloor();
-
-      // All'interno del metodo simulateSingleRun() in SimulationService:
 
       if (s.phase === 'combat' && s.monster) {
         const mId = s.monster.id;
         const isBoss = s.monster.isBoss;
-
         if (isBoss) {
           bossEncounters[mId].reached = true;
           bossEncounters[mId].level = s.player!.level;
@@ -183,16 +212,11 @@ export class SimulationService {
         while (s.player!.hp > 0 && s.monster && s.monster.hp > 0 && rounds < 100) {
           rounds++;
 
-          // 1. Usa subito l'abilità speciale se disponibile al primo turno
           if (!s.player!.usedSpecial) {
             await this.combatService.playerUseSpecial();
-          }
-          // 2. Se l'abilità è già stata usata, bevi una pozione in caso di HP critici (< 35%)
-          else if (s.player!.hp < s.player!.maxHp * 0.35 && s.player!.inventory.some(i => i.type === 'potion')) {
+          } else if (s.player!.hp < s.player!.maxHp * 0.35 && s.player!.inventory.some(i => i.type === 'potion')) {
             await this.combatService.playerUsePotion();
-          }
-          // 3. Attacco standard
-          else {
+          } else {
             await this.combatService.playerAttack();
           }
         }
@@ -226,7 +250,6 @@ export class SimulationService {
         await this.processPendingLevelUps();
       } else if (s.phase === 'choice' && s.pendingChoice) {
         const choiceOpt = this.pickOptimalChoice(s.pendingChoice, s.player!);
-
         if (choiceOpt) {
           if (s.pendingChoice.canFail) {
             s.pendingChoice.onChoose!(choiceOpt);
@@ -282,7 +305,6 @@ export class SimulationService {
       const potionOpt = choice.options.find(o => o.action === 'potion');
       const upgradeOpt = choice.options.find(o => o.action === 'upgrade');
       const potionsCount = p.inventory.filter(i => i.type === 'potion').length;
-
       if (p.gold >= (potionOpt?.cost || 0) && potionsCount < 4) return potionOpt!;
       if (p.gold >= (upgradeOpt?.cost || 0)) return upgradeOpt!;
       return choice.options.find(o => o.action === 'skip')!;
@@ -293,7 +315,6 @@ export class SimulationService {
       if (p.gold >= (restOpt?.cost || 0) && p.hp < p.maxHp * 0.7) return restOpt!;
       return drinkOpt!;
     }
-
     return choice.options[0];
   }
 
@@ -304,11 +325,11 @@ export class SimulationService {
     while (s.phase === 'levelup' && safetyCounter < 50) {
       safetyCounter++;
       if (!s.levelUp) break;
+
       if (s.levelUp.step === 'stat') {
         const p = s.player!;
         const primaryStat = CLASS_DATA[p.cls].primary;
         const statToPick = p.level % 4 === 0 ? 'con' : primaryStat;
-
         this.levelUpService.chooseLevelUpStat(statToPick);
       } else if (s.levelUp.step === 'feat') {
         const avail = s.levelUp.availableFeats || [];
@@ -324,7 +345,6 @@ export class SimulationService {
         if ((s.levelUp.hpRollBase || 0) < hitDie / 2 && !s.levelUp.rerolled) {
           this.levelUpService.rerollLevelUpHp();
         }
-
         this.levelUpService.confirmLevelUp();
       }
     }
