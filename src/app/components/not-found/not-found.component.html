@@ -1,0 +1,23 @@
+<div class="panel not-found-panel center">
+  <div class="sigil sigil--danger sigil--lg error-sigil">
+    <span class="num error-code">404</span>
+  </div>
+
+  <h1 class="error-title">{{ i18n.t('notFound.title') }}</h1>
+  <div class="eyebrow">{{ i18n.t('notFound.subtitle') }}</div>
+
+  <p class="epitaph">
+    "{{ i18n.t('notFound.message') }}"
+  </p>
+
+  <hr class="rule">
+
+  <div class="error-actions">
+    <a routerLink="/" class="btn primary">
+      {{ i18n.t('notFound.backToGame') }}
+    </a>
+    <a routerLink="/admin" class="btn--ghost btn">
+      Pannello Admin
+    </a>
+  </div>
+</div>

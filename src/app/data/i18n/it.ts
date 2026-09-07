@@ -26,7 +26,7 @@ export const IT = {
     wizard: { name: 'Mago', desc: 'Fragile ma letale a distanza. Le magie non falliscono mai il bersaglio.', special: 'Dardo Incantato: colpisce sempre (2d4 + INT) e concede +2 CA per il combattimento.', specialName: 'Dardo Incantato', active: true },
     cleric: { name: 'Chierico', desc: 'Equilibrato, porta la luce della fede nel buio. Puo curarsi in battaglia.', special: 'Preghiera Guaritrice: recupera 3d6 + SAG PF e concede +2 CA per il combattimento.', specialName: 'Preghiera Guaritrice', active: true }
   },
-  weapons: { 
+  weapons: {
     greatsword: 'Spadone', daggers: 'Pugnali gemelli', staff: 'Bastone intagliato', mace: 'Mazza sacra', bow: 'Arco',
     greataxe_n: 'Gradiascia di Ferro', greataxe_s: 'Gradiascia di Ferro +1', greataxe_e: 'Gradiascia di Ferro +2',
     warhammer_n: 'Maglio da Guerra', warhammer_s: 'Maglio da Guerra +1', warhammer_e: 'Maglio da Guerra +2',
@@ -49,7 +49,7 @@ export const IT = {
     god_hammer_n: 'Maglio del Giudizio', god_hammer_s: 'Maglio del Giudizio +1', god_hammer_e: 'Maglio del Giudizio +2',
     deliverer_mace_n: 'Mazza del Redentore', deliverer_mace_s: 'Mazza del Redentore +1', deliverer_mace_e: 'Mazza del Redentore +2'
   },
-  armors: { 
+  armors: {
     plate: 'Armatura a Piastre', leather: 'Armatura di Cuoio Borchiato', robes: 'Vesti Arcane', chainmail: 'Cotta di Maglia',
     reinf_plate_n: 'Armatura Rinforzata', reinf_plate_s: 'Armatura Rinforzata +1', reinf_plate_e: 'Armatura Bastione (DR 1)',
     mithril_plate_n: 'Piastre in Mithril', mithril_plate_s: 'Piastre in Mithril +1', mithril_plate_e: 'Piastre in Mithril Bastione (DR 2)',
@@ -210,5 +210,11 @@ export const IT = {
     vital_transmutation: { name: 'Trasmutazione Vitale', desc: '+2 all\'Intelligenza e +12 Punti Ferita Massimi.' },
     smite_evil: { name: 'Punizione Divina', desc: '+2 ai tiri per Colpire e +3 ai Danni fissi.' },
     sacred_vigor: { name: 'Vigore Sacro', desc: '+12 Punti Ferita Massimi e +4 alla Preghiera Guaritrice.' }
+  },
+  notFound: {
+    title: 'Cunicolo Cieco',
+    subtitle: 'Strada Smarrita nell\'Oscurità',
+    message: 'Ti sei avventurato in un anfratto sconosciuto della Guglia Cava. Le pareti qui non portano a nessuna destinazione, solo al vuoto.',
+    backToGame: 'Ritorna alla Discesa'
   }
 };

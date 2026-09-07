@@ -6,7 +6,7 @@
     "start": "ng serve",
     "build": "ng build",
     "build:prod": "ng build --configuration production && node obfuscate.js",
-    "build:prod-github": "ng build --configuration production --base-href=/dungeon-rougelike/ && node obfuscate.js",
+    "build:prod-github": "ng build --configuration production --base-href=/dungeon-roguelike/ && node obfuscate.js",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
