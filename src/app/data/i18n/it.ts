@@ -72,23 +72,23 @@ export const IT = {
     angelic_mail_n: 'Cotta dell\'Angelo Guardiano', angelic_mail_s: 'Cotta dell\'Angelo Guardiano +1', angelic_mail_e: 'Cotta dell\'Angelo Guardiano Sacra (+5 Cura Magica)',
     armageddon_mail_n: 'Egida di Luce Divina', armageddon_mail_s: 'Egida di Luce Divina +1', armageddon_mail_e: 'Egida di Luce Divina Sacra (+6 Cura Magica)'
   },
-  monsters: { 
+  monsters: {
     // Tier 1
-    rat: 'Ratto Gigante', 
-    goblin: 'Goblin', 
-    skeleton: 'Scheletro', 
-    raven: 'Corvo Maledetto', 
+    rat: 'Ratto Gigante',
+    goblin: 'Goblin',
+    skeleton: 'Scheletro',
+    raven: 'Corvo Maledetto',
 
     // Tier 2
-    orc: 'Orco', 
-    wolf: 'Lupo Spettrale', 
-    ghoul: 'Ghoul Putrescente', 
-    knight: 'Cavaliere Decaduto', 
+    orc: 'Orco',
+    wolf: 'Lupo Spettrale',
+    ghoul: 'Ghoul Putrescente',
+    knight: 'Cavaliere Decaduto',
 
     // Tier 3
-    ogre: 'Ogre', 
-    wraith: 'Spettro Errante', 
-    troll: 'Troll Rigenerante', 
+    ogre: 'Ogre',
+    wraith: 'Spettro Errante',
+    troll: 'Troll Rigenerante',
     basilisk: 'Basilisco Cieco',
 
     // Tier 4
@@ -252,5 +252,19 @@ export const IT = {
     subtitle: 'Strada Smarrita nell\'Oscurità',
     message: 'Ti sei avventurato in un anfratto sconosciuto della Guglia Cava. Le pareti qui non portano a nessuna destinazione, solo al vuoto.',
     backToGame: 'Ritorna alla Discesa'
+  },
+  creation: {
+    step1Title: 'Fase 1: Scelta della Classe',
+    step1Subtitle: 'Seleziona la tua Via',
+    proceedToDraft: 'Prosegui al Rituale delle Statistiche',
+    step2Title: 'Fase 2: Estrattore dei Retaggi',
+    absorbedStats: 'Le tue Caratteristiche Assorbite ({count}/6)',
+    heroEvoked: 'Eroe Evocato',
+    spinWheel: 'Gira la Ruota delle Anime',
+    spinning: 'Evocazione in corso...',
+    chooseStatPrompt: 'Scegli UNA caratteristica da assorbire da {name}:',
+    ritualCompleted: 'Rituale Completato!',
+    ritualCompletedDesc: 'Il tuo personaggio ha ereditato il suo destino ed è pronto ad addentrarsi nella Guglia.',
+    beginDescent: 'Inizia la Discesa'
   }
 };

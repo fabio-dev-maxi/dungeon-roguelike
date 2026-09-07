@@ -98,4 +98,15 @@ freshState(prevLang: LangCode): GameState {
   toggleStats(): void { this.stateService.toggleStats(); }
   toggleInventory(): void { this.stateService.toggleInventory(); }
   restartGame(): void { this.stateService.restartGame(); }
+
+  buildPlayerWithStats(name: string, classKey: ClassKey, stats: Stats): void {
+  const s = this.stateService.state();
+  s.player = this.characterService.buildPlayer(name, classKey, stats);
+  s.depth = 0;
+  s.log = [];
+  s.screen = 'run';
+  s.phase = 'explore';
+  this.stateService.touch();
+  this.descendFloor();
+}
 }

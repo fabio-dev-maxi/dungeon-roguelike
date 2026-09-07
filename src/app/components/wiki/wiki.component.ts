@@ -8,7 +8,7 @@ import { MONSTER_IDS_TIER, MONSTER_XP, BOSS_XP } from '../../data/monster.data';
 import { ClassKey } from '../../models/game.models';
 import { RELICS } from '../../data/relic.data';
 
-export type WikiTab = 'monsters' | 'bosses' | 'equipment' | 'relics_feats';
+export type WikiTab = 'monsters' | 'bosses' | 'equipment' | 'relics_feats' | 'heroes';
 
 @Component({
   selector: 'app-wiki',

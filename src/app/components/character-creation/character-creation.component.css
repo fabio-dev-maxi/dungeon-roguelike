@@ -1,69 +1,150 @@
-.roll-actions {
-  margin-top: 16px;
-}
-
-.stat-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 10px;
-  margin: 18px 0;
-}
-
-.class-heading {
-  margin-top: 22px;
-}
-
 .class-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
   margin-top: 16px;
 }
 
 .class-card {
-  position: relative;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: rgba(0, 0, 0, .22);
+  background: rgba(0, 0, 0, 0.3);
   border: 1px solid var(--stone-line);
   border-radius: var(--radius-md);
   padding: 16px;
   cursor: pointer;
-  transition: border-color .15s ease, background .15s ease, transform .15s var(--ease-out);
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
 
-.class-card:hover,
-.class-card:focus-visible {
+.class-card:hover, .class-card.selected {
   border-color: var(--gold);
-  background: rgba(212, 175, 55, .06);
+  background: rgba(212, 175, 55, 0.08);
   transform: translateY(-2px);
 }
 
-.class-card h3 {
-  margin: 0;
-  font-size: 1rem;
+.action-footer {
+  margin-top: 24px;
+  text-align: center;
 }
 
-.class-card .desc {
-  margin: 0;
-  font-size: .88rem;
-  color: var(--parchment-dim);
-  line-height: 1.45;
+/* FASE 2: DRAFT & ROULETTE */
+.player-draft-board {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--stone-line);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 24px;
 }
 
-.class-card .small {
-  margin: 0;
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-top: 10px;
 }
 
-.class-card .tag {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: auto;
-  padding-top: 8px;
-  border-top: 1px dotted var(--stone-line-soft);
-  font-family: var(--font-mono);
-  font-size: .72rem;
+.stat-box.filled {
+  border-color: var(--gold);
+  background: rgba(212, 175, 55, 0.12);
+}
+
+.stat-box.filled .val {
   color: var(--gold);
+}
+
+/* ROULETTE ANIMATA */
+.roulette-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.roulette-wheel {
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+  background: radial-gradient(circle, var(--stone-800) 0%, var(--stone-900) 100%);
+  border: 2px solid var(--stone-line);
+  border-radius: var(--radius-md);
+  text-align: center;
+  box-shadow: var(--shadow-inset);
+  transition: border-color 0.2s ease;
+}
+
+.roulette-wheel.spinning {
+  border-color: var(--gold);
+  box-shadow: 0 0 20px var(--gold-glow);
+}
+
+.roulette-label {
+  font-family: var(--font-heading);
+  font-size: 0.72rem;
+  color: var(--gold-dim);
+  text-transform: uppercase;
+}
+
+.roulette-name {
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  color: var(--gold);
+  margin: 6px 0;
+  min-height: 32px;
+}
+
+.roulette-title {
+  font-size: 0.85rem;
+  color: var(--parchment-dim);
+  font-style: italic;
+}
+
+/* CARATTERISTICHE EROE ESTRATTO */
+.hero-stats-panel {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.hero-stat-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.stat-pick-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px;
+}
+
+.stat-pick-btn .stat-k {
+  font-size: 0.75rem;
+}
+
+.stat-pick-btn .stat-v {
+  font-size: 1.2rem;
+  color: var(--gold);
+}
+
+.completion-box {
+  text-align: center;
+  padding: 24px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+  .stat-grid { grid-template-columns: repeat(3, 1fr); }
+  .hero-stat-buttons { grid-template-columns: repeat(2, 1fr); }
 }
