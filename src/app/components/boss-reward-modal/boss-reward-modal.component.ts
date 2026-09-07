@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { GameService } from '../../services/game.service';
 import { I18nService } from '../../services/i18n.service';
+import { IconComponent } from '../../shared/icon/icon.component';
 
 @Component({
   selector: 'app-boss-reward-modal',
   standalone: true,
+  imports: [IconComponent],
   templateUrl: './boss-reward-modal.component.html',
   styleUrl: './boss-reward-modal.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush

@@ -1,9 +1,25 @@
-.prompt {
-  font-size: .88rem;
-  color: var(--parchment-dim);
-  margin: 0 0 16px;
+.levelup-frame {
+  max-width: 520px;
+  width: 100%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(circle at 50% 15%, rgba(38, 26, 17, 0.98), rgba(14, 9, 6, 0.99));
+  box-shadow: 0 0 35px var(--gold-glow), var(--shadow-gothic);
+  padding: 22px 18px;
+  box-sizing: border-box;
 }
 
+.prompt {
+  font-size: 0.9rem;
+  color: var(--parchment-dim);
+  margin: 0 0 14px;
+  font-style: italic;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* GRIGLIA SELEZIONE STATISTICHE */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -11,57 +27,193 @@
 }
 
 .stat-btn {
+  display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 10px;
-  min-height: 52px;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 10px;
+  min-height: 56px;
+  border: 1px solid var(--stone-line);
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.15s ease, box-shadow 0.18s ease;
+}
+
+.stat-btn:hover {
+  border-color: var(--gold);
+  background: rgba(212, 175, 55, 0.1);
+  box-shadow: 0 0 16px var(--gold-glow);
+  transform: translateY(-2px);
 }
 
 .stat-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-weight: 700;
-  font-size: .85rem;
+  font-size: 0.88rem;
+  letter-spacing: 0.05em;
+  color: var(--parchment);
 }
 
 .stat-val {
-  font-family: var(--font-mono);
-  font-size: .8rem;
-  color: var(--emerald);
-  text-transform: none;
-  letter-spacing: 0;
+  font-size: 0.85rem;
+  color: var(--gold-bright);
 }
 
+.stat-val strong {
+  color: var(--emerald);
+  font-size: 0.95rem;
+}
+
+/* CONTENITORE LISTA TALENTI */
 .feats-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  overflow-y: auto;
+  max-height: 340px;
+  overflow-y: auto !important;
   padding-right: 6px;
   scrollbar-width: thin;
   scrollbar-color: var(--gold-dim) transparent;
+  flex: 1;
+  min-height: 0;
 }
 
 .feat-btn {
+  display: flex;
   flex-direction: column;
   align-items: flex-start;
   text-align: left;
   padding: 12px 14px;
   width: 100%;
-  text-transform: none;
-  letter-spacing: 0;
+  flex-shrink: 0;
+  border: 1px solid var(--stone-line);
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease, transform 0.15s ease;
+  box-sizing: border-box;
+}
+
+.feat-btn:hover {
+  border-color: var(--gold);
+  background: rgba(212, 175, 55, 0.14);
+  box-shadow: 0 0 16px var(--gold-glow);
+  transform: translateY(-2px);
+}
+
+.feat-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  width: 100%;
+}
+
+.feat-icon {
+  color: var(--gold);
+  flex-shrink: 0;
 }
 
 .feat-title {
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: .95rem;
-  color: var(--gold);
-  letter-spacing: .03em;
+  font-size: 0.95rem;
+  color: var(--gold-bright);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 .feat-desc {
   font-family: var(--font-body);
-  font-size: .82rem;
-  color: var(--parchment);
-  margin-top: 4px;
+  font-size: 0.88rem;
+  color: var(--parchment-dim);
   line-height: 1.35;
+  white-space: normal;
+  word-break: break-word;
+}
+
+/* FASE TIRO PUNTI FERITA (HP) CON DADO 3D */
+.hp-roll-result-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 18px 20px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--stone-line);
+  border-radius: var(--radius-sm);
+  margin: 10px 0 18px;
+}
+
+.hp-dice-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.hp-roll-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.hp-roll-number {
+  font-size: 2.5rem;
+  color: var(--emerald);
+  text-shadow: 0 0 12px var(--emerald-glow);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1;
+}
+
+.hp-label-sub {
+  font-family: var(--font-heading);
+  font-size: 0.72rem;
+  color: var(--parchment-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+.hp-roll-breakdown {
+  margin-top: 8px;
+  color: var(--parchment-dim);
+}
+
+.hp-roll-breakdown strong {
+  color: var(--gold);
+}
+
+.hp-roll-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hp-roll-result-box {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .hp-roll-details, .hp-roll-number {
+    align-items: center;
+    text-align: center;
+  }
+
+  .hp-roll-actions {
+    flex-direction: column;
+  }
 }

@@ -1,12 +1,35 @@
 <div class="title-wrap">
+  <!-- SIGILLO CENTRALE ARALDICO -->
+  <div class="title-emblem">
+    <div class="emblem-halo"></div>
+    <div class="sigil sigil--lg title-sigil">
+      <app-icon name="dice" [size]="44"></app-icon>
+    </div>
+  </div>
+
   <h1>{{ i18n.t('ui.title') }}</h1>
   <div class="title-sub">{{ i18n.t('ui.subtitle') }}</div>
+
+  <div class="gothic-divider">
+    <span class="divider-line"></span>
+    <span class="divider-gem">✦</span>
+    <span class="divider-line"></span>
+  </div>
+
   <p class="lore">{{ i18n.t('ui.lore') }}</p>
-  <button class="btn" (click)="game.startCreateScreen()">{{ i18n.t('ui.startButton') }}</button>
+
+  <div class="action-wrap">
+    <button class="btn primary btn-descent" (click)="game.startCreateScreen()">
+      <app-icon name="stairs" [size]="18"></app-icon>
+      <span>{{ i18n.t('ui.startButton') }}</span>
+      <app-icon name="arrow-right" [size]="16"></app-icon>
+    </button>
+  </div>
 
   @if (game.bestDepth() > 0) {
-    <p class="small record-line">
-      {{ i18n.tf('ui.bestDepthLabel', { depth: game.bestDepth() }) }}
-    </p>
+    <div class="record-plaque">
+      <app-icon name="crown" [size]="16" class="crown-icon"></app-icon>
+      <span>{{ i18n.tf('ui.bestDepthLabel', { depth: game.bestDepth() }) }}</span>
+    </div>
   }
 </div>

@@ -1,46 +1,57 @@
 /* ==========================================================================
    SELEZIONE CLASSE (FASE 1)
    ========================================================================== */
+.name-entry-wrap {
+  margin: 12px 0 20px;
+}
+
 .class-heading {
-  margin-top: 22px;
+  margin-top: 18px;
+  font-size: 1.05rem;
+  color: var(--gold);
 }
 
 .class-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
-  margin-top: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
 }
 
 .class-card {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid var(--stone-line);
+  gap: 10px;
+  background: radial-gradient(circle at 50% 10%, rgba(30, 21, 13, 0.95), rgba(12, 9, 6, 0.98));
+  border: 1.5px solid var(--stone-line);
   border-radius: var(--radius-md);
   padding: 16px;
   cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s var(--ease-out);
+  transition: border-color 0.22s ease, box-shadow 0.22s ease, transform 0.2s var(--ease-out);
 }
 
-.class-card:hover,
+.class-card:hover {
+  border-color: var(--gold-dim);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 12px rgba(212, 175, 55, 0.15);
+}
+
 .class-card.selected {
   border-color: var(--gold);
-  background: rgba(212, 175, 55, 0.08);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 10px rgba(212, 175, 55, 0.15);
+  background: radial-gradient(circle at 50% 10%, rgba(55, 38, 20, 0.95), rgba(16, 11, 7, 0.98));
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.7), 0 0 24px var(--gold-glow);
 }
 
 .class-card-header {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .class-card-header h3 {
-  margin: 0;
-  font-size: 1rem;
+  margin: 0 0 3px;
+  font-size: 1.05rem;
 }
 
 .class-card .desc {
@@ -50,20 +61,28 @@
   line-height: 1.45;
 }
 
-.class-card .tag {
+.class-tags-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
+  gap: 8px;
   margin-top: auto;
-  padding-top: 8px;
+  padding-top: 10px;
   border-top: 1px dotted var(--stone-line-soft);
+  flex-wrap: wrap;
+}
+
+.class-card .tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-family: var(--font-mono);
   font-size: 0.72rem;
-  color: var(--gold);
+  color: var(--gold-bright);
 }
 
 .action-footer {
-  margin-top: 24px;
+  margin-top: 26px;
   text-align: center;
 }
 
@@ -71,34 +90,33 @@
    DRAFT STATISTICHE & ROULETTE (FASE 2)
    ========================================================================== */
 .player-draft-board {
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid var(--stone-line);
-  border-radius: var(--radius-md);
-  padding: 14px 10px;
-  margin-bottom: 20px;
-  box-sizing: border-box;
+  padding: 16px 14px;
+  margin-bottom: 22px;
   width: 100%;
+}
+
+.ritual-eyebrow {
+  text-align: center;
+  color: var(--gold);
+  text-shadow: 0 0 8px var(--gold-glow);
 }
 
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 12px;
   width: 100%;
-  box-sizing: border-box;
 }
 
 .stat-box {
   min-width: 0;
-  padding: 8px 4px;
+  padding: 10px 6px;
   text-align: center;
-  box-sizing: border-box;
-  overflow: hidden;
-  border: 1px solid var(--stone-line);
+  border: 1.5px solid var(--stone-line);
   border-radius: var(--radius-sm);
-  background: rgba(0, 0, 0, 0.2);
-  transition: border-color 0.2s ease, background 0.2s ease;
+  background: rgba(0, 0, 0, 0.4);
+  transition: all 0.25s ease;
 }
 
 .stat-box .label {
@@ -106,123 +124,142 @@
   align-items: center;
   justify-content: center;
   font-family: var(--font-heading);
-  font-size: 0.65rem;
-  letter-spacing: 0.02em;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
   color: var(--gold-dim);
   text-transform: uppercase;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.stat-box .val {
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  color: var(--parchment-faint);
+  margin-top: 4px;
 }
 
 .stat-box.filled {
   border-color: var(--gold);
-  background: rgba(212, 175, 55, 0.12);
-  box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.18);
-  animation: statAbsorb 0.35s ease-out;
+  background: radial-gradient(circle at 50% 30%, rgba(212, 175, 55, 0.22), rgba(0, 0, 0, 0.5));
+  box-shadow: 0 0 16px rgba(212, 175, 55, 0.25), inset 0 0 12px rgba(212, 175, 55, 0.15);
+  animation: statAbsorb 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .stat-box.filled .val {
-  color: var(--gold);
+  color: var(--gold-bright);
   font-weight: bold;
+}
+
+.stat-box.filled .label {
+  color: var(--gold);
 }
 
 /* Badge Modificatore (+X) */
 .mod-preview, .stat-mod-sub {
   display: inline-block;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   color: var(--gold);
-  background: rgba(212, 175, 55, 0.15);
-  border: 1px solid rgba(212, 175, 55, 0.3);
+  background: rgba(212, 175, 55, 0.16);
+  border: 1px solid rgba(212, 175, 55, 0.35);
   border-radius: 3px;
-  padding: 0 4px;
+  padding: 1px 5px;
   margin-left: 3px;
   font-weight: 600;
   vertical-align: middle;
 }
 
-/* Roulette Automatica */
+/* Astrolabio Rituale di Evocazione */
 .roulette-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  margin: 16px 0;
+  margin: 18px 0;
 }
 
-.roulette-wheel {
+.roulette-astrolabe {
+  position: relative;
   width: 100%;
-  max-width: 420px;
-  padding: 18px;
-  background: radial-gradient(circle, #221a14 0%, #0e0a07 100%);
-  border: 2px solid var(--stone-line);
+  max-width: 440px;
+  padding: 22px;
+  background: radial-gradient(circle, #241910 0%, #0d0906 100%);
+  border: 2px solid var(--gold-dim);
   border-radius: var(--radius-md);
   text-align: center;
-  box-shadow: var(--shadow-inset);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  box-sizing: border-box;
+  box-shadow: var(--shadow-gothic), inset 0 0 25px rgba(0, 0, 0, 0.85);
+  overflow: hidden;
+  transition: all 0.25s ease;
 }
 
-.roulette-wheel.spinning {
+.astrolabe-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%);
+  opacity: 0.3;
+}
+
+.roulette-astrolabe.spinning {
   border-color: var(--gold);
-  box-shadow: 0 0 25px var(--gold-glow);
+  box-shadow: 0 0 35px var(--gold-glow), inset 0 0 30px rgba(212, 175, 55, 0.2);
 }
 
-.roulette-wheel.spinning .roulette-name {
-  filter: blur(1px);
+.roulette-astrolabe.spinning .astrolabe-glow {
   opacity: 0.8;
+  animation: spinPulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes spinPulse {
+  0% { transform: scale(0.9); opacity: 0.5; }
+  100% { transform: scale(1.1); opacity: 0.95; }
 }
 
 .roulette-label {
   font-family: var(--font-heading);
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   color: var(--gold-dim);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
 }
 
 .roulette-name {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
   font-family: var(--font-heading);
-  font-size: 1.35rem;
-  color: var(--gold);
-  margin: 6px 0;
-  min-height: 32px;
-  text-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+  font-size: 1.45rem;
+  color: var(--gold-bright);
+  margin: 8px 0;
+  min-height: 36px;
+  text-shadow: 0 0 12px var(--gold-glow);
 }
 
 .roulette-icon {
   color: var(--gold);
-  filter: drop-shadow(0 0 6px var(--gold-glow));
+  filter: drop-shadow(0 0 8px var(--gold-glow));
 }
 
 .roulette-title {
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   color: var(--parchment-dim);
   font-style: italic;
 }
 
-/* Pannello Selezione */
+/* Pannello Selezione Statistiche */
 .hero-stats-panel {
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid var(--gold-dim);
-  border-radius: var(--radius-md);
-  padding: 16px 12px;
+  padding: 18px 14px;
   text-align: center;
-  animation: fadeIn 0.25s ease;
+  animation: fadeIn 0.3s ease;
 }
 
 .hero-stats-panel h3 {
-  font-size: 0.95rem;
-  margin-bottom: 12px;
+  font-size: 1rem;
+  margin-bottom: 14px;
+  color: var(--gold);
 }
 
 .hero-stat-buttons {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 8px;
   margin-top: 12px;
 }
@@ -231,42 +268,67 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 8px 4px;
+  gap: 5px;
+  padding: 10px 4px;
   min-width: 0;
+  border-color: var(--stone-line);
+  background: linear-gradient(180deg, var(--stone-700), var(--stone-900));
+}
+
+.stat-pick-btn:hover:not(:disabled) {
+  border-color: var(--gold);
+  box-shadow: 0 0 16px var(--gold-glow);
+  transform: translateY(-2px);
 }
 
 .stat-pick-btn .stat-k {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.7rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
+  gap: 3px;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
 }
 
 .stat-pick-btn .stat-v {
-  font-size: 1.15rem;
-  color: var(--gold);
+  font-size: 1.25rem;
+  color: var(--gold-bright);
+  font-family: var(--font-mono);
 }
 
-/* Completamento */
+/* Completamento Rituale */
 .completion-box {
   text-align: center;
-  padding: 20px;
+  padding: 32px 20px;
+}
+
+.ritual-sigil {
+  margin: 0 auto 16px;
+  color: var(--emerald);
+  border-color: var(--emerald);
+  box-shadow: 0 0 24px var(--emerald-glow);
 }
 
 .completion-box h3 {
-  font-size: 1.25rem;
-  margin-bottom: 6px;
+  font-size: 1.45rem;
+  margin-bottom: 8px;
+  color: var(--gold-bright);
+}
+
+.ritual-desc {
+  max-width: 480px;
+  margin: 0 auto 24px;
+  color: var(--parchment-dim);
+}
+
+.btn-descent {
+  padding: 14px 32px;
+  font-size: 1rem;
 }
 
 @keyframes statAbsorb {
-  0% { transform: scale(0.95); opacity: 0.5; }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); opacity: 1; }
+  0% { transform: scale(0.9); opacity: 0.5; filter: brightness(1.8); }
+  50% { transform: scale(1.1); filter: brightness(1.5); }
+  100% { transform: scale(1); opacity: 1; filter: none; }
 }
 
 @keyframes fadeIn {
@@ -275,12 +337,19 @@
 }
 
 /* Responsive Mobile */
+@media (max-width: 720px) {
+  .stat-grid, .hero-stat-buttons {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .roulette-name {
+    font-size: 1.2rem;
+  }
+}
+
 @media (max-width: 480px) {
   .stat-grid, .hero-stat-buttons {
     grid-template-columns: repeat(2, 1fr);
     gap: 6px;
-  }
-  .roulette-name {
-    font-size: 1.15rem;
   }
 }

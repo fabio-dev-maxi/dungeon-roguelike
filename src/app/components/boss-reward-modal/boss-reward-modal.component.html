@@ -1,31 +1,48 @@
 @if (reward(); as r) {
   <div class="modal-backdrop">
-    <div class="panel modal-box">
+    <div class="panel modal-box gothic-frame boss-reward-frame">
+      <div class="sigil sigil--lg reward-sigil">
+        <app-icon name="crown" [size]="40"></app-icon>
+      </div>
+
       <div class="depth-badge">{{ i18n.tf('ui.bossDefeatedTitle', { name: r.name }) }}</div>
 
-      <div class="sheet-row">
-        <span>{{ i18n.t('ui.xpGainedLabel') }}</span><span class="num gain">+{{ r.xp }}</span>
-      </div>
-      <div class="sheet-row">
-        <span>{{ i18n.t('ui.goldGainedLabel') }}</span><span class="num gain">+{{ r.gold }}</span>
+      <div class="rewards-summary">
+        <div class="reward-gain-card">
+          <app-icon name="star" [size]="16" class="star-gain"></app-icon>
+          <span class="gain-label">{{ i18n.t('ui.xpGainedLabel') }}</span>
+          <span class="num gain-val">+{{ r.xp }}</span>
+        </div>
+        <div class="reward-gain-card">
+          <app-icon name="coin" [size]="16" class="coin-gain"></app-icon>
+          <span class="gain-label">{{ i18n.t('ui.goldGainedLabel') }}</span>
+          <span class="num gain-val">+{{ r.gold }}</span>
+        </div>
       </div>
 
-      <hr class="rule">
-      <div class="small">{{ i18n.t('ui.dropsLabel') }}</div>
+      <div class="drops-section">
+        <div class="small drops-title">{{ i18n.t('ui.dropsLabel') }}</div>
 
-      @if (r.drops.length > 0) {
-        @for (d of r.drops; track d.id) {
-          <div class="drop-card">
-            <b>{{ d.name }}</b>
-            <p class="small">{{ d.effect }}</p>
-          </div>
+        @if (r.drops.length > 0) {
+          @for (d of r.drops; track d.id) {
+            <div class="drop-card gothic-frame">
+              <div class="drop-header">
+                <app-icon name="gem" [size]="18" class="drop-icon"></app-icon>
+                <b>{{ d.name }}</b>
+              </div>
+              <p class="small">{{ d.effect }}</p>
+            </div>
+          }
+        } @else {
+          <p class="small no-drops">{{ i18n.t('ui.noDropsText') }}</p>
         }
-      } @else {
-        <p class="small no-drops">{{ i18n.t('ui.noDropsText') }}</p>
-      }
+      </div>
 
       <div class="reward-actions">
-        <button class="btn" (click)="game.confirmBossReward()">{{ i18n.t('ui.continueButton') }}</button>
+        <button class="btn primary btn-descent" (click)="game.confirmBossReward()">
+          <span>{{ i18n.t('ui.continueButton') }}</span>
+          <app-icon name="arrow-right" [size]="16"></app-icon>
+        </button>
       </div>
     </div>
   </div>

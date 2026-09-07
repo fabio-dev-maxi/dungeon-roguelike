@@ -1,40 +1,109 @@
+.tombstone-frame {
+  max-width: 520px;
+  margin: 20px auto;
+  padding: 36px 24px;
+  background: radial-gradient(circle at 50% 10%, rgba(38, 26, 17, 0.95), rgba(12, 8, 5, 0.98));
+  box-shadow: 0 0 45px rgba(139, 0, 0, 0.4), var(--shadow-gothic);
+  border-color: var(--stone-line);
+}
+
+.tomb-sigil {
+  margin: 0 auto 14px;
+  color: var(--blood-bright);
+  border-color: var(--blood);
+  box-shadow: 0 0 24px var(--blood-glow);
+}
+
+.tombstone-frame h2 {
+  font-size: 1.8rem;
+  letter-spacing: 0.15em;
+  color: var(--blood-bright);
+  text-shadow: 0 0 16px var(--blood-glow);
+  margin-bottom: 8px;
+}
+
+.tomb-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  max-width: 260px;
+  margin: 0 auto 18px;
+}
+
+.tomb-divider .divider-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--blood-bright), transparent);
+}
+
+.divider-cross {
+  color: var(--blood-bright);
+  font-size: 0.95rem;
+}
+
 .score-box {
   text-align: center;
-  margin-bottom: 20px;
+  margin: 18px 0;
 }
 
 .score-box .n {
   display: block;
-  font-family: var(--font-mono);
-  font-size: 3rem;
-  color: var(--gold);
+  font-size: 3.8rem;
+  color: var(--gold-bright);
   line-height: 1;
+  text-shadow: 0 0 20px var(--gold-glow);
+  font-weight: 700;
 }
 
 .score-box .l {
   font-family: var(--font-heading);
-  font-size: .78rem;
-  letter-spacing: .16em;
+  font-size: .82rem;
+  letter-spacing: .2em;
   color: var(--parchment-dim);
   text-transform: uppercase;
+  margin-top: 6px;
+}
+
+.epitaph-box {
+  padding: 14px 18px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--stone-line);
+  border-radius: var(--radius-sm);
+  margin: 20px 0;
 }
 
 .epitaph {
-  max-width: 440px;
-  margin: 14px auto 26px;
+  margin: 0;
   font-style: italic;
-  color: var(--parchment-dim);
-  text-align: center;
-  line-height: 1.7;
+  color: var(--parchment);
+  line-height: 1.65;
+  font-size: 1.05rem;
 }
 
 .gameover-stats {
   display: flex;
   justify-content: center;
-  gap: 8px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
+.stat-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--stone-line);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  color: var(--parchment-dim);
+}
+
+.stat-pill app-icon {
+  color: var(--gold);
+}
+
 .gameover-actions {
-  margin-top: 24px;
+  margin-top: 28px;
 }

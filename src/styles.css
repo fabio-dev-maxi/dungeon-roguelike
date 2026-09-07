@@ -18,15 +18,18 @@
   --stone-900: #150f0a;
   --stone-800: #1e150d;
   --stone-700: #2a1d12;
+  --stone-600: #38271a;
   --stone-line: #4a3520;
   --stone-line-soft: rgba(212, 175, 55, .14);
 
   --parchment: #efe1c2;
   --parchment-dim: #b7a172;
   --parchment-faint: #8a795b;
+  --parchment-dark: #2a2015;
 
   --gold: #d4af37;
   --gold-dim: #8a6b25;
+  --gold-bright: #f9e27c;
   --gold-glow: rgba(212, 175, 55, .35);
 
   --blood: #8b0000;
@@ -37,9 +40,21 @@
   --emerald-dim: #1f7a58;
   --emerald-glow: rgba(52, 211, 153, .35);
 
-  --shadow-lg: 0 20px 46px rgba(0, 0, 0, .55);
-  --shadow-md: 0 10px 26px rgba(0, 0, 0, .45);
-  --shadow-inset: inset 0 0 40px rgba(0, 0, 0, .35);
+  /* D&D 3.5 & Gothic Tokens */
+  --iron-plate: #17120e;
+  --iron-rim: #3b2c1d;
+  --leather-base: #21160e;
+  --leather-felt: #180f0a;
+
+  /* Gemstone Health Fluid */
+  --ruby-gradient: linear-gradient(180deg, #ff6b6b 0%, #c1272d 35%, #800f13 70%, #460507 100%);
+  --emerald-gradient: linear-gradient(180deg, #6ee7b7 0%, #10b981 35%, #047857 70%, #064e3b 100%);
+  --gold-gradient: linear-gradient(180deg, #fef08a 0%, #eab308 35%, #a16207 70%, #713f12 100%);
+
+  --shadow-lg: 0 20px 46px rgba(0, 0, 0, .65);
+  --shadow-md: 0 10px 26px rgba(0, 0, 0, .55);
+  --shadow-inset: inset 0 0 40px rgba(0, 0, 0, .45);
+  --shadow-gothic: 0 16px 36px rgba(0, 0, 0, .75), 0 0 22px rgba(212, 175, 55, .1);
 
   --radius-sm: 5px;
   --radius-md: 10px;
@@ -65,7 +80,7 @@ body {
   min-height: 100vh;
   background:
     radial-gradient(ellipse at 50% -10%, rgba(212, 175, 55, .14), transparent 55%),
-    radial-gradient(ellipse at 50% 115%, rgba(0, 0, 0, .65), transparent 60%),
+    radial-gradient(ellipse at 50% 115%, rgba(0, 0, 0, .75), transparent 60%),
     repeating-linear-gradient(0deg, var(--void) 0px, var(--stone-900) 2px, var(--void) 4px),
     var(--void);
   color: var(--parchment);
@@ -73,6 +88,19 @@ body {
   font-size: 17px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  animation: torchAmbient 8s ease-in-out infinite alternate;
+}
+
+@keyframes torchAmbient {
+  0% {
+    background-color: var(--void);
+  }
+  50% {
+    background-color: #0c0806;
+  }
+  100% {
+    background-color: #090604;
+  }
 }
 
 ::selection { background: var(--blood); color: var(--parchment); }
@@ -247,24 +275,243 @@ hr.rule { border: none; border-top: 1px solid var(--stone-line); margin: 18px 0;
 .btn--icon { padding: 9px; border-radius: 50%; }
 
 /* ==========================================================================
-   PANNELLI / CARD
+   PANNELLI / CARD & CORNICI GOTICHE
    ========================================================================== */
 .panel {
   position: relative;
-  background: linear-gradient(180deg, rgba(0, 0, 0, .18), rgba(0, 0, 0, .32)), var(--stone-800);
-  border: 1px solid var(--stone-line);
+  background: linear-gradient(180deg, rgba(26, 18, 12, 0.88), rgba(14, 10, 7, 0.96)), var(--stone-800);
+  border: 1.5px solid var(--stone-line);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg), var(--shadow-inset);
+  box-shadow: var(--shadow-gothic), var(--shadow-inset);
   padding: 22px;
 }
 
 .panel::before {
   content: '';
   position: absolute;
-  inset: 6px;
+  inset: 5px;
   pointer-events: none;
-  border: 1px solid rgba(212, 175, 55, .07);
+  border: 1px solid rgba(212, 175, 55, .12);
   border-radius: calc(var(--radius-md) - 3px);
+}
+
+/* Cornice Gotica con angolari cesellati in ottone antico */
+.gothic-frame {
+  position: relative;
+  background: radial-gradient(circle at 50% 20%, rgba(35, 24, 16, 0.94), rgba(13, 9, 6, 0.98));
+  border: 1.5px solid var(--stone-line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-gothic), inset 0 0 32px rgba(0, 0, 0, 0.8);
+  padding: 18px;
+}
+
+.gothic-frame::before,
+.gothic-frame::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  z-index: 2;
+  border: 2px solid var(--gold-dim);
+}
+
+.gothic-frame::before {
+  top: 4px;
+  left: 4px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.gothic-frame::after {
+  bottom: 4px;
+  right: 4px;
+  border-left: none;
+  border-top: none;
+}
+
+/* ==========================================================================
+   BARRE ALCHEMICHE ED ESPERIENZA (GOTHIC GEM STYLE)
+   ========================================================================== */
+
+/* Contenitore Tubo di Vetro / Pietra */
+.hpbar-outer {
+  position: relative;
+  width: 100%;
+  height: 16px;
+  background: rgba(8, 5, 3, 0.85);
+  border: 1px solid var(--stone-line);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.9), 0 1px 3px rgba(0, 0, 0, 0.5);
+  box-sizing: border-box;
+}
+
+.hpbar-outer.slim {
+  height: 10px;
+}
+
+/* Riflesso Vetroso Superiore (Glint) */
+.hpbar-outer::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: 6px;
+  right: 6px;
+  height: 35%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 100%);
+  border-radius: 10px;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Fluido Liquido Base */
+.hpbar-inner {
+  position: relative;
+  height: 100%;
+  border-radius: 20px;
+  background: linear-gradient(90deg, #500a0a 0%, #991b1b 50%, #dc2626 100%);
+  box-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
+  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: width;
+}
+
+/* Animazione Shimmer sul Fluido */
+.hpbar-inner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: fluidShimmer 3s linear infinite;
+  pointer-events: none;
+}
+
+/* Punta Luminosa (Glow Cap) */
+.hpbar-inner::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #ffffff, 0 0 12px var(--blood-bright);
+}
+
+/* Variante Nemico (Smeraldo) */
+.hpbar-inner.enemybar-inner {
+  background: linear-gradient(90deg, #064e3b 0%, #059669 50%, #10b981 100%);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+.hpbar-inner.enemybar-inner::after {
+  box-shadow: 0 0 8px #ffffff, 0 0 12px var(--emerald);
+}
+
+/* Variante Esperienza (Oro Liquido) */
+.hpbar-inner.xpbar-inner {
+  background: linear-gradient(90deg, #713f12 0%, #ca8a04 50%, #facc15 100%);
+  box-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
+}
+
+.hpbar-inner.xpbar-inner::after {
+  box-shadow: 0 0 8px #ffffff, 0 0 12px var(--gold-bright);
+}
+
+/* Stato Critico (< 25% HP) */
+.hpbar-inner.critical {
+  animation: criticalPulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes fluidShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes criticalPulse {
+  0% { filter: brightness(1); box-shadow: 0 0 8px rgba(220, 38, 38, 0.6); }
+  100% { filter: brightness(1.4); box-shadow: 0 0 18px rgba(220, 38, 38, 0.95); }
+}
+
+/* ==========================================================================
+   AMBIENTE & FEEDBACK DI COMBATTIMENTO (JUICE)
+   ========================================================================== */
+/* Vignetta di sangue a schermo pulsante per salute critica */
+.low-hp-vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  box-shadow: inset 0 0 90px 15px rgba(139, 0, 0, 0.65);
+  animation: pulseHeartbeat 1.5s ease-in-out infinite;
+}
+
+@keyframes pulseHeartbeat {
+  0% { box-shadow: inset 0 0 70px 8px rgba(139, 0, 0, 0.45); }
+  50% { box-shadow: inset 0 0 110px 25px rgba(193, 68, 59, 0.75); }
+  100% { box-shadow: inset 0 0 70px 8px rgba(139, 0, 0, 0.45); }
+}
+
+/* Effetti di Tremore da Impatto (Screen Shake) */
+.shake-crit {
+  animation: screenShakeCrit 0.45s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+.shake-hit {
+  animation: screenShakeHit 0.25s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes screenShakeCrit {
+  10%, 90% { transform: translate3d(-3px, 0, 0) rotate(-0.5deg); }
+  20%, 80% { transform: translate3d(4px, 1px, 0) rotate(0.8deg); }
+  30%, 50%, 70% { transform: translate3d(-5px, -2px, 0) rotate(-0.8deg); }
+  40%, 60% { transform: translate3d(5px, 2px, 0) rotate(0.5deg); }
+}
+
+@keyframes screenShakeHit {
+  20% { transform: translate3d(-2px, 1px, 0); }
+  40% { transform: translate3d(2px, -1px, 0); }
+  60% { transform: translate3d(-1px, 1px, 0); }
+  80% { transform: translate3d(1px, 0, 0); }
+}
+
+/* ==========================================================================
+   D&D 3.5 BADGES & GLIFI
+   ========================================================================== */
+.d20-crit-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-heading);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  padding: 2px 7px;
+  background: rgba(212, 175, 55, 0.16);
+  border: 1px solid var(--gold);
+  border-radius: 3px;
+  color: var(--gold-bright);
+  text-shadow: 0 0 8px var(--gold-glow);
+  text-transform: uppercase;
+}
+
+.d20-threat-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--gold);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--gold-dim);
+  border-radius: 3px;
+  padding: 1px 6px;
 }
 
 /* ==========================================================================

@@ -18,8 +18,6 @@ import { DiceWidgetComponent } from '../dice-widget/dice-widget.component';
 import { LevelUpModalComponent } from '../level-up-modal/level-up-modal.component';
 import { BossRewardModalComponent } from '../boss-reward-modal/boss-reward-modal.component';
 import { xpToNext } from '../../data/monster.data';
-
-// Import necessari per le icone
 import { IconComponent, IconName } from '../../shared/icon/icon.component';
 import { CLASS_ICONS, STAT_ICONS } from '../../shared/icon/icon-maps';
 
@@ -30,7 +28,6 @@ interface DieFace {
   sides: number;
 }
 
-/** Funzione helper per mappare le opzioni di scelta (trappole, santuari, mercanti) all'icona corretta */
 function iconForChoice(o: ChoiceOption): IconName {
   if (o.stat) return STAT_ICONS[o.stat];
   switch (o.action) {
@@ -64,8 +61,12 @@ export class GameScreenComponent implements AfterViewChecked {
   readonly monsterDieValue = computed(() => this.monsterDie().value);
   readonly playerDieSides = computed(() => this.playerDie().sides);
   readonly monsterDieSides = computed(() => this.monsterDie().sides);
+
   readonly playerDieActive: Signal<boolean>;
   readonly monsterDieActive: Signal<boolean>;
+
+  // Stato per il Popover Reliquie nell'Header
+  showRelicPopover = signal(false);
 
   private lastPhase: string | null = null;
   private lastLogLength = 0;
@@ -80,7 +81,10 @@ export class GameScreenComponent implements AfterViewChecked {
       return !!(rd && (rd.tag === 'monsterAttack' || rd.tag === 'monsterDamage'));
     });
 
-    this.playerDieActive = computed(() => !!roll()?.active && !isEnemyRoll());
+    this.playerDieActive = computed(() => {
+      const rd = roll();
+      return !!rd?.active && !isEnemyRoll() && rd?.tag !== 'levelhp';
+    });
     this.monsterDieActive = computed(() => !!roll()?.active && isEnemyRoll());
 
     effect(() => {
@@ -89,7 +93,7 @@ export class GameScreenComponent implements AfterViewChecked {
       const face: DieFace = { value: rd.value, sides: rd.sides || 20 };
       if (isEnemyRoll()) {
         this.monsterDie.set(face);
-      } else {
+      } else if (rd.tag !== 'levelhp') {
         this.playerDie.set(face);
       }
     });
@@ -97,19 +101,52 @@ export class GameScreenComponent implements AfterViewChecked {
 
   s() { return this.game.state(); }
   p() { return this.game.state().player!; }
-  
   pct(current: number, max: number): number { return max > 0 ? Math.round((current / max) * 100) : 0; }
   hpPct(): number { return this.pct(this.p().hp, this.p().maxHp); }
   xpNeeded(): number { return xpToNext(this.p().level); }
   xpPct(): number { return this.pct(this.p().xp, this.xpNeeded()); }
   hasPotion(): boolean { return this.p().inventory.some(i => i.type === 'potion'); }
+  potionCount(): number { return this.p() ? this.p().inventory.filter(i => i.type === 'potion').length : 0; }
   acting(): boolean { return !!this.s().combatFlags.acting; }
   canSpecial(): boolean {
     const cls = this.p().cls;
     return !this.p().usedSpecial && !!this.i18n.t('classes.' + cls + '.active');
   }
 
-  // Metodi per fornire le icone direttamente al template
+  isLowHp = computed(() => {
+    const player = this.game.state().player;
+    return player ? (player.hp / player.maxHp <= 0.25) : false;
+  });
+
+  critThreatDisplay = computed(() => {
+    const player = this.game.state().player;
+    if (!player) return '20 / x2';
+    const t = player.critThreshold || 20;
+    const m = player.critMultiplier || 2;
+    return (t < 20 ? `${t}-20` : '20') + ` / x${m}`;
+  });
+
+  atkBonusDisplay = computed(() => {
+    const player = this.game.state().player;
+    if (!player) return '+0';
+    const c = this.classData[player.cls];
+    const modVal = this.dice.mod(player.stats[c.atkStat]) + (player.weapon.bonus || 0) + (player.tempAtkBonus || 0) + (player.flatAtkBonus || 0);
+    return this.dice.fmtMod(modVal);
+  });
+
+  isRollingCrit = computed(() => this.game.state().rollingDie?.cls === 'crit');
+  isRollingFail = computed(() => this.game.state().rollingDie?.cls === 'fail');
+
+  toggleRelicPopover(): void {
+    if (this.p().relics.length > 0) {
+      this.showRelicPopover.update(v => !v);
+    }
+  }
+
+  closeRelicPopover(): void {
+    this.showRelicPopover.set(false);
+  }
+
   classIcon(cls: ClassKey): IconName { return CLASS_ICONS[cls]; }
   statIcon(k: StatKey): IconName { return STAT_ICONS[k]; }
   choiceIcon(o: ChoiceOption): IconName { return iconForChoice(o); }
@@ -124,7 +161,6 @@ export class GameScreenComponent implements AfterViewChecked {
     const curPhase = this.s().phase;
     const curLogLen = this.s().log.length;
 
-    // Su mobile la pagina scorre in automatico solo se ci sono cambiamenti sostanziali (nuova fase o log)
     if (window.innerWidth <= 720) {
       if (this.lastPhase !== curPhase || this.lastLogLength !== curLogLen) {
         this.lastPhase = curPhase;

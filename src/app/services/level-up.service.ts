@@ -51,55 +51,57 @@ export class LevelUpService {
     }
   }
 
-  chooseLevelUpStat(statKey: StatKey): void {
-    const s = this.stateService.state();
-    if (!s.levelUp || s.levelUp.step !== 'stat') return;
+  // In src/app/services/level-up.service.ts
+chooseLevelUpStat(statKey: StatKey): void {
+  const s = this.stateService.state();
+  if (!s.levelUp || s.levelUp.step !== 'stat') return;
+  const oldConMod = mod(s.player!.stats.con);
+  
+  // Cast esplicito a Number per evitare la concatenazione stringa ("18" + 1 = "181")
+  const currentVal = Number(s.player!.stats[statKey]) || 10;
+  s.player!.stats[statKey] = currentVal + 1;
+  
+  s.levelUp.chosenStat = statKey;
+  this.stateService.touch();
+  this.stateService.log(
+    this.stateService.tf('log.levelUpStatChosen', { 
+      stat: this.stateService.t('stats.' + statKey), 
+      value: s.player!.stats[statKey] 
+    }), 
+    'heal'
+  );
 
-    const oldConMod = mod(s.player!.stats.con);
-    s.player!.stats[statKey] += 1;
-    s.levelUp.chosenStat = statKey;
-    this.stateService.touch();
-
-    this.stateService.log(
-      this.stateService.tf('log.levelUpStatChosen', { 
-        stat: this.stateService.t('stats.' + statKey), 
-        value: s.player!.stats[statKey] 
-      }), 
-      'heal'
-    );
-
-    // Se la Costituzione aumenta il suo modificatore, applica gli HP retroattivi per livello
-    if (statKey === 'con') {
-      const newConMod = mod(s.player!.stats.con);
-      if (newConMod > oldConMod) {
-        const retro = s.player!.level;
-        s.player!.maxHp += retro;
-        s.player!.hp += retro;
-        this.stateService.touch();
-        this.stateService.log(
-          this.stateService.tf('log.conRetroBonus', { 
-            oldMod: this.dice.fmtMod(oldConMod), 
-            newMod: this.dice.fmtMod(newConMod), 
-            hp: retro 
-          }), 
-          'heal'
-        );
-      }
-    }
-
-    const newLevel = s.player!.level;
-    if (newLevel % 3 === 0) {
-      const allFeats = CLASS_FEATS[s.player!.cls] || [];
-      const userFeats = s.player!.feats || [];
-      s.levelUp.availableFeats = allFeats.filter(f => !userFeats.includes(f.id));
-      s.levelUp.step = 'feat';
+  if (statKey === 'con') {
+    const newConMod = mod(s.player!.stats.con);
+    if (newConMod > oldConMod) {
+      const retro = s.player!.level;
+      s.player!.maxHp += retro;
+      s.player!.hp += retro;
       this.stateService.touch();
-    } else {
-      s.levelUp.step = 'hp';
-      this.stateService.touch();
-      this.rollLevelUpHp();
+      this.stateService.log(
+        this.stateService.tf('log.conRetroBonus', { 
+          oldMod: this.dice.fmtMod(oldConMod), 
+          newMod: this.dice.fmtMod(newConMod), 
+          hp: retro 
+        }), 
+        'heal'
+      );
     }
   }
+
+  const newLevel = s.player!.level;
+  if (newLevel % 3 === 0) {
+    const allFeats = CLASS_FEATS[s.player!.cls] || [];
+    const userFeats = s.player!.feats || [];
+    s.levelUp.availableFeats = allFeats.filter(f => !userFeats.includes(f.id));
+    s.levelUp.step = 'feat';
+    this.stateService.touch();
+  } else {
+    s.levelUp.step = 'hp';
+    this.stateService.touch();
+    this.rollLevelUpHp();
+  }
+}
 
   chooseLevelUpFeat(featId: string): void {
     const s = this.stateService.state();

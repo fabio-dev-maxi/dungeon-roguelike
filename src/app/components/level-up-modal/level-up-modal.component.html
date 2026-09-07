@@ -1,33 +1,89 @@
 <div class="modal-backdrop">
-  <div class="panel modal-box">
+  <div class="panel modal-box gothic-frame levelup-frame">
+
     <!-- FASE 1: SELEZIONE STATISTICA (Ogni 2 Livelli) -->
     @if (levelUp()?.step === 'stat') {
-      <div class="depth-badge">{{ i18n.t('ui.levelUpTitle') }}</div>
-      <h2>{{ i18n.tf('ui.levelUpHeader', { level: p().level }) }}</h2>
-      <p class="prompt">{{ i18n.t('ui.chooseStatPrompt') }}</p>
-      <div class="stats-grid">
-        @for (k of statKeys; track k) {
-          <button class="btn stat-btn" (click)="selectStat(k)">
-            <span class="stat-name">{{ i18n.t('stats.' + k) }}</span>
-            <span class="stat-val">{{ p().stats[k] }} &rarr; <strong>{{ p().stats[k] + 1 }}</strong></span>
-          </button>
-        }
-      </div>
+    <div class="depth-badge">
+      <app-icon name="crown" [size]="20"></app-icon>
+      <span>{{ i18n.t('ui.levelUpTitle') }}</span>
+    </div>
+    <h2>{{ i18n.tf('ui.levelUpHeader', { level: p().level }) }}</h2>
+    <p class="prompt">{{ i18n.t('ui.chooseStatPrompt') }}</p>
+    <div class="stats-grid">
+      @for (k of statKeys; track k) {
+      <button type="button" class="btn stat-btn" (click)="selectStat(k)">
+        <span class="stat-name">
+          <app-icon [name]="statIcon(k)" [size]="15"></app-icon>
+          {{ i18n.t('stats.' + k) }}
+        </span>
+        <span class="stat-val num">{{ p().stats[k] }} &rarr; <strong>{{ Number(p().stats[k]) + 1 }}</strong></span>
+      </button>
+      }
+    </div>
     }
 
     <!-- FASE 2: SELEZIONE TALENTO (Ogni 3 Livelli) -->
     @if (levelUp()?.step === 'feat') {
-      <div class="depth-badge">{{ i18n.t('ui.levelUpTitle') }}</div>
-      <h2>{{ i18n.tf('ui.levelUpHeader', { level: p().level }) }}</h2>
-      <p class="prompt">{{ i18n.t('ui.chooseFeatPrompt') }}</p>
-      <div class="feats-list">
-        @for (f of levelUp()?.availableFeats; track f.id) {
-          <button class="btn feat-btn" (click)="selectFeat(f.id)">
-            <span class="feat-title">{{ i18n.t('feats.' + f.id + '.name') }}</span>
-            <span class="feat-desc">{{ i18n.t('feats.' + f.id + '.desc') }}</span>
-          </button>
-        }
-      </div>
+    <div class="depth-badge">
+      <app-icon name="star" [size]="20"></app-icon>
+      <span>{{ i18n.t('ui.levelUpTitle') }}</span>
+    </div>
+    <h2>{{ i18n.tf('ui.levelUpHeader', { level: p().level }) }}</h2>
+    <p class="prompt">{{ i18n.t('ui.chooseFeatPrompt') }}</p>
+    <div class="feats-list">
+      @for (f of levelUp()?.availableFeats; track f.id) {
+      <button type="button" class="feat-btn" (click)="selectFeat(f.id)">
+        <div class="feat-header">
+          <app-icon name="gem" [size]="16" class="feat-icon"></app-icon>
+          <span class="feat-title">{{ i18n.t('feats.' + f.id + '.name') }}</span>
+        </div>
+        <span class="feat-desc">{{ i18n.t('feats.' + f.id + '.desc') }}</span>
+      </button>
+      }
+    </div>
     }
+
+    <!-- FASE 3: TIRO DADO VITA E CONFERMA PUNTI FERITA -->
+    @if (levelUp()?.step === 'hp') {
+    <div class="depth-badge">
+      <app-icon name="heart" [size]="20"></app-icon>
+      <span>{{ i18n.t('ui.levelUpTitle') }}</span>
+    </div>
+    <h2>{{ i18n.tf('ui.levelUpHeader', { level: p().level }) }}</h2>
+    <p class="prompt">{{ i18n.t('ui.hpRollPrompt') }}</p>
+
+    <div class="hp-roll-result-box">
+      <!-- DADO 3D ANIMATO CON PALETTE EROE ROSSO / ORO -->
+      <div class="hp-dice-wrap">
+        <app-dice-widget [themeColor]="'#8b0000'" [labelColor]="'#ffd700'" [value]="hpDieValue()"
+          [isActive]="hpDieActive()" [sides]="hpDieSides()" />
+      </div>
+
+      <div class="hp-roll-details">
+        <div class="hp-roll-number num">
+          +{{ levelUp()?.hpRollTotal ?? '--' }}
+          <span class="hp-label-sub">Punti Ferita Massimi</span>
+        </div>
+        <div class="hp-roll-breakdown small">
+          Dado Vita (d{{ hpDieSides() }}): <strong>{{ levelUp()?.hpRollBase ?? '--' }}</strong>
+          &bull; Mod. COS: <strong>{{ dice.fmtMod(dice.mod(p().stats.con)) }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="hp-roll-actions">
+      @if (!levelUp()?.rerolled) {
+      <button type="button" class="btn" [disabled]="hpDieActive()" (click)="game.rerollLevelUpHp()">
+        <app-icon name="dice" [size]="16"></app-icon>
+        <span>{{ i18n.t('ui.rerollHpButton') }}</span>
+      </button>
+      }
+      <button type="button" class="btn primary heal" [disabled]="hpDieActive()" (click)="confirmHp()">
+        <app-icon name="check" [size]="16"></app-icon>
+        <span>{{ i18n.t('ui.confirmButton') }}</span>
+      </button>
+    </div>
+    }
+
   </div>
 </div>

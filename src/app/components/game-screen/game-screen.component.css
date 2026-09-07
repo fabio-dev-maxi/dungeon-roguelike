@@ -1,558 +1,658 @@
 /* ==========================================================================
-   LAYOUT DELLA SCHERMATA DI GIOCO
+   LAYOUT GENERALE & HEADER
    ========================================================================== */
-.game-grid {
-  --game-panel-h: 700px; /* Aumentato da 640px a 780px per contenere tutti i dati */
-  display: grid;
-  grid-template-columns: 290px 1fr;
-  gap: 16px;
-}
-
-/* --------------------------------------------------------------------------
-   SCHEDA PERSONAGGIO (colonna sinistra)
-   -------------------------------------------------------------------------- */
-.sheet-panel {
-  box-sizing: border-box;
-  height: var(--game-panel-h);
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--gold-dim) transparent;
-}
-
-.sheet-panel::-webkit-scrollbar {
-  width: 6px;
-}
-
-.sheet-panel::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, .3);
-  border-radius: 4px;
-}
-
-.sheet-panel::-webkit-scrollbar-thumb {
-  background: var(--gold-dim);
-  border-radius: 4px;
-}
-
-.depth-badge--floor {
-  flex-direction: column;
-  gap: 2px;
-  padding: 10px;
-  margin-bottom: 12px;
-  border-color: var(--gold-dim);
-  background: linear-gradient(180deg, rgba(212, 175, 55, .12), rgba(0, 0, 0, .3));
-  box-shadow: 0 0 18px rgba(212, 175, 55, .12), inset 0 0 18px rgba(0, 0, 0, .5);
-}
-
-.floor-label {
-  font-size: .68rem;
-  letter-spacing: .24em;
-  text-transform: uppercase;
-  color: var(--gold-dim);
-}
-
-.floor-number {
-  font-size: 1.7rem;
-  line-height: 1;
-  color: var(--gold);
-  text-shadow: 0 0 14px var(--gold-glow);
-}
-
-.char-name,
-.enemy-name {
-  display: block;
-  max-width: 170px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.char-name {
-  font-family: var(--font-heading);
-  font-size: 1rem;
-  color: var(--parchment);
-  text-transform: none;
-  margin: 0;
-}
-
-.char-sub {
-  margin-top: -6px;
-}
-
-.inventory-label {
-  margin-top: 6px;
-}
-
-.hpbar-outer {
-  height: 14px;
-  background: rgba(0, 0, 0, .4);
-  border: 1px solid var(--stone-line);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.hpbar-outer.slim {
-  height: 8px;
-}
-
-.hpbar-inner {
-  height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--blood), var(--blood-bright));
-  transition: width .35s ease;
-}
-
-.xpbar-inner {
-  background: linear-gradient(90deg, var(--gold-dim), var(--gold));
-}
-
-.enemybar-inner {
-  background: linear-gradient(90deg, var(--emerald-dim), var(--emerald));
-}
-
-.enemy-empty {
-  color: var(--parchment-faint);
-}
-
-.toggle-row {
+.dungeon-container {
   display: flex;
-  gap: 8px;
-  margin: 10px 0 4px;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.stats-toggle {
-  flex: 1;
-  min-width: 0;
-  font-family: var(--font-heading);
-  font-size: .68rem;
-  font-weight: 600;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  background: rgba(0, 0, 0, .25);
+.dungeon-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(22, 16, 11, 0.92);
   border: 1px solid var(--stone-line);
   border-radius: var(--radius-sm);
-  color: var(--parchment);
-  padding: 8px 6px;
-  cursor: pointer;
-  transition: border-color .15s ease, color .15s ease, background .15s ease;
+  box-shadow: var(--shadow-md);
+  box-sizing: border-box;
 }
 
-.stats-toggle:hover {
-  border-color: var(--gold);
-  color: var(--gold);
-  background: rgba(212, 175, 55, .08);
-}
-
-.inv-list {
-  list-style: none;
-  padding: 0;
-  margin: 8px 0 0;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  font-size: .85rem;
-  color: var(--parchment-dim);
-}
-
-.inv-list li {
+.header-left, .header-right {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.inv-icon {
-  flex-shrink: 0;
-  width: 1.2em;
-  text-align: center;
-  font-size: .95rem;
+.floor-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gold-icon { color: var(--gold); }
+
+.floor-label {
+  font-family: var(--font-heading);
+  font-size: 0.72rem;
+  color: var(--gold-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.floor-val {
+  font-size: 1.25rem;
+  color: var(--gold-bright);
+  font-weight: 700;
   line-height: 1;
 }
 
-.inv-empty {
-  font-style: italic;
-  color: var(--parchment-faint);
-}
-
-/* --------------------------------------------------------------------------
-   PANNELLO CENTRALE: log, arena dei dadi, azioni
-   L'altezza è fissa: quando le azioni occupano più righe lo spazio lo cede il
-   log, così il pannello non si allunga verso il basso.
-   -------------------------------------------------------------------------- */
-.main-panel {
+.res-pill {
   display: flex;
-  flex-direction: column;
-  height: var(--game-panel-h);
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--stone-line);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
 }
 
-.log {
-  flex: 1 1 auto;
-  min-height: 0;
+.gold-pill { color: var(--gold-bright); border-color: rgba(212, 175, 55, 0.3); }
+.potion-pill { color: var(--emerald); border-color: rgba(52, 211, 153, 0.3); }
+
+/* PILL E POPOVER RELIQUIE */
+.relic-pill {
+  position: relative;
+  color: var(--gold);
+  border-color: rgba(212, 175, 55, 0.3);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.relic-pill.has-relics:hover {
+  background: rgba(212, 175, 55, 0.12);
+  border-color: var(--gold);
+}
+
+.relic-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 250px;
+  max-height: 240px;
   overflow-y: auto;
-  overflow-x: hidden;
-  padding-right: 8px;
-  margin-bottom: 14px;
-  overflow-wrap: anywhere;
+  background: rgba(14, 10, 7, 0.98);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.9), 0 0 12px var(--gold-glow);
+  padding: 10px;
+  z-index: 200;
+  cursor: default;
+  animation: popoverFade 0.15s ease-out;
   scrollbar-width: thin;
   scrollbar-color: var(--gold-dim) transparent;
 }
 
-.log::-webkit-scrollbar {
-  width: 6px;
+@keyframes popoverFade {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.log::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, .3);
-  border-radius: 4px;
-}
-
-.log::-webkit-scrollbar-thumb {
-  background: var(--gold);
-  border-radius: 4px;
-}
-
-.log p {
-  margin: 0 0 11px;
-  line-height: 1.55;
-  animation: logIn .4s var(--ease-out) both;
-}
-
-@keyframes logIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-.log .sys {
+.popover-title {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  color: var(--gold);
-  font-style: italic;
-  text-align: center;
-}
-
-.log .sys::before,
-.log .sys::after {
-  content: '';
-  flex: 1;
-  max-width: 60px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--stone-line), transparent);
-}
-
-.log .dmg {
-  color: var(--blood-bright);
-}
-
-.log .heal {
-  color: var(--emerald);
-}
-
-.log .flavor {
-  color: var(--parchment-dim);
-  font-style: italic;
-}
-
-/* Le due parti del combattimento si affrontano dai lati opposti, come in una chat. */
-.log .hero,
-.log .enemy {
-  max-width: 88%;
-}
-
-.log .hero {
-  padding-left: 9px;
-  border-left: 2px solid var(--blood-bright);
-}
-
-.log .enemy {
-  margin-left: auto;
-  text-align: right;
-  padding-right: 9px;
-  border-right: 2px solid var(--emerald-dim);
-}
-
-/* Il passaggio di piano scandisce la partita: va letto come una cesura. */
-.log .floor {
-  margin: 20px 0 16px;
-  font-family: var(--font-heading);
-  font-size: .95rem;
-  font-style: normal;
-  font-weight: 600;
-  letter-spacing: .24em;
-  text-transform: uppercase;
-  color: var(--gold);
-  text-shadow: 0 0 14px var(--gold-glow);
-}
-
-.log .floor::before,
-.log .floor::after {
-  max-width: none;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
-}
-
-.log p:first-child.floor {
-  margin-top: 0;
-}
-
-.dice-arena {
-  position: relative;
-  flex: 0 0 140px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 6px 0;
-  padding: 0 16px;
-  background: rgba(0, 0, 0, .35);
-  border: 1px solid var(--stone-line-soft);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
-
-.dice-arena::before {
-  content: 'VS';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  font-family: var(--font-heading);
-  font-size: .7rem;
-  letter-spacing: .2em;
-  color: var(--parchment-faint);
-  opacity: .5;
-}
-
-.dice-slot {
-  flex: 0 0 200px;
-  display: flex;
-  align-items: center;
-  height: 130px;
-}
-
-.dice-slot.left {
-  justify-content: flex-start;
-}
-
-.dice-slot.right {
-  justify-content: flex-end;
-}
-
-.dice-fighter {
-  display: flex;
-  flex-direction: column;
   align-items: center;
   gap: 6px;
-  max-width: 100%;
-  min-width: 0;
-}
-
-.dice-name {
-  max-width: 100%;
   font-family: var(--font-heading);
-  font-size: .72rem;
-  letter-spacing: .06em;
+  font-size: 0.72rem;
+  color: var(--gold-bright);
   text-transform: uppercase;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  letter-spacing: 0.08em;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--stone-line-soft);
+  margin-bottom: 6px;
 }
 
-.dice-name.player {
-  color: var(--gold);
-}
-
-.dice-name.enemy {
-  color: var(--emerald);
-}
-
-/* Visibile solo su mobile: a schermo largo la scheda di sinistra mostra gli stessi dati. */
-.combat-hud {
-  display: none;
-}
-
-.actions {
-  flex: 0 0 auto;
+.popover-relic-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  align-content: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 115px;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.actions .btn {
-  min-height: 40px;
-  padding: 10px 18px;
-  font-size: .9rem;
+.popover-relic-item {
+  padding: 6px 8px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--stone-line-soft);
+  border-radius: var(--radius-sm);
 }
 
-/* Con cinque o più azioni i pulsanti si stringono per restare su una fascia. */
-.actions:has(.btn:nth-child(5)) .btn {
-  min-height: 36px;
-  padding: 6px 12px;
-  font-size: .82rem;
-}
-
-.scroll-anchor {
-  height: 1px;
-}
-
-/* Cornice circolare in pietra usata per contenere le icone grandi. */
-.sigil {
-  --sigil-size: 56px;
-  position: relative;
-  width: var(--sigil-size);
-  height: var(--sigil-size);
-  flex-shrink: 0;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(circle at 33% 28%, rgba(212, 175, 55, .2), transparent 60%), var(--stone-700);
-  border: 1.5px solid var(--stone-line);
+.relic-name {
+  font-family: var(--font-heading);
+  font-size: 0.78rem;
   color: var(--gold);
-  box-shadow: inset 0 0 12px rgba(0, 0, 0, .55), 0 2px 6px rgba(0, 0, 0, .4);
+  font-weight: 600;
 }
 
-.sigil::before {
-  content: '';
-  position: absolute;
-  inset: 4px;
-  border-radius: 50%;
-  border: 1px solid rgba(212, 175, 55, .22);
-}
-
-.sigil--sm {
-  --sigil-size: 36px;
-}
-
-.sigil--lg {
-  --sigil-size: 80px;
-}
-
-.sigil--danger {
-  color: var(--blood-bright);
+.relic-effect {
+  font-size: 0.72rem;
+  color: var(--parchment-dim);
+  line-height: 1.3;
+  margin-top: 2px;
 }
 
 /* ==========================================================================
-   MOBILE (<= 720px) — colonna unica, altezze libere
+   DUELLO ARENA DESKTOP
    ========================================================================== */
-@media (max-width: 720px) {
-  .game-grid {
-    --game-panel-h: auto;
+.duel-arena {
+  display: grid;
+  grid-template-columns: 280px 1fr 280px;
+  gap: 14px;
+  align-items: start;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.combatant-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px;
+  background: rgba(22, 16, 11, 0.92);
+  border: 1px solid var(--stone-line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  box-sizing: border-box;
+  height: 442px;
+}
+
+.card-top-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card-bottom-content {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.combatant-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.combatant-meta {
+  min-width: 0;
+  flex: 1;
+}
+
+.char-name, .enemy-name {
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--parchment);
+}
+
+.char-sub {
+  margin: 0;
+  color: var(--gold-dim);
+  font-size: 0.72rem;
+}
+
+/* BARRE HP & XP */
+.bar-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  font-family: var(--font-heading);
+  color: var(--parchment-dim);
+}
+
+.bar-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bar-val {
+  font-family: var(--font-mono);
+  color: var(--parchment);
+}
+
+/* METRICHE CA / TXC */
+.combat-metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.metric-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 5px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--stone-line);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-heading);
+  font-size: 0.72rem;
+  color: var(--parchment-dim);
+}
+
+.metric-badge strong {
+  color: var(--gold);
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+}
+
+/* STRISCIA EQUIPAGGIAMENTO (ARMA & ARMATURA) */
+.equipment-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--stone-line-soft);
+  border-radius: var(--radius-sm);
+}
+
+.equip-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.equip-block.armor-block {
+  padding-top: 6px;
+  border-top: 1px dotted var(--stone-line-soft);
+}
+
+.equip-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.equip-name {
+  font-family: var(--font-heading);
+  font-size: 0.78rem;
+  color: var(--parchment);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.equip-detail {
+  font-size: 0.73rem;
+  color: var(--gold-dim);
+}
+
+/* NASTRO CARATTERISTICHE */
+.stat-ribbon {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 3px;
+}
+
+.ribbon-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3px 1px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--stone-line);
+  border-radius: 3px;
+}
+
+.ribbon-k {
+  font-family: var(--font-heading);
+  font-size: 0.58rem;
+  color: var(--gold-dim);
+  line-height: 1;
+}
+
+.ribbon-v {
+  font-size: 0.82rem;
+  color: var(--parchment);
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.ribbon-m {
+  font-size: 0.62rem;
+  color: var(--gold);
+  font-family: var(--font-mono);
+  line-height: 1;
+}
+
+/* COLONNA CENTRALE TATTICA */
+.tactical-center {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* VASSOIO DADI */
+.dice-tray {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  background: radial-gradient(circle at 50% 50%, #20140b 0%, #0d0805 100%);
+  border: 1px solid var(--stone-line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-inset);
+  height: 150px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.dice-tray-felt {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(circle at 50% 50%, #1c120a 0%, #0c0804 90%);
+  border: 1px solid rgba(212, 175, 55, 0.12);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  overflow: hidden;
+}
+
+.tray-sigil-bg {
+  position: absolute;
+  font-family: var(--font-heading);
+  font-size: 2.2rem;
+  color: var(--gold);
+  opacity: 0.08;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.crit-callout-banner {
+  position: absolute;
+  top: 6px;
+  z-index: 10;
+  padding: 2px 10px;
+  border-radius: 3px;
+  font-family: var(--font-heading);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.gold-crit { background: #3d2b12; border: 1px solid var(--gold); color: var(--gold-bright); }
+.red-fail { background: #3a1010; border: 1px solid var(--blood-bright); color: #ff9999; }
+
+.dice-arena {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 12px;
+  z-index: 1;
+}
+
+.dice-slot { flex: 1; display: flex; justify-content: center; }
+.dice-fighter { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.dice-name { font-family: var(--font-heading); font-size: 0.72rem; text-transform: uppercase; max-width: 110px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dice-name.player { color: var(--gold); }
+.dice-name.enemy { color: var(--emerald); }
+.dice-slot-placeholder { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--parchment-dim); opacity: 0.4; }
+
+/* PLANCIA AZIONI */
+.actions-console {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 92px;
+  min-height: 92px;
+  max-height: 92px;
+  padding: 8px 10px;
+  background: rgba(22, 16, 11, 0.92);
+  border: 1px solid var(--stone-line);
+  border-radius: var(--radius-md);
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  height: 100%;
+}
+
+.actions .btn {
+  height: 34px;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  box-sizing: border-box;
+}
+
+/* CRONACA BATTAGLIA */
+.battle-chronicle {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 180px;
+  min-height: 180px;
+  max-height: 180px;
+  padding: 10px 12px;
+  background: rgba(14, 10, 7, 0.95);
+  border: 1px solid var(--stone-line);
+  border-radius: var(--radius-md);
+  box-sizing: border-box;
+  overflow: hidden !important;
+  flex-shrink: 0;
+}
+
+.chronicle-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-shrink: 0;
+}
+
+.chronicle-title {
+  font-family: var(--font-heading);
+  font-size: 0.7rem;
+  color: var(--gold-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--stone-line), transparent);
+}
+
+.log {
+  flex: 1 1 0px;
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding-right: 4px;
+  word-break: break-word;
+  box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-dim) rgba(0, 0, 0, 0.3);
+}
+
+.log::-webkit-scrollbar { width: 5px; }
+.log::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); border-radius: 3px; }
+.log::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 3px; }
+
+.log p {
+  margin: 0 0 5px;
+  line-height: 1.35;
+  font-size: 0.82rem;
+  border-left: 3px solid transparent;
+  padding: 3px 6px;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  box-sizing: border-box;
+}
+
+.log p.hero, .log p.player { border-left-color: var(--blue-hero); background: rgba(52, 152, 219, 0.08); }
+.log p.enemy, .log p.dmg { border-left-color: var(--red-monster); background: rgba(231, 76, 60, 0.08); }
+.log p.heal { border-left-color: var(--green-heal); background: rgba(46, 204, 113, 0.08); }
+.log p.crit { border-left-color: var(--gold); background: rgba(212, 175, 55, 0.12); font-weight: 600; }
+
+/* SCHEDA MOSTRO DESTRA */
+.enemy-card { border-color: var(--stone-line); }
+.enemy-card.boss-card { border-color: var(--blood-bright); box-shadow: 0 0 20px rgba(139, 0, 0, 0.35); }
+
+.enemy-tag-row { margin-bottom: 2px; }
+.tier-badge { font-family: var(--font-heading); font-size: 0.62rem; color: var(--emerald); text-transform: uppercase; }
+.boss-badge { font-family: var(--font-heading); font-size: 0.62rem; color: var(--blood-bright); font-weight: 700; text-transform: uppercase; }
+
+.enemy-traits-box {
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--stone-line-soft);
+  border-radius: var(--radius-sm);
+}
+
+.trait-label { font-family: var(--font-heading); color: var(--gold-dim); font-size: 0.68rem; text-transform: uppercase; margin-bottom: 2px; }
+.trait-desc { margin: 0; color: var(--parchment-dim); line-height: 1.35; }
+
+.enemy-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 8px;
+  text-align: center;
+  gap: 8px;
+  height: 100%;
+}
+
+.sigil--empty { opacity: 0.35; }
+
+/* INCONTRI SPECIALI */
+.encounter-card {
+  padding: 14px;
+  background: rgba(22, 16, 11, 0.95);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-md);
+  height: 150px;
+  box-sizing: border-box;
+}
+
+.encounter-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+
+.encounter-options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 6px;
+  width: 100%;
+}
+
+.encounter-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 8px 6px;
+  font-size: 0.75rem;
+  line-height: 1.25;
+  min-height: 48px;
+  gap: 4px;
+  white-space: normal;
+  word-break: break-word;
+  box-sizing: border-box;
+}
+
+.mobile-vs-hud { display: none; }
+
+/* ==========================================================================
+   ADATTAMENTO MOBILE (< 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .duel-arena {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 10px;
   }
 
-  .main-panel {
-    height: auto;
+  .combatant-card {
+    height: auto !important;
+  }
+
+  .actions-console {
+    height: auto !important;
     min-height: 0;
-    gap: 12px;
-  }
-
-  .sheet-panel {
-    height: auto;
-    overflow: visible;
-  }
-
-  .combat-hud {
-    display: flex;
-    gap: 12px;
-    padding: 10px 12px;
-    background: rgba(0, 0, 0, .35);
-    border: 1px solid var(--stone-line-soft);
-    border-radius: var(--radius-sm);
-  }
-
-  .hud-side {
-    flex: 1 1 0;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .hud-name {
-    font-family: var(--font-heading);
-    font-size: .68rem;
-    letter-spacing: .04em;
-    text-transform: uppercase;
-    color: var(--gold);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .hud-name.enemy {
-    color: var(--emerald);
-  }
-
-  .hud-val {
-    font-size: .72rem;
-    color: var(--parchment-dim);
-  }
-
-  .log {
-    flex: none;
-    height: 180px;
-    margin-bottom: 0;
-  }
-
-  .dice-arena {
-    flex: none;
-    height: 130px;
-    margin: 0;
-    padding: 0 8px;
-  }
-
-  .dice-slot {
-    flex: 0 0 50%;
-    height: 122px;
-    justify-content: center;
-  }
-
-  .dice-fighter {
-    width: 100%;
-  }
-
-  .dice-name {
-    font-size: .66rem;
-    letter-spacing: .04em;
+    max-height: none;
   }
 
   .actions {
-    flex: none;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    height: auto;
-    overflow: visible;
-    margin-top: 4px;
-    padding-bottom: 16px;
+    gap: 6px;
   }
 
-  .actions .btn,
-  .actions:has(.btn:nth-child(5)) .btn {
-    width: 100%;
-    min-height: 46px;
-    padding: 8px 6px;
-    font-size: .85rem;
-    text-align: center;
-    white-space: normal;
-    line-height: 1.1;
+  .actions .btn {
+    height: 44px !important;
+    font-size: 0.8rem;
   }
 
-  .actions .btn:only-child,
-  .actions .btn:last-child:nth-child(odd) {
-    grid-column: span 2;
+  .battle-chronicle {
+    height: 130px !important;
+    min-height: 130px !important;
+    max-height: 130px !important;
   }
+
+  .mobile-vs-hud {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(14, 10, 7, 0.95);
+    border: 1px solid var(--stone-line);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    box-sizing: border-box;
+  }
+
+  .hud-fighter { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .hud-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; }
+  .hud-name { font-family: var(--font-heading); color: var(--parchment); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; }
+  .hud-hp-num { font-size: 0.72rem; }
+  .hud-vs-badge { font-family: var(--font-heading); font-size: 0.75rem; color: var(--gold-dim); font-weight: bold; }
+
+  .combatant-card.hero-card { order: 3; }
+  .combatant-card.enemy-card { order: 4; }
+  .tactical-center { order: 1; }
 }

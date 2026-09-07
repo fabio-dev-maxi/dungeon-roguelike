@@ -1,20 +1,41 @@
-<div class="panel center">
+<div class="panel center gothic-frame tombstone-frame">
+  <!-- SIGILLO DELLA LAPIDE -->
+  <div class="sigil sigil--lg tomb-sigil">
+    <app-icon name="skull" [size]="42"></app-icon>
+  </div>
+
   <h2>{{ i18n.t('ui.gameOverTitle') }}</h2>
 
+  <div class="tomb-divider">
+    <span class="divider-line"></span>
+    <span class="divider-cross">✝</span>
+    <span class="divider-line"></span>
+  </div>
+
   <div class="score-box">
-    <span class="n">{{ floorsCompleted }}</span>
+    <span class="n num">{{ floorsCompleted }}</span>
     <span class="l">{{ i18n.t('ui.floorsDescended') }}</span>
   </div>
 
-  <p class="epitaph">"{{ epitaph }}"</p>
+  <div class="epitaph-box">
+    <p class="epitaph">"{{ epitaph }}"</p>
+  </div>
 
-  <p class="small gameover-stats">
-    {{ i18n.tf('ui.goldCollected', { gold: game.state().player!.gold }) }}
-    &middot;
-    {{ i18n.tf('ui.sessionRecord', { depth: game.bestDepth() }) }}
-  </p>
+  <div class="gameover-stats">
+    <div class="stat-pill">
+      <app-icon name="coin" [size]="14"></app-icon>
+      <span>{{ i18n.tf('ui.goldCollected', { gold: game.state().player!.gold }) }}</span>
+    </div>
+    <div class="stat-pill">
+      <app-icon name="crown" [size]="14"></app-icon>
+      <span>{{ i18n.tf('ui.sessionRecord', { depth: game.bestDepth() }) }}</span>
+    </div>
+  </div>
 
   <div class="gameover-actions">
-    <button class="btn" (click)="game.restartGame()">{{ i18n.t('ui.restartButton') }}</button>
+    <button class="btn primary btn-descent" (click)="game.restartGame()">
+      <app-icon name="stairs" [size]="18"></app-icon>
+      <span>{{ i18n.t('ui.restartButton') }}</span>
+    </button>
   </div>
 </div>

@@ -6,21 +6,30 @@
 
 .dice-container {
   position: relative;
-  width: 80px;
-  height: 80px;
+  width: 86px;
+  height: 86px;
   border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #2a1c12 0%, #0c0805 100%);
   border: 2px solid var(--gold-dim);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, .6);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .8), inset 0 0 14px rgba(0, 0, 0, 0.9);
   overflow: hidden;
-  transition: box-shadow .18s ease, border-color .18s ease, transform .18s var(--ease-out);
+  transition: all .2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Stacco visivo fra un tiro e il successivo: senza, due tiri ravvicinati
-   si leggono come un'unica animazione continua. */
+.dice-bezel-rim {
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  border: 1px dashed rgba(212, 175, 55, 0.35);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Stacco visivo fra un tiro e il successivo con bagliore dorato aumentato */
 .dice-container.rolling {
-  border-color: var(--gold);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, .6), 0 0 26px 4px var(--gold-glow);
-  transform: scale(1.12);
+  border-color: var(--gold-bright);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .8), 0 0 32px 6px var(--gold-glow);
+  transform: scale(1.14);
 }
 
 .dice-container canvas {
