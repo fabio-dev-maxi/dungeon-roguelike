@@ -1,9 +1,26 @@
-<div class="langbar">
-  @for (l of langs; track l) {
-    <button
-      type="button"
-      class="langbtn"
-      [class.active]="l === game.state().lang"
-      (click)="select(l)">{{ labels[l] }}</button>
+<div class="lang-dropdown">
+  <button 
+    type="button" 
+    class="lang-trigger" 
+    [class.active]="isOpen()"
+    (click)="toggleDropdown()"
+    [attr.aria-expanded]="isOpen()">
+    <span class="flag">{{ flags[game.state().lang] }}</span>
+    <span class="code">{{ labels[game.state().lang] }}</span>
+    <span class="arrow" [class.open]="isOpen()">▼</span>
+  </button>
+
+  @if (isOpen()) {
+    <ul class="lang-menu">
+      @for (l of langs; track l) {
+        <li 
+          class="lang-option" 
+          [class.selected]="l === game.state().lang"
+          (click)="select(l)">
+          <span class="flag">{{ flags[l] }}</span>
+          <span class="code">{{ labels[l] }}</span>
+        </li>
+      }
+    </ul>
   }
 </div>
