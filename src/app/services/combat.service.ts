@@ -35,7 +35,6 @@ export class CombatService {
     const roll = this.dice.rnd(20);
     const confirmed =
       roll !== 1 && (roll === 20 || roll + attackBonus >= targetAC);
-
     // La classe "crit" consente alla UI di mostrare il banner solo quando la conferma riesce.
     await this.stateService.animateRollAsync(
       roll,
@@ -55,7 +54,9 @@ export class CombatService {
     const c = CLASS_DATA[p.cls];
     const statMod =
       mod(p.stats[c.atkStat]) + (p.tempAtkBonus || 0) + (p.flatAtkBonus || 0);
+
     const critThreshold = p.critThreshold || 20;
+
     p.tempAtkBonus = 0;
     this.stateService.touch();
 
@@ -64,12 +65,14 @@ export class CombatService {
     const total = attackRoll + statMod;
     const hit = attackRoll === 20 || total >= s.monster!.ac;
     const criticalThreat = hit && attackRoll >= critThreshold;
+
     const raw = await this.stateService.animateRollAsync(
       attackRoll,
       20,
       'attack',
       criticalThreat ? critThreshold : 21
     );
+
     const cur = this.stateService.state();
     const isCrit =
       criticalThreat && (await this.confirmCritical(cur.monster!.ac, statMod));
@@ -85,15 +88,17 @@ export class CombatService {
         mod(cur.player!.stats[c.atkStat]) +
         (cur.player!.weapon.bonus || 0) +
         (cur.player!.flatDmgBonus || 0);
-      const dmgRoll = this.dice.rollNdM(n, d);
-      const dmgMax = n * d;
 
-      // 2. Animazione Dado Danno dell'Arma
-      await this.stateService.animateRollAsync(dmgRoll, d, 'damage');
+      const dmgMax = n * d;
+      const dmgRolls = Array.from({ length: n }, () => this.dice.rollDie(d));
+
+      // 2. Animazione Dado Danno dell'Arma (Tiro Multiplo)
+      await this.stateService.animateRollAsync(dmgRolls, d, 'damage');
+
+      const dmgRoll = dmgRolls.reduce((a, b) => a + b, 0);
 
       let dmg = dmgRoll + bonus;
       let critTxt = '';
-
       if (isCrit) {
         const mult = cur.player!.critMultiplier || 2;
         dmg = Math.floor(dmg * mult);
@@ -112,6 +117,7 @@ export class CombatService {
         0,
         cur.monster!.maxHp
       );
+
       this.stateService.touch();
       this.stateService.log(
         this.stateService.tf('log.attackHit', {
@@ -152,9 +158,11 @@ export class CombatService {
   async playerDefend(): Promise<void> {
     const s = this.stateService.state();
     if (s.combatFlags.acting) return;
+
     s.combatFlags.acting = true;
     s.combatFlags.defending = true;
     this.stateService.touch();
+
     this.stateService.log(
       this.stateService.t('log.defendFlavor'),
       'flavor hero'
@@ -168,6 +176,7 @@ export class CombatService {
   async playerUseSpecial(): Promise<void> {
     const s = this.stateService.state();
     if (s.combatFlags.acting || s.player!.usedSpecial) return;
+
     const p = s.player!;
     const cls = p.cls;
     const specialName = this.stateService.t('classes.' + cls + '.specialName');
@@ -178,9 +187,9 @@ export class CombatService {
     if (cls === 'fighter') {
       p.mightyBlowActive = true;
       p.usedSpecial = true;
-
       const statMod =
         mod(p.stats.str) + (p.tempAtkBonus || 0) + (p.flatAtkBonus || 0);
+
       p.tempAtkBonus = 0;
       const critThreshold = p.critThreshold || 20;
 
@@ -189,12 +198,14 @@ export class CombatService {
       const total = attackRoll + statMod;
       const hit = attackRoll === 20 || total >= s.monster!.ac;
       const criticalThreat = hit && attackRoll >= critThreshold;
+
       const raw = await this.stateService.animateRollAsync(
         attackRoll,
         20,
         'attack',
         criticalThreat ? critThreshold : 21
       );
+
       const isCrit =
         criticalThreat && (await this.confirmCritical(s.monster!.ac, statMod));
 
@@ -207,11 +218,13 @@ export class CombatService {
         const [n, d] = p.weapon.dice;
         const bonus =
           mod(p.stats.str) + (p.weapon.bonus || 0) + (p.flatDmgBonus || 0);
-        const dmgRoll = this.dice.rollNdM(n, d);
+
         const dmgMax = n * d;
+        const dmgRolls = Array.from({ length: n }, () => this.dice.rollDie(d));
 
         // 2. Animazione Dado Danno
-        await this.stateService.animateRollAsync(dmgRoll, d, 'damage');
+        await this.stateService.animateRollAsync(dmgRolls, d, 'damage');
+        const dmgRoll = dmgRolls.reduce((a, b) => a + b, 0);
 
         let dmg = (dmgRoll + bonus) * 2;
         let critTxt = ' <b>[COLPO PODEROSO!]</b>';
@@ -229,7 +242,9 @@ export class CombatService {
           0,
           s.monster!.maxHp
         );
+
         this.stateService.touch();
+
         this.stateService.log(
           this.stateService.tf('log.attackHit', {
             roll: raw,
@@ -264,6 +279,7 @@ export class CombatService {
     } else if (cls === 'rogue') {
       const statMod =
         mod(p.stats.dex) + (p.tempAtkBonus || 0) + (p.flatAtkBonus || 0) + 3;
+
       p.tempAtkBonus = 0;
 
       // 1. Tiro per Colpire (d20)
@@ -273,16 +289,23 @@ export class CombatService {
         'attack',
         p.critThreshold
       );
+
       const total = raw + statMod;
       const hit = raw === 20 || total >= s.monster!.ac;
 
       if (hit) {
         const bonus =
           mod(p.stats.dex) + (p.weapon.bonus || 0) + (p.flatDmgBonus || 0);
-        const dmgRoll = this.dice.rollNdM(3, 6);
+
+        const dmgRolls = [
+          this.dice.rollDie(6),
+          this.dice.rollDie(6),
+          this.dice.rollDie(6),
+        ];
 
         // 2. Animazione Dado Danno Attacco Furtivo (d6)
-        await this.stateService.animateRollAsync(dmgRoll, 6, 'damage');
+        await this.stateService.animateRollAsync(dmgRolls, 6, 'damage');
+        const dmgRoll = dmgRolls.reduce((a, b) => a + b, 0);
 
         const mult = p.critMultiplier || 2;
         const dmg = Math.floor((dmgRoll + bonus) * mult);
@@ -292,6 +315,7 @@ export class CombatService {
           0,
           s.monster!.maxHp
         );
+
         this.stateService.touch();
         this.stateService.log(
           this.stateService.tf('log.specialRogueHit', {
@@ -310,7 +334,6 @@ export class CombatService {
           'flavor hero'
         );
       }
-
       p.usedSpecial = true;
       if (s.monster!.hp <= 0) {
         s.combatFlags.acting = false;
@@ -322,20 +345,17 @@ export class CombatService {
       const bonus =
         mod(p.stats.int) + (p.specialBonusDmg || 0) + (p.flatDmgBonus || 0);
 
-      // 1. Primo lancio e animazione del 1° d4
-      const roll1 = this.dice.rollDie(4);
-      await this.stateService.animateRollAsync(roll1, 4, 'damage');
+      // Lancio simultaneo dei 2d4
+      const dmgRolls = [this.dice.rollDie(4), this.dice.rollDie(4)];
+      await this.stateService.animateRollAsync(dmgRolls, 4, 'damage');
 
-      // 2. Secondo lancio e animazione del 2° d4
-      const roll2 = this.dice.rollDie(4);
-      await this.stateService.animateRollAsync(roll2, 4, 'damage');
-
-      const dmgRoll = roll1 + roll2;
+      const dmgRoll = dmgRolls.reduce((a, b) => a + b, 0);
       const dmgMax = 8;
       const dmg = dmgRoll + bonus;
 
       s.monster!.hp = this.dice.clamp(s.monster!.hp - dmg, 0, s.monster!.maxHp);
       p.tempAcBonus = (p.tempAcBonus || 0) + 2;
+
       this.stateService.touch();
 
       this.stateService.log(
@@ -357,17 +377,25 @@ export class CombatService {
       await this.monsterTurn();
     } else if (cls === 'cleric') {
       const bonus = mod(p.stats.wis) + (p.specialBonusHeal || 0);
-      const dmgRoll = this.dice.rollNdM(3, 6);
+
+      const dmgRolls = [
+        this.dice.rollDie(6),
+        this.dice.rollDie(6),
+        this.dice.rollDie(6),
+      ];
       const dmgMax = 18;
 
       // Animazione Dado Cura Preghiera Guaritrice (d6)
-      await this.stateService.animateRollAsync(dmgRoll, 6, 'heal');
+      await this.stateService.animateRollAsync(dmgRolls, 6, 'heal');
+      const dmgRoll = dmgRolls.reduce((a, b) => a + b, 0);
 
       const heal = dmgRoll + bonus;
 
       p.hp = this.dice.clamp(p.hp + heal, 0, p.maxHp);
       p.tempAcBonus = (p.tempAcBonus || 0) + 2;
+
       this.stateService.touch();
+
       this.stateService.log(
         this.stateService.tf('log.specialCleric', {
           special: specialName,
@@ -389,9 +417,10 @@ export class CombatService {
   async playerUsePotion(inventoryIndex?: number): Promise<void> {
     const s = this.stateService.state();
     if (s.combatFlags.acting) return;
-    const p = s.player!;
 
+    const p = s.player!;
     let targetIndex = -1;
+
     if (
       inventoryIndex !== undefined &&
       inventoryIndex >= 0 &&
@@ -401,23 +430,27 @@ export class CombatService {
         targetIndex = inventoryIndex;
       }
     }
-
     if (targetIndex === -1) {
       targetIndex = p.inventory.findIndex((i) => i.type === 'potion');
     }
-
     if (targetIndex === -1) return;
 
     s.combatFlags.acting = true;
+
     const potion = p.inventory.splice(targetIndex, 1)[0];
     const [n, d] = potion.heal;
-    const dmgRoll = this.dice.rollNdM(n, d);
+
+    const dmgRolls = Array.from({ length: n }, () => this.dice.rollDie(d));
     const dmgMax = n * d;
 
-    await this.stateService.animateRollAsync(dmgRoll, d, 'heal');
+    await this.stateService.animateRollAsync(dmgRolls, d, 'heal');
+    const dmgRoll = dmgRolls.reduce((a, b) => a + b, 0);
+
     const heal = dmgRoll + (p.potionHealBonus || 0);
+
     p.hp = this.dice.clamp(p.hp + heal, 0, p.maxHp);
     this.stateService.touch();
+
     this.stateService.log(
       this.stateService.tf('log.drinkPotion', {
         potion: this.stateService.t('potionName'),
@@ -427,6 +460,7 @@ export class CombatService {
       }),
       'heal hero'
     );
+
     if (s.phase === 'combat') {
       await this.monsterTurn();
     }
@@ -443,12 +477,12 @@ export class CombatService {
     const p = s.player!;
     const dc = 10 + Math.floor(s.depth / 4);
     const statMod = mod(p.stats.dex) + (p.fleeBonus || 0);
+
     const raw = await this.stateService.animateRollAsync(
       this.dice.rnd(20),
       20,
       'flee'
     );
-
     const cur = this.stateService.state();
     const total = raw + statMod;
     const success = total >= dc;
@@ -472,6 +506,7 @@ export class CombatService {
     } else {
       await this.monsterTurn();
     }
+
     this.stateService.state().combatFlags.acting = false;
     this.stateService.touch();
   }
@@ -479,10 +514,12 @@ export class CombatService {
   async monsterTurn(): Promise<void> {
     const s = this.stateService.state();
     if (!s.monster || s.monster.hp <= 0) return;
+
     const p = s.player!;
     const name = this.monsterService.monsterDisplayName(s.monster);
     const defending = !!s.combatFlags.defending;
     s.combatFlags.defending = false;
+
     const acBonus = defending ? 4 : 0;
     const monsterAtkMod = s.monster.atk;
     const targetAC = p.ac + acBonus + (p.tempAcBonus || 0);
@@ -493,12 +530,14 @@ export class CombatService {
     const total = attackRoll + monsterAtkMod;
     const hit = attackRoll === 20 || total >= targetAC;
     const criticalThreat = hit && attackRoll === 20;
+
     const toHit = await this.stateService.animateRollAsync(
       attackRoll,
       20,
       'monsterAttack',
       criticalThreat ? 20 : 21
     );
+
     const cur = this.stateService.state();
     const isCrit =
       criticalThreat &&
@@ -515,19 +554,22 @@ export class CombatService {
       );
     } else if (hit) {
       const [n, d] = cur.monster!.dmg;
-      const dmgRoll = this.dice.rollNdM(n, d);
+
+      const dmgRolls = Array.from({ length: n }, () => this.dice.rollDie(d));
       const dmgMax = n * d;
 
-      // 2. Animazione Dado Danno del Nemico
-      await this.stateService.animateRollAsync(dmgRoll, d, 'monsterDamage');
-      let dmg = dmgRoll;
+      // 2. Animazione Dado Danno del Nemico (Tiro Multiplo)
+      await this.stateService.animateRollAsync(dmgRolls, d, 'monsterDamage');
+      const dmgRoll = dmgRolls.reduce((a, b) => a + b, 0);
 
+      let dmg = dmgRoll;
       // Se è un 20 naturale, raddoppia il danno inflitto
       if (isCrit) {
         dmg = dmg * 2;
       }
 
       if (defending) dmg = Math.ceil(dmg / 2);
+
       if (p.damageReduction && p.damageReduction > 0) {
         dmg = Math.max(1, dmg - p.damageReduction);
       }
@@ -550,7 +592,6 @@ export class CombatService {
         dmg,
         defended: defending ? this.stateService.t('log.defendedSuffix') : '',
       });
-
       if (isCrit) {
         hitLog += this.stateService.t('log.critText');
       }
@@ -626,10 +667,8 @@ export class CombatService {
           const weaponIdx = qRoll < 0.5 ? 0 : qRoll < 0.85 ? 1 : 2;
           const selectedWeapon =
             weapons[Math.min(weaponIdx, weapons.length - 1)];
-
           equipWeapon(p, selectedWeapon);
           this.stateService.touch();
-
           const wName = this.stateService.equipmentName(
             selectedWeapon.key,
             'weapons'
@@ -649,10 +688,8 @@ export class CombatService {
           const qRoll = Math.random();
           const armorIdx = qRoll < 0.5 ? 0 : qRoll < 0.85 ? 1 : 2;
           const selectedArmor = armors[Math.min(armorIdx, armors.length - 1)];
-
           equipArmor(p, selectedArmor);
           this.stateService.touch();
-
           const aName = this.stateService.equipmentName(
             selectedArmor.key,
             'armors'
@@ -690,6 +727,7 @@ export class CombatService {
           const relicEffect = this.stateService.t(
             'relics.' + relicId + '.effect'
           );
+
           drops.push({
             type: 'relic',
             id: relicId,
@@ -701,6 +739,7 @@ export class CombatService {
     }
 
     const final = this.stateService.state();
+
     let lvl = final.player!.level;
     let xpLeft = final.player!.xp;
     let levelsToGain = 0;

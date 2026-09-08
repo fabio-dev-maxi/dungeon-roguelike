@@ -13,23 +13,28 @@
   border: 2px solid var(--gold-dim);
   box-shadow: 0 6px 18px rgba(0, 0, 0, .8), inset 0 0 14px rgba(0, 0, 0, 0.9);
   overflow: hidden;
-  transition: all .2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.35s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Plancia allargata a 230px per ospitare fino a 4-5 dadi senza schiacciarli */
+.dice-container.multi {
+  width: 230px;
+  border-radius: 18px;
 }
 
 .dice-bezel-rim {
   position: absolute;
   inset: 2px;
-  border-radius: 50%;
+  border-radius: inherit;
   border: 1px dashed rgba(212, 175, 55, 0.35);
   pointer-events: none;
   z-index: 2;
 }
 
-/* Stacco visivo fra un tiro e il successivo con bagliore dorato aumentato */
 .dice-container.rolling {
   border-color: var(--gold-bright);
   box-shadow: 0 6px 20px rgba(0, 0, 0, .8), 0 0 32px 6px var(--gold-glow);
-  transform: scale(1.14);
+  transform: scale(1.05);
 }
 
 .dice-container canvas {

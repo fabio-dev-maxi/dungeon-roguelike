@@ -5,7 +5,13 @@ import { EncounterService } from './encounter.service';
 import { GameStateService } from './game-state.service';
 import { DiceService } from './dice.service';
 import { LevelUpService } from './level-up.service';
-import { ClassKey, ChoiceOption, PendingChoice, Stats, StatKey } from '../models/game.models';
+import {
+  ClassKey,
+  ChoiceOption,
+  PendingChoice,
+  Stats,
+  StatKey,
+} from '../models/game.models';
 import { CLASS_DATA } from '../data/game.data';
 
 export interface DropsSummary {
@@ -26,7 +32,10 @@ export interface SimulationResult {
   avgDeathDepth: number | null;
   deathsByDepth: Record<number, number>;
   deathsByBoss: Record<string, number>;
-  bossReach: Record<string, { reach: number; survive: number; levels: number[] }>;
+  bossReach: Record<
+    string,
+    { reach: number; survive: number; levels: number[] }
+  >;
   dropsSummary: DropsSummary;
 }
 
@@ -45,23 +54,28 @@ export class SimulationService {
     private stateService: GameStateService,
     private levelUpService: LevelUpService,
     private dice: DiceService
-  ) { }
+  ) {}
 
   private setSimulationMode(active: boolean) {
     if (active) {
       this.origBestDepth = this.stateService.bestDepth();
       this.origLog = this.stateService.log.bind(this.stateService);
       this.origTouch = this.stateService.touch.bind(this.stateService);
-      this.origAnimateRollAsync = this.stateService.animateRollAsync.bind(this.stateService);
+      this.origAnimateRollAsync = this.stateService.animateRollAsync.bind(
+        this.stateService
+      );
       this.origWait = this.stateService.wait.bind(this.stateService);
-      this.stateService.log = () => { };
-      this.stateService.touch = () => { };
-      this.stateService.animateRollAsync = async (val) => val;
-      this.stateService.wait = async () => { };
+      this.stateService.log = () => {};
+      this.stateService.touch = () => {};
+      this.stateService.animateRollAsync = async (val: number | number[]) => {
+        return Array.isArray(val) ? val.reduce((a, b) => a + b, 0) : val;
+      };
+      this.stateService.wait = async () => {};
     } else {
       if (this.origLog) this.stateService.log = this.origLog;
       if (this.origTouch) this.stateService.touch = this.origTouch;
-      if (this.origAnimateRollAsync) this.stateService.animateRollAsync = this.origAnimateRollAsync;
+      if (this.origAnimateRollAsync)
+        this.stateService.animateRollAsync = this.origAnimateRollAsync;
       if (this.origWait) this.stateService.wait = this.origWait;
       this.stateService.restartGame();
       this.stateService.bestDepth.set(this.origBestDepth);
@@ -72,7 +86,12 @@ export class SimulationService {
   private generateStrongStats(cls: ClassKey): Stats {
     const rolls: number[] = [];
     for (let i = 0; i < 6; i++) {
-      const r = [this.dice.rollDie(6), this.dice.rollDie(6), this.dice.rollDie(6), this.dice.rollDie(6)];
+      const r = [
+        this.dice.rollDie(6),
+        this.dice.rollDie(6),
+        this.dice.rollDie(6),
+        this.dice.rollDie(6),
+      ];
       r.sort((a, b) => a - b);
       r.shift();
       rolls.push(r.reduce((a, b) => a + b, 0));
@@ -86,21 +105,30 @@ export class SimulationService {
 
     const primary = CLASS_DATA[cls].primary;
     const atkStat = CLASS_DATA[cls].atkStat;
-    const stats: Stats = { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 };
+    const stats: Stats = {
+      str: 10,
+      dex: 10,
+      con: 10,
+      int: 10,
+      wis: 10,
+      cha: 10,
+    };
 
     stats[primary] = rolls[0];
 
     if (atkStat !== primary) {
       stats['con'] = rolls[1];
       stats[atkStat] = rolls[2];
-      const remainingKeys: StatKey[] = (['str', 'dex', 'con', 'int', 'wis', 'cha'] as StatKey[])
-        .filter(k => k !== primary && k !== 'con' && k !== atkStat);
-      remainingKeys.forEach((k, idx) => stats[k] = rolls[3 + idx]);
+      const remainingKeys: StatKey[] = (
+        ['str', 'dex', 'con', 'int', 'wis', 'cha'] as StatKey[]
+      ).filter((k) => k !== primary && k !== 'con' && k !== atkStat);
+      remainingKeys.forEach((k, idx) => (stats[k] = rolls[3 + idx]));
     } else {
       stats['con'] = rolls[1];
-      const remainingKeys: StatKey[] = (['str', 'dex', 'con', 'int', 'wis', 'cha'] as StatKey[])
-        .filter(k => k !== primary && k !== 'con');
-      remainingKeys.forEach((k, idx) => stats[k] = rolls[2 + idx]);
+      const remainingKeys: StatKey[] = (
+        ['str', 'dex', 'con', 'int', 'wis', 'cha'] as StatKey[]
+      ).filter((k) => k !== primary && k !== 'con');
+      remainingKeys.forEach((k, idx) => (stats[k] = rolls[2 + idx]));
     }
 
     return stats;
@@ -110,9 +138,25 @@ export class SimulationService {
     this.setSimulationMode(true);
     const deathsByDepth: Record<number, number> = {};
     const deathsByBoss: Record<string, number> = {};
-    const bossReach: Record<string, { reach: number; survive: number; levels: number[] }> = {};
-    const BOSS_IDS = ['boss1', 'boss2', 'boss3', 'chimera', 'archdemon', 'lich', 'hydra', 'dragon_red', 'kraken', 'tarrasque'];
-    BOSS_IDS.forEach(id => bossReach[id] = { reach: 0, survive: 0, levels: [] });
+    const bossReach: Record<
+      string,
+      { reach: number; survive: number; levels: number[] }
+    > = {};
+    const BOSS_IDS = [
+      'boss1',
+      'boss2',
+      'boss3',
+      'chimera',
+      'archdemon',
+      'lich',
+      'hydra',
+      'dragon_red',
+      'kraken',
+      'tarrasque',
+    ];
+    BOSS_IDS.forEach(
+      (id) => (bossReach[id] = { reach: 0, survive: 0, levels: [] })
+    );
 
     let completions = 0;
     let totalDeathDepth = 0;
@@ -140,7 +184,8 @@ export class SimulationService {
           const bucket = Math.ceil(runResult.depth / 5) * 5;
           deathsByDepth[bucket] = (deathsByDepth[bucket] || 0) + 1;
           if (runResult.bossId) {
-            deathsByBoss[runResult.bossId] = (deathsByBoss[runResult.bossId] || 0) + 1;
+            deathsByBoss[runResult.bossId] =
+              (deathsByBoss[runResult.bossId] || 0) + 1;
           }
         } else {
           completions++;
@@ -165,7 +210,7 @@ export class SimulationService {
       N,
       completions,
       completionRate: completions / N,
-      avgDeathDepth: deathCount ? (totalDeathDepth / deathCount) : null,
+      avgDeathDepth: deathCount ? totalDeathDepth / deathCount : null,
       deathsByDepth,
       deathsByBoss,
       bossReach,
@@ -176,8 +221,8 @@ export class SimulationService {
         bonusGoldCollected,
         avgRelicsPerRun: Number((relicsCollected / N).toFixed(2)),
         avgFinalAC: Number((totalACSum / N).toFixed(1)),
-        avgFinalDR: Number((totalDRSum / N).toFixed(1))
-      }
+        avgFinalDR: Number((totalDRSum / N).toFixed(1)),
+      },
     };
   }
 
@@ -191,9 +236,26 @@ export class SimulationService {
     let isDead = false;
     let currentDepth = 0;
     const runDrops = { relics: 0, weapons: 0, armors: 0, gold: 0 };
-    const bossEncounters: Record<string, { reached: boolean; survived: boolean; level: number }> = {};
-    const BOSS_IDS = ['boss1', 'boss2', 'boss3', 'chimera', 'archdemon', 'lich', 'hydra', 'dragon_red', 'kraken', 'tarrasque'];
-    BOSS_IDS.forEach(id => bossEncounters[id] = { reached: false, survived: false, level: 0 });
+    const bossEncounters: Record<
+      string,
+      { reached: boolean; survived: boolean; level: number }
+    > = {};
+    const BOSS_IDS = [
+      'boss1',
+      'boss2',
+      'boss3',
+      'chimera',
+      'archdemon',
+      'lich',
+      'hydra',
+      'dragon_red',
+      'kraken',
+      'tarrasque',
+    ];
+    BOSS_IDS.forEach(
+      (id) =>
+        (bossEncounters[id] = { reached: false, survived: false, level: 0 })
+    );
 
     for (let depth = 1; depth <= 50; depth++) {
       s.depth = depth;
@@ -209,12 +271,20 @@ export class SimulationService {
         }
 
         let rounds = 0;
-        while (s.player!.hp > 0 && s.monster && s.monster.hp > 0 && rounds < 100) {
+        while (
+          s.player!.hp > 0 &&
+          s.monster &&
+          s.monster.hp > 0 &&
+          rounds < 100
+        ) {
           rounds++;
 
           if (!s.player!.usedSpecial) {
             await this.combatService.playerUseSpecial();
-          } else if (s.player!.hp < s.player!.maxHp * 0.35 && s.player!.inventory.some(i => i.type === 'potion')) {
+          } else if (
+            s.player!.hp < s.player!.maxHp * 0.35 &&
+            s.player!.inventory.some((i) => i.type === 'potion')
+          ) {
             await this.combatService.playerUsePotion();
           } else {
             await this.combatService.playerAttack();
@@ -230,7 +300,7 @@ export class SimulationService {
             bossEncounters,
             runDrops,
             finalAC: s.player!.ac,
-            finalDR: s.player!.damageReduction || 0
+            finalDR: s.player!.damageReduction || 0,
           };
         }
 
@@ -258,7 +328,9 @@ export class SimulationService {
             s.pendingChoice.onChoose(choiceOpt);
             s.phase = 'explore';
           } else if (s.pendingChoice.onResolve) {
-            const statMod = this.dice.mod(s.player!.stats[choiceOpt.stat as any]);
+            const statMod = this.dice.mod(
+              s.player!.stats[choiceOpt.stat as any]
+            );
             const roll = this.dice.rnd(20);
             s.pendingChoice.onResolve(roll + statMod >= s.pendingChoice.dc!);
             s.phase = 'explore';
@@ -271,7 +343,7 @@ export class SimulationService {
                 bossEncounters,
                 runDrops,
                 finalAC: s.player!.ac,
-                finalDR: s.player!.damageReduction || 0
+                finalDR: s.player!.damageReduction || 0,
               };
             }
           }
@@ -290,29 +362,38 @@ export class SimulationService {
       bossEncounters,
       runDrops,
       finalAC: s.player!.ac,
-      finalDR: s.player!.damageReduction || 0
+      finalDR: s.player!.damageReduction || 0,
     };
   }
 
-  private pickOptimalChoice(choice: PendingChoice, p: import('../models/game.models').Player): ChoiceOption {
-    if (choice.options.some(o => o.stat === 'dex')) {
-      return choice.options.find(o => o.stat === 'dex')!;
+  private pickOptimalChoice(
+    choice: PendingChoice,
+    p: import('../models/game.models').Player
+  ): ChoiceOption {
+    if (choice.options.some((o) => o.stat === 'dex')) {
+      return choice.options.find((o) => o.stat === 'dex')!;
     }
-    if (choice.options.some(o => o.action === 'heal')) {
-      return p.hp < p.maxHp ? choice.options.find(o => o.action === 'heal')! : choice.options.find(o => o.action === 'skip')!;
+    if (choice.options.some((o) => o.action === 'heal')) {
+      return p.hp < p.maxHp
+        ? choice.options.find((o) => o.action === 'heal')!
+        : choice.options.find((o) => o.action === 'skip')!;
     }
-    if (choice.options.some(o => o.action === 'potion')) {
-      const potionOpt = choice.options.find(o => o.action === 'potion');
-      const upgradeOpt = choice.options.find(o => o.action === 'upgrade');
-      const potionsCount = p.inventory.filter(i => i.type === 'potion').length;
-      if (p.gold >= (potionOpt?.cost || 0) && potionsCount < 4) return potionOpt!;
+    if (choice.options.some((o) => o.action === 'potion')) {
+      const potionOpt = choice.options.find((o) => o.action === 'potion');
+      const upgradeOpt = choice.options.find((o) => o.action === 'upgrade');
+      const potionsCount = p.inventory.filter(
+        (i) => i.type === 'potion'
+      ).length;
+      if (p.gold >= (potionOpt?.cost || 0) && potionsCount < 4)
+        return potionOpt!;
       if (p.gold >= (upgradeOpt?.cost || 0)) return upgradeOpt!;
-      return choice.options.find(o => o.action === 'skip')!;
+      return choice.options.find((o) => o.action === 'skip')!;
     }
-    if (choice.options.some(o => o.action === 'rest')) {
-      const restOpt = choice.options.find(o => o.action === 'rest');
-      const drinkOpt = choice.options.find(o => o.action === 'drink');
-      if (p.gold >= (restOpt?.cost || 0) && p.hp < p.maxHp * 0.7) return restOpt!;
+    if (choice.options.some((o) => o.action === 'rest')) {
+      const restOpt = choice.options.find((o) => o.action === 'rest');
+      const drinkOpt = choice.options.find((o) => o.action === 'drink');
+      if (p.gold >= (restOpt?.cost || 0) && p.hp < p.maxHp * 0.7)
+        return restOpt!;
       return drinkOpt!;
     }
     return choice.options[0];

@@ -119,9 +119,12 @@ export interface LevelUpState {
 export interface RollingDieState {
   active: boolean;
   value: number | null;
-  cls: string;
+  values?: number[];  // Valori dei singoli dadi (es. [3, 4] per 2d4)
   sides?: number;
+  count?: number;   // Numero totale di dadi lanciati insieme
+  cls: string;
   tag?: string;
+  isEnemy?: boolean;
 }
 
 export interface CombatFlags {

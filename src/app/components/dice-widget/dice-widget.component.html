@@ -1,4 +1,4 @@
-<div class="dice-container" [class.rolling]="isActive()">
+<div class="dice-container" [class.rolling]="isActive()" [class.multi]="isMultiDice()">
   <div class="dice-bezel-rim"></div>
-  <canvas #diceCanvas width="80" height="80"></canvas>
+  <canvas #diceCanvas></canvas>
 </div>

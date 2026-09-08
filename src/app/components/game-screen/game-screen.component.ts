@@ -25,6 +25,7 @@ const STAT_KEYS: StatKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 
 interface DieFace {
   value: number | null;
+  values?: number[] | null;
   sides: number;
 }
 
@@ -70,18 +71,26 @@ export class GameScreenComponent implements AfterViewChecked {
 
   private readonly playerDie = signal<DieFace>({
     value: null,
+    values: null,
     sides: 20,
   });
 
   private readonly monsterDie = signal<DieFace>({
     value: null,
+    values: null,
     sides: 20,
   });
 
+  // Signals letti dal template HTML
   readonly playerDieValue = computed(() => this.playerDie().value);
-  readonly monsterDieValue = computed(() => this.monsterDie().value);
   readonly playerDieSides = computed(() => this.playerDie().sides);
+
+  readonly monsterDieValue = computed(() => this.monsterDie().value);
   readonly monsterDieSides = computed(() => this.monsterDie().sides);
+
+  // Nella classe GameScreenComponent:
+readonly playerDieValues = computed<number[] | null>(() => this.playerDie().values ?? null);
+readonly monsterDieValues = computed<number[] | null>(() => this.monsterDie().values ?? null);
 
   readonly playerDieActive: Signal<boolean>;
   readonly monsterDieActive: Signal<boolean>;
@@ -127,14 +136,12 @@ export class GameScreenComponent implements AfterViewChecked {
 
     effect(() => {
       const rd = roll();
-
       if (!rd || rd.value === null) return;
-
       const face: DieFace = {
         value: rd.value,
+        values: rd.values,
         sides: rd.sides || 20,
       };
-
       if (isEnemyRoll()) {
         this.monsterDie.set(face);
       } else if (rd.tag !== 'levelhp') {

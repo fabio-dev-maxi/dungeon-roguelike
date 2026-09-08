@@ -28,7 +28,7 @@ export class GameStateService {
   }
 
   touch(): void {
-    this._version.update(v => v + 1);
+    this._version.update((v) => v + 1);
   }
 
   t(path: string): any {
@@ -39,10 +39,7 @@ export class GameStateService {
     return this.i18n.tf(path, vars);
   }
 
-  equipmentName(
-    key: string,
-    kind: 'weapons' | 'armors'
-  ): string {
+  equipmentName(key: string, kind: 'weapons' | 'armors'): string {
     return this.i18n.equipmentName(key, kind);
   }
 
@@ -69,10 +66,10 @@ export class GameStateService {
       rollingDie: {
         active: false,
         value: null,
-        cls: ''
+        cls: '',
       },
       tempStats: null,
-      tempName: ''
+      tempName: '',
     };
   }
 
@@ -92,54 +89,55 @@ export class GameStateService {
   }
 
   async animateRollAsync(
-    finalValue: number,
+    finalValue: number | number[],
     sides: number,
     tag = '',
     critMin?: number
   ): Promise<number> {
-    const s = this.state();
+    const values = Array.isArray(finalValue) ? finalValue : [finalValue];
+    const totalSum = values.reduce((a, b) => a + b, 0);
+    const count = values.length;
+    const isEnemy = tag.startsWith('monster');
 
+    const s = this.state();
     s.rollingDie = {
       active: true,
-      value: this.dice.rnd(sides),
-      cls: 'rolling',
+      value: totalSum,
+      values,
       sides,
-      tag
+      count,
+      cls: 'rolling',
+      tag,
+      isEnemy,
     };
-
     this.touch();
 
-    await this.wait(SPIN_MS);
+    await this.wait(SPIN_MS + 250);
 
     let cls = '';
-
-    if (sides === 20) {
-      if (finalValue >= (critMin || 20)) {
-        cls = 'crit';
-      } else if (finalValue === 1) {
-        cls = 'fail';
-      }
+    if (sides === 20 && count === 1) {
+      if (totalSum >= (critMin || 20)) cls = 'crit';
+      else if (totalSum === 1) cls = 'fail';
     }
 
     s.rollingDie = {
       active: false,
-      value: finalValue,
-      cls,
+      value: totalSum,
+      values,
       sides,
-      tag
+      count,
+      cls,
+      tag,
+      isEnemy,
     };
-
     this.touch();
 
-    // La frenata del dado consuma la prima parte dell'attesa: va scontata,
-    // altrimenti il tiro successivo parte prima che il risultato sia leggibile.
     await this.wait(DICE_SETTLE_MS + READ_RESULT_MS);
-
-    return finalValue;
+    return totalSum;
   }
 
   wait(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   toggleStats(): void {
