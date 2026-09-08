@@ -518,18 +518,57 @@
 
 .log p {
   margin: 0 0 5px;
-  line-height: 1.35;
-  font-size: 0.82rem;
+  padding: 5px 8px;
+  line-height: 1.45;
+  font-size: 0.86rem;
+  color: var(--parchment);
   border-left: 3px solid transparent;
-  padding: 3px 6px;
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   box-sizing: border-box;
+}
+
+.actions-console.choice-actions-console {
+  height: 122px !important;
+  min-height: 122px !important;
+  max-height: 122px !important;
+}
+
+.actions.choice-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 6px;
+}
+
+.choice-actions-heading {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 0;
+  color: var(--gold);
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.choice-actions-heading.trap-alert { color: #ffb3a7; }
+
+.choice-actions .encounter-btn {
+  height: 58px;
+  min-height: 58px;
+  padding: 6px;
+  font-size: 0.74rem;
 }
 
 .log p.hero, .log p.player { border-left-color: var(--blue-hero); background: rgba(52, 152, 219, 0.08); }
 .log p.enemy, .log p.dmg { border-left-color: var(--red-monster); background: rgba(231, 76, 60, 0.08); }
 .log p.heal { border-left-color: var(--green-heal); background: rgba(46, 204, 113, 0.08); }
 .log p.crit { border-left-color: var(--gold); background: rgba(212, 175, 55, 0.12); font-weight: 600; }
+.log p.flavor { border-left-color: var(--gold-dim); background: rgba(212, 175, 55, 0.1); color: var(--parchment); font-size: 0.9rem; }
+.log p.sys.floor { border-left-color: var(--gold); background: rgba(212, 175, 55, 0.14); color: var(--gold-bright); font-family: var(--font-heading); font-weight: 700; letter-spacing: 0.08em; text-align: center; text-transform: uppercase; }
 
 /* SCHEDA MOSTRO DESTRA */
 .enemy-card { border-color: var(--stone-line); }
@@ -562,25 +601,7 @@
 
 .sigil--empty { opacity: 0.35; }
 
-/* INCONTRI SPECIALI */
-.encounter-card {
-  padding: 14px;
-  background: rgba(22, 16, 11, 0.95);
-  border: 1px solid var(--gold-dim);
-  border-radius: var(--radius-md);
-  height: 150px;
-  box-sizing: border-box;
-}
-
-.encounter-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-
-.encounter-options-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 6px;
-  width: 100%;
-}
-
+/* SCELTE DI INCONTRO */
 .encounter-btn {
   display: flex;
   flex-direction: column;
@@ -593,7 +614,7 @@
   min-height: 48px;
   gap: 4px;
   white-space: normal;
-  word-break: break-word;
+  overflow-wrap: anywhere;
   box-sizing: border-box;
 }
 
@@ -616,6 +637,21 @@
     height: auto !important;
     min-height: 0;
     max-height: none;
+  }
+
+  .actions-console.choice-actions-console {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+  }
+
+  .actions.choice-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    height: auto;
+  }
+
+  .choice-actions .encounter-btn:last-child {
+    grid-column: 1 / -1;
   }
 
   .actions {

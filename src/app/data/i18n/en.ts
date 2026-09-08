@@ -16,7 +16,7 @@ export const EN = {
     goldCollected: 'Gold collected: {gold}', sessionRecord: 'Session record: floor {depth}', restartButton: 'Descend Again', langLabel: 'Language', diceLetter: 'd',
     bossDefeatedTitle: 'Boss Defeated: {name}', xpGainedLabel: 'Experience Gained', goldGainedLabel: 'Gold Gained', dropsLabel: 'Loot', noDropsText: 'No rare item this time.', continueButton: 'Continue',
     xpLabel: 'Experience', levelUpTitle: 'Level Up!', levelUpHeader: 'Level {level} Reached!', chooseStatPrompt: 'Choose a stat to increase (+1):', chooseFeatPrompt: 'Choose a new feat for your character:',
-    hpRollPrompt: 'Hit Point roll:', rerollHpButton: 'Reroll (once)', confirmButton: 'Confirm', goldExtraTitle: 'Gold Coin Chest'
+    hpRollPrompt: 'Hit Point roll:', rerollHpButton: 'Reroll (once)', confirmButton: 'Confirm', critThreatBanner: 'CRITICAL THREAT!', critConfirmedBanner: 'CRITICAL CONFIRMED!', trapEncounterTitle: 'Warning: trap!', encounterTitle: 'Encounter in the Spire', descentChronicleTitle: 'Chronicle of the Descent', goldExtraTitle: 'Gold Coin Chest'
   },
   stats: { str: 'Strength', dex: 'Dexterity', con: 'Constitution', int: 'Intelligence', wis: 'Wisdom', cha: 'Charisma' },
   statAbbr: { str: 'STR', dex: 'DEX', con: 'CON', int: 'INT', wis: 'WIS', cha: 'CHA' },

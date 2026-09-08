@@ -88,19 +88,6 @@ body {
   font-size: 17px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  animation: torchAmbient 8s ease-in-out infinite alternate;
-}
-
-@keyframes torchAmbient {
-  0% {
-    background-color: var(--void);
-  }
-  50% {
-    background-color: #0c0806;
-  }
-  100% {
-    background-color: #090604;
-  }
 }
 
 ::selection { background: var(--blood); color: var(--parchment); }
@@ -137,44 +124,6 @@ p { margin: 0 0 10px; }
 }
 
 hr.rule { border: none; border-top: 1px solid var(--stone-line); margin: 18px 0; }
-
-/* ==========================================================================
-   DECORAZIONI AMBIENTALI — particelle di brace & anello runico
-   ========================================================================== */
-.ember-field { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
-.ember {
-  position: absolute;
-  bottom: -4vh;
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--gold) 0%, rgba(212, 175, 55, 0) 72%);
-  opacity: 0;
-  animation: emberRise linear infinite;
-}
-
-@keyframes emberRise {
-  0% { transform: translate(0, 0); opacity: 0; }
-  8% { opacity: .85; }
-  92% { opacity: .25; }
-  100% { transform: translate(var(--drift, 18px), -108vh); opacity: 0; }
-}
-
-/* Cerchio di tacche costruito solo con un conic-gradient mascherato:
-   richiama una meridiana / cerchio di protezione. */
-.rune-ring {
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-  background: repeating-conic-gradient(var(--gold) 0deg 2deg, transparent 2deg 15deg);
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 15px), #000 calc(100% - 13px) calc(100% - 9px), transparent calc(100% - 7px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 15px), #000 calc(100% - 13px) calc(100% - 9px), transparent calc(100% - 7px));
-  opacity: .5;
-}
-
-.rune-ring.spin { animation: runeSpin 120s linear infinite; }
-
-@keyframes runeSpin { to { transform: rotate(360deg); } }
 
 /* Cornice circolare in pietra usata per contenere le icone. */
 .sigil {
@@ -632,8 +581,6 @@ input[type=text]:focus { border-color: var(--gold); outline: none; }
    ACCESSIBILITÀ — riduzione delle animazioni
    ========================================================================== */
 @media (prefers-reduced-motion: reduce) {
-  .ember { animation: none !important; opacity: .12; }
-  .rune-ring.spin { animation: none !important; }
   * { scroll-behavior: auto !important; }
 }
 

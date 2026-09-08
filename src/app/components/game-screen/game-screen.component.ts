@@ -98,7 +98,7 @@ export class GameScreenComponent implements AfterViewChecked {
 
       return !!(
         rd &&
-        (rd.tag === 'monsterAttack' || rd.tag === 'monsterDamage')
+        (rd.tag === 'monsterAttack' || rd.tag === 'monsterDamage' || rd.tag === 'monsterCritConfirm')
       );
     });
 
@@ -218,6 +218,12 @@ export class GameScreenComponent implements AfterViewChecked {
     this.game.state().rollingDie?.cls === 'crit'
   );
 
+  isCriticalConfirmed = computed(() => {
+    const roll = this.game.state().rollingDie;
+    return roll?.cls === 'crit' &&
+      (roll.tag === 'critConfirm' || roll.tag === 'monsterCritConfirm');
+  });
+
   isRollingFail = computed(() =>
     this.game.state().rollingDie?.cls === 'fail'
   );
@@ -242,6 +248,16 @@ export class GameScreenComponent implements AfterViewChecked {
 
   choiceIcon(o: ChoiceOption): IconName {
     return iconForChoice(o);
+  }
+
+  encounterTitle(): string {
+    return this.s().pendingChoice?.kind === 'trap'
+      ? this.i18n.t('ui.trapEncounterTitle')
+      : this.i18n.t('ui.encounterTitle');
+  }
+
+  encounterIcon(): IconName {
+    return this.s().pendingChoice?.kind === 'trap' ? 'skull' : 'scroll';
   }
 
   ngAfterViewChecked(): void {

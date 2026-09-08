@@ -181,31 +181,8 @@
     <!-- COLONNA 2 (CENTRO): DADI, PLANCIA & CRONACA -->
     <div class="tactical-center">
       
-      <!-- VASSOIO DADI / CARTA SCELTA -->
-      @if (s().phase === 'choice' && s().pendingChoice) {
-        <div class="encounter-card">
-          <div class="encounter-header">
-            <div class="sigil sigil--sm">
-              <app-icon name="scroll" [size]="18"></app-icon>
-            </div>
-            <div>
-              <h3>Incontro nella Guglia</h3>
-              @if (s().pendingChoice!.dc) {
-                <span class="d20-threat-tag">CD {{ s().pendingChoice!.dc }}</span>
-              }
-            </div>
-          </div>
-          <div class="encounter-options-grid">
-            @for (o of s().pendingChoice!.options; track $index) {
-              <button type="button" class="btn encounter-btn" (click)="game.resolveChoiceOption(o)">
-                <app-icon [name]="choiceIcon(o)" [size]="15"></app-icon>
-                <span>{{ o.label }}</span>
-              </button>
-            }
-          </div>
-        </div>
-      } @else {
-        <div class="dice-tray">
+      <!-- VASSOIO DADI: rimane sempre visibile, anche durante le scelte. -->
+      <div class="dice-tray">
           <div class="dice-tray-felt">
             <div class="tray-stud stud-tl"></div>
             <div class="tray-stud stud-tr"></div>
@@ -213,8 +190,10 @@
             <div class="tray-stud stud-br"></div>
             <div class="tray-sigil-bg">VS</div>
 
-            @if (isRollingCrit()) {
-              <div class="crit-callout-banner gold-crit">MINACCIA CRITICO!</div>
+            @if (isCriticalConfirmed()) {
+              <div class="crit-callout-banner gold-crit">{{ i18n.t('ui.critConfirmedBanner') }}</div>
+            } @else if (isRollingCrit()) {
+              <div class="crit-callout-banner gold-crit">{{ i18n.t('ui.critThreatBanner') }}</div>
             }
             @if (isRollingFail()) {
               <div class="crit-callout-banner red-fail">FALLIMENTO CRITICO</div>
@@ -245,12 +224,26 @@
               </div>
             </div>
           </div>
-        </div>
-      }
+      </div>
 
       <!-- PLANCIA AZIONI -->
-      <div class="actions-console">
-        <div class="actions">
+      <div class="actions-console" [class.choice-actions-console]="s().phase === 'choice'">
+        <div class="actions" [class.choice-actions]="s().phase === 'choice'">
+          @if (s().phase === 'choice' && s().pendingChoice; as choice) {
+            <div class="choice-actions-heading" [class.trap-alert]="choice.kind === 'trap'">
+              <app-icon [name]="encounterIcon()" [size]="18"></app-icon>
+              <span>{{ encounterTitle() }}</span>
+              @if (choice.dc) {
+                <span class="d20-threat-tag">CD {{ choice.dc }}</span>
+              }
+            </div>
+            @for (o of choice.options; track $index) {
+              <button type="button" class="btn encounter-btn" (click)="game.resolveChoiceOption(o)">
+                <app-icon [name]="choiceIcon(o)" [size]="15"></app-icon>
+                <span>{{ o.label }}</span>
+              </button>
+            }
+          }
           @if (s().phase === 'explore') {
             <button type="button" class="btn primary btn-descent" (click)="game.descendFloor()">
               <app-icon name="stairs" [size]="18"></app-icon>
@@ -308,7 +301,7 @@
       <!-- CRONACA DI BATTAGLIA -->
       <div class="battle-chronicle">
         <div class="chronicle-header">
-          <span class="chronicle-title">Cronaca della Discesa</span>
+          <span class="chronicle-title">{{ i18n.t('ui.descentChronicleTitle') }}</span>
           <span class="divider-line"></span>
         </div>
         <div class="log" #logbox>

@@ -16,20 +16,20 @@ interface DiceShape {
 }
 
 const SHAPE_CACHE = new Map<number, DiceShape>();
-const MATERIAL_CACHE = new Map<string, THREE.MeshStandardMaterial[]>();
 
 export const DICE_SETTLE_MS = 320;
 
 const DICE_CANVAS_SIZE = 80;
+const DESKTOP_FACE_TEXTURE_SIZE = 384;
+const MOBILE_FACE_TEXTURE_SIZE = 256;
 
 /**
  * High-resolution face texture.
  *
  * The widget itself is only 80x80 CSS pixels, but the numbers are rendered
- * at 512x512 before being sampled by WebGL. This significantly improves
- * glyph sharpness, especially on angled faces.
+ * at a resolution above their display size before being sampled by WebGL.
+ * Mobile uses smaller textures to avoid exhausting its more limited GPU memory.
  */
-const FACE_TEXTURE_SIZE = 512;
 
 @Component({
   selector: "app-dice-widget",
@@ -65,6 +65,12 @@ export class DiceWidgetComponent implements OnDestroy {
    * Delayed WebGL recovery.
    */
   private retryTimeoutId?: ReturnType<typeof setTimeout>;
+
+  /**
+   * Materials contain textures allocated in a specific WebGL context. They
+   * must never be shared with another dice widget or disposed by its teardown.
+   */
+  private readonly materialCache = new Map<string, THREE.MeshStandardMaterial[]>();
 
   private targetQuaternions: THREE.Quaternion[] = [];
   private isRollingAnim = false;
@@ -169,27 +175,16 @@ export class DiceWidgetComponent implements OnDestroy {
     }, 150);
   }
 
-  /**
-   * Clears shared GPU resources.
-   *
-   * This must NOT be called during normal mesh rebuilds because the caches
-   * are shared by all dice widgets.
-   */
-  private clearCaches(): void {
-    MATERIAL_CACHE.forEach((materials) => {
+  /** Releases resources owned exclusively by this widget's renderer. */
+  private disposeMaterials(): void {
+    this.materialCache.forEach((materials) => {
       materials.forEach((material) => {
         material.map?.dispose();
         material.dispose();
       });
     });
 
-    MATERIAL_CACHE.clear();
-
-    SHAPE_CACHE.forEach((shape) => {
-      shape.geometry.dispose();
-    });
-
-    SHAPE_CACHE.clear();
+    this.materialCache.clear();
   }
 
   private recreateDiceEngine(): void {
@@ -367,6 +362,12 @@ export class DiceWidgetComponent implements OnDestroy {
     }
 
     return Math.min(dpr, 1.5);
+  }
+
+  private getFaceTextureSize(): number {
+    return this.isMobileViewport()
+      ? MOBILE_FACE_TEXTURE_SIZE
+      : DESKTOP_FACE_TEXTURE_SIZE;
   }
 
   private renderFrame(): void {
@@ -569,12 +570,12 @@ export class DiceWidgetComponent implements OnDestroy {
   private getMaterials(numSides: number): THREE.MeshStandardMaterial[] {
     const key = `${numSides}|${this.themeColor()}|${this.labelColor()}`;
 
-    let materials = MATERIAL_CACHE.get(key);
+    let materials = this.materialCache.get(key);
 
     if (!materials) {
       materials = this.createDiceMaterials(numSides);
 
-      MATERIAL_CACHE.set(key, materials);
+      this.materialCache.set(key, materials);
     }
 
     return materials;
@@ -582,6 +583,7 @@ export class DiceWidgetComponent implements OnDestroy {
 
   private createDiceMaterials(numSides: number): THREE.MeshStandardMaterial[] {
     const materials: THREE.MeshStandardMaterial[] = [];
+    const textureSize = this.getFaceTextureSize();
 
     const maxAnisotropy = this.renderer?.capabilities.getMaxAnisotropy() ?? 1;
 
@@ -593,9 +595,9 @@ export class DiceWidgetComponent implements OnDestroy {
     for (let i = 1; i <= numSides; i++) {
       const canvas = document.createElement("canvas");
 
-      canvas.width = FACE_TEXTURE_SIZE;
+      canvas.width = textureSize;
 
-      canvas.height = FACE_TEXTURE_SIZE;
+      canvas.height = textureSize;
 
       const ctx = canvas.getContext("2d");
 
@@ -610,28 +612,28 @@ export class DiceWidgetComponent implements OnDestroy {
 
       ctx.fillStyle = this.themeColor();
 
-      ctx.fillRect(0, 0, FACE_TEXTURE_SIZE, FACE_TEXTURE_SIZE);
+      ctx.fillRect(0, 0, textureSize, textureSize);
 
-      let fontSize = Math.round(FACE_TEXTURE_SIZE * 0.235);
+      let fontSize = Math.round(textureSize * 0.235);
 
-      let textY = Math.round(FACE_TEXTURE_SIZE * 0.565);
+      let textY = Math.round(textureSize * 0.565);
 
-      let lineWidth = Math.round(FACE_TEXTURE_SIZE * 0.023);
+      let lineWidth = Math.round(textureSize * 0.023);
 
       if (numSides === 6) {
-        fontSize = Math.round(FACE_TEXTURE_SIZE * 0.39);
+        fontSize = Math.round(textureSize * 0.39);
 
-        textY = Math.round(FACE_TEXTURE_SIZE * 0.5);
+        textY = Math.round(textureSize * 0.5);
 
-        lineWidth = Math.round(FACE_TEXTURE_SIZE * 0.039);
+        lineWidth = Math.round(textureSize * 0.039);
       } else if (numSides === 10) {
-        fontSize = Math.round(FACE_TEXTURE_SIZE * 0.255);
+        fontSize = Math.round(textureSize * 0.255);
 
-        textY = Math.round(FACE_TEXTURE_SIZE * 0.527);
+        textY = Math.round(textureSize * 0.527);
       } else if (numSides === 12) {
-        fontSize = Math.round(FACE_TEXTURE_SIZE * 0.215);
+        fontSize = Math.round(textureSize * 0.215);
 
-        textY = Math.round(FACE_TEXTURE_SIZE * 0.5);
+        textY = Math.round(textureSize * 0.5);
       }
 
       /**
@@ -655,11 +657,11 @@ export class DiceWidgetComponent implements OnDestroy {
 
       ctx.miterLimit = 2;
 
-      ctx.strokeText(i.toString(), FACE_TEXTURE_SIZE / 2, textY);
+      ctx.strokeText(i.toString(), textureSize / 2, textY);
 
       ctx.fillStyle = this.labelColor();
 
-      ctx.fillText(i.toString(), FACE_TEXTURE_SIZE / 2, textY);
+      ctx.fillText(i.toString(), textureSize / 2, textY);
 
       const texture = new THREE.CanvasTexture(canvas);
 
@@ -1122,6 +1124,6 @@ export class DiceWidgetComponent implements OnDestroy {
 
     this.destroyThree(true);
 
-    this.clearCaches();
+    this.disposeMaterials();
   }
 }

@@ -16,7 +16,7 @@ export const ES = {
     goldCollected: 'Oro recolectado: {gold}', sessionRecord: 'Récord de sesión: piso {depth}', restartButton: 'Descender de Nuevo', langLabel: 'Idioma', diceLetter: 'd',
     bossDefeatedTitle: 'Jefe Derrotado: {name}', xpGainedLabel: 'Experiencia Ganada', goldGainedLabel: 'Oro Ganado', dropsLabel: 'Botín', noDropsText: 'Ningún objeto raro esta vez.', continueButton: 'Continuar',
     xpLabel: 'Experiencia', levelUpTitle: '¡Subida de Nivel!', levelUpHeader: '¡Nivel {level} Alcanzado!', chooseStatPrompt: 'Elige una característica para aumentar (+1):', chooseFeatPrompt: 'Elige un nuevo talento para tu personaje:',
-    hpRollPrompt: 'Tirada de Puntos de Golpe:', rerollHpButton: 'Repetir (una vez)', confirmButton: 'Confirmar', goldExtraTitle: 'Cofre de Monedas de Oro'
+    hpRollPrompt: 'Tirada de Puntos de Golpe:', rerollHpButton: 'Repetir (una vez)', confirmButton: 'Confirmar', critThreatBanner: '¡AMENAZA DE CRÍTICO!', critConfirmedBanner: '¡CRÍTICO CONFIRMADO!', trapEncounterTitle: '¡Atención: trampa!', encounterTitle: 'Encuentro en la Aguja', descentChronicleTitle: 'Crónica del Descenso', goldExtraTitle: 'Cofre de Monedas de Oro'
   },
   stats: { str: 'Fuerza', dex: 'Destreza', con: 'Constitución', int: 'Inteligencia', wis: 'Sabiduría', cha: 'Carisma' },
   statAbbr: { str: 'FUE', dex: 'DES', con: 'CON', int: 'INT', wis: 'SAB', cha: 'CAR' },

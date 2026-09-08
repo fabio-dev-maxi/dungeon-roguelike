@@ -21,6 +21,16 @@ export class CombatService {
     private dice: DiceService
   ) {}
 
+  /** In D&D 3.5 una minaccia critica deve colpire di nuovo il bersaglio. */
+  private async confirmCritical(targetAC: number, attackBonus: number, tag = 'critConfirm'): Promise<boolean> {
+    const roll = this.dice.rnd(20);
+    const confirmed = roll !== 1 && (roll === 20 || roll + attackBonus >= targetAC);
+
+    // La classe "crit" consente alla UI di mostrare il banner solo quando la conferma riesce.
+    await this.stateService.animateRollAsync(roll, 20, tag, confirmed ? roll : 21);
+    return confirmed;
+  }
+
   async playerAttack(): Promise<void> {
     const s = this.stateService.state();
     if (s.combatFlags.acting) return;
@@ -34,11 +44,13 @@ export class CombatService {
     this.stateService.touch();
 
     // 1. Tiro per Colpire (d20)
-    const raw = await this.stateService.animateRollAsync(this.dice.rnd(20), 20, 'attack', critThreshold);
+    const attackRoll = this.dice.rnd(20);
+    const total = attackRoll + statMod;
+    const hit = attackRoll === 20 || total >= s.monster!.ac;
+    const criticalThreat = hit && attackRoll >= critThreshold;
+    const raw = await this.stateService.animateRollAsync(attackRoll, 20, 'attack', criticalThreat ? critThreshold : 21);
     const cur = this.stateService.state();
-    const isCrit = raw >= critThreshold;
-    const total = raw + statMod;
-    const hit = raw === 20 || isCrit || total >= cur.monster!.ac;
+    const isCrit = criticalThreat && await this.confirmCritical(cur.monster!.ac, statMod);
 
     if (raw === 1) {
       this.stateService.log(this.stateService.t('log.attackMissNat1'), 'dmg hero');
@@ -125,10 +137,12 @@ export class CombatService {
       const critThreshold = p.critThreshold || 20;
 
       // 1. Tiro per Colpire speciale (d20)
-      const raw = await this.stateService.animateRollAsync(this.dice.rnd(20), 20, 'attack', critThreshold);
-      const total = raw + statMod;
-      const isCrit = raw >= critThreshold;
-      const hit = raw === 20 || isCrit || total >= s.monster!.ac;
+      const attackRoll = this.dice.rnd(20);
+      const total = attackRoll + statMod;
+      const hit = attackRoll === 20 || total >= s.monster!.ac;
+      const criticalThreat = hit && attackRoll >= critThreshold;
+      const raw = await this.stateService.animateRollAsync(attackRoll, 20, 'attack', criticalThreat ? critThreshold : 21);
+      const isCrit = criticalThreat && await this.confirmCritical(s.monster!.ac, statMod);
 
       if (raw === 1) {
         this.stateService.log(this.stateService.t('log.attackMissNat1'), 'dmg hero');
@@ -338,14 +352,17 @@ export class CombatService {
     this.stateService.touch();
 
     // 1. Tiro per Colpire del Nemico (d20) - Passa 20 come soglia critico per evidenziare il dado
-    const toHit = await this.stateService.animateRollAsync(this.dice.rnd(20), 20, 'monsterAttack', 20);
+    const attackRoll = this.dice.rnd(20);
+    const total = attackRoll + monsterAtkMod;
+    const hit = attackRoll === 20 || total >= targetAC;
+    const criticalThreat = hit && attackRoll === 20;
+    const toHit = await this.stateService.animateRollAsync(attackRoll, 20, 'monsterAttack', criticalThreat ? 20 : 21);
     const cur = this.stateService.state();
-    const total = toHit + monsterAtkMod;
-    const isCrit = toHit === 20;
+    const isCrit = criticalThreat && await this.confirmCritical(targetAC, monsterAtkMod, 'monsterCritConfirm');
 
     if (toHit === 1) {
       this.stateService.log(this.stateService.tf('log.monsterMiss1', { name }), 'flavor enemy');
-    } else if (total >= targetAC || isCrit) {
+    } else if (hit) {
       const [n, d] = cur.monster!.dmg;
       const dmgRoll = this.dice.rollNdM(n, d);
       const dmgMax = n * d;

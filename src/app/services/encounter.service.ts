@@ -145,6 +145,7 @@ export class EncounterService {
   makeTrapChoice(): PendingChoice {
     const dc = 10 + Math.floor(this.stateService.state().depth / 3);
     return {
+      kind: 'trap',
       dc,
       options: [
         { label: this.stateService.t('choices.disarm'), stat: 'dex' },

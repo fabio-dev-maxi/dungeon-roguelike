@@ -7,7 +7,7 @@ export const IT = {
     forgeTitle: 'Forgia il tuo Personaggio', nameLabel: "Nome dell'avventuriero", namePlaceholder: 'Senza Nome',
     rollButton: 'Tira le Statistiche (4d6, scarta il minimo)', rerollButton: 'Tira di nuovo le statistiche', chooseClassTitle: 'Scegli la tua classe',
     weaponCharLabel: 'Arma: {weapon}   Danno: {dice} + {stat}', castingStatLabel: 'Caratteristica magica: {stat} ({mod})',
-    armorCharLabel: 'Armatura: {armor} (+{bonus} CA)', descendButton: 'Scendi di piano', drinkPotionButton: 'Bevi una Pozione',
+    armorCharLabel: 'Armatura: {armor} (+{bonus} CA)', descendButton: 'Scendi', drinkPotionButton: 'Bevi una Pozione',
     attackButton: 'Attacca', defendButton: 'Difenditi', potionButton: 'Pozione', fleeButton: 'Fuggi', levelLabel: '{cls} di livello {level}',
     hpLabel: 'Punti Ferita', acLabel: 'Classe Armatura', goldLabel: 'Oro', weaponLabel: 'Arma', dmgLabel: 'Danno', armorLabel: 'Armatura',
     showStatsButton: '▸ Statistiche', hideStatsButton: '▾ Statistiche', showInventoryButton: '▸ Inventario', hideInventoryButton: '▾ Inventario', relicsLabel: 'Reliquie',
@@ -16,7 +16,7 @@ export const IT = {
     goldCollected: 'Oro raccolto: {gold}', sessionRecord: 'Record di sessione: piano {depth}', restartButton: 'Ricomincia la Discesa', langLabel: 'Lingua', diceLetter: 'd',
     bossDefeatedTitle: 'Boss Sconfitto: {name}', xpGainedLabel: 'Esperienza Guadagnata', goldGainedLabel: 'Oro Guadagnato', dropsLabel: 'Bottino', noDropsText: 'Nessun oggetto raro questa volta.', continueButton: 'Continua',
     xpLabel: 'Esperienza', levelUpTitle: 'Sali di Livello!', levelUpHeader: 'Livello {level} Raggiunto!', chooseStatPrompt: 'Scegli una caratteristica da aumentare (+1):', chooseFeatPrompt: 'Scegli un nuovo talento per il tuo personaggio:',
-    hpRollPrompt: 'Tiro per i Punti Ferita:', rerollHpButton: 'Ritira (1 volta)', confirmButton: 'Conferma', goldExtraTitle: 'Forziere di Monete d\'Oro'
+    hpRollPrompt: 'Tiro per i Punti Ferita:', rerollHpButton: 'Ritira (1 volta)', confirmButton: 'Conferma', critThreatBanner: 'MINACCIA CRITICO!', critConfirmedBanner: 'Critico confermato!', trapEncounterTitle: 'Attenzione: trappola!', encounterTitle: 'Incontro nella Guglia', descentChronicleTitle: 'Cronaca della Discesa', goldExtraTitle: 'Forziere di Monete d\'Oro'
   },
   stats: { str: 'Forza', dex: 'Destrezza', con: 'Costituzione', int: 'Intelligenza', wis: 'Saggezza', cha: 'Carisma' },
   statAbbr: { str: 'FOR', dex: 'DES', con: 'COS', int: 'INT', wis: 'SAG', cha: 'CAR' },
@@ -171,7 +171,7 @@ export const IT = {
   },
   choices: {
     disarm: 'Disarma (Destrezza)', force: 'Sfonda (Forza)', study: 'Studia il pattern (Intelligenza)',
-    prayHeal: 'Prega per la guarigione', prayBuff: 'Prega per la forza (bonus temporaneo)', ignoreAltar: "Ignora l'altare e prosegui",
+    prayHeal: 'Prega per la guarigione', prayBuff: 'Prega per la forza', ignoreAltar: "Ignora l'altare e prosegui",
     buyPotion: 'Compra una Pozione ({cost} oro)', upgradeWeapon: "Affila l'arma, +1 al danno ({cost} oro)", skipMerchant: 'Rifiuta e vai oltre',
     tavernRest: 'Affitti una stanza e riposa ({cost} oro)', tavernDrink: 'Bevi qualcosa al bancone (gratis)', tavernSkip: 'Rifiuta e prosegui'
   },
