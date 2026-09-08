@@ -644,3 +644,79 @@ input[type=text]:focus { border-color: var(--gold); outline: none; }
   body { font-size: 16px; }
   .panel { padding: 16px; }
 }
+
+
+
+/* ================================
+   WORKSPACE DESKTOP
+   ================================ */
+@media (min-width: 1100px) {
+  .app-shell {
+    max-width: 1400px !important;
+    padding: 18px 24px 24px !important;
+  }
+
+  .dungeon-container {
+    gap: 14px !important;
+  }
+
+  /*
+   * La griglia diventa più larga: le due schede laterali
+   * respirano e la colonna tattica guadagna spazio.
+   */
+  .duel-arena {
+    grid-template-columns: 320px minmax(520px, 1fr) 320px !important;
+    gap: 16px !important;
+  }
+
+  /* Più presenza verticale senza trasformare la UI in una pagina enorme. */
+  .combatant-card {
+    height: 520px !important;
+  }
+
+  .dice-tray {
+    height: 178px !important;
+  }
+
+  .actions-console {
+    height: 102px !important;
+    min-height: 102px !important;
+    max-height: 102px !important;
+  }
+
+  .battle-chronicle {
+    height: 210px !important;
+    min-height: 210px !important;
+    max-height: 210px !important;
+  }
+}
+
+/* ================================
+   DESKTOP LARGE
+   ================================ */
+@media (min-width: 1450px) {
+  .app-shell {
+    max-width: 1480px !important;
+    padding-left: 28px !important;
+    padding-right: 28px !important;
+  }
+
+  .duel-arena {
+    grid-template-columns: 350px minmax(560px, 1fr) 350px !important;
+    gap: 18px !important;
+  }
+
+  .combatant-card {
+    height: 540px !important;
+  }
+
+  .dice-tray {
+    height: 188px !important;
+  }
+
+  .battle-chronicle {
+    height: 220px !important;
+    min-height: 220px !important;
+    max-height: 220px !important;
+  }
+}
