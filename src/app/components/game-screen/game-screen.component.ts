@@ -20,6 +20,7 @@ import { BossRewardModalComponent } from '../boss-reward-modal/boss-reward-modal
 import { xpToNext } from '../../data/monster.data';
 import { IconComponent, IconName } from '../../shared/icon/icon.component';
 import { CLASS_ICONS, STAT_ICONS } from '../../shared/icon/icon-maps';
+import { DungeonMapComponent } from '../dungeon-map/dungeon-map.component';
 
 const STAT_KEYS: StatKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 
@@ -59,6 +60,7 @@ function iconForChoice(o: ChoiceOption): IconName {
     DiceWidgetComponent,
     LevelUpModalComponent,
     BossRewardModalComponent,
+    DungeonMapComponent,
     IconComponent,
   ],
   templateUrl: './game-screen.component.html',
@@ -89,8 +91,8 @@ export class GameScreenComponent implements AfterViewChecked {
   readonly monsterDieSides = computed(() => this.monsterDie().sides);
 
   // Nella classe GameScreenComponent:
-readonly playerDieValues = computed<number[] | null>(() => this.playerDie().values ?? null);
-readonly monsterDieValues = computed<number[] | null>(() => this.monsterDie().values ?? null);
+  readonly playerDieValues = computed<number[] | null>(() => this.playerDie().values ?? null);
+  readonly monsterDieValues = computed<number[] | null>(() => this.monsterDie().values ?? null);
 
   readonly playerDieActive: Signal<boolean>;
   readonly monsterDieActive: Signal<boolean>;
@@ -349,5 +351,12 @@ readonly monsterDieValues = computed<number[] | null>(() => this.monsterDie().va
       block: 'end',
       behavior: 'auto',
     });
+  }
+
+  /**
+   * Apre la Mappa del Piano in sola lettura durante uno scontro o un'interazione.
+   */
+  openMapReadOnly(): void {
+    this.game.openMapReadOnly();
   }
 }

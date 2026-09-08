@@ -1,13 +1,13 @@
 import { Component, Input } from '@angular/core';
 
 export type IconName =
-  | 'sword' | 'dagger' | 'staff' | 'sun'
+  | 'sword' | 'swords' | 'dagger' | 'staff' | 'sun'
   | 'shield' | 'heart' | 'coin' | 'star'
   | 'flask' | 'gem' | 'scroll' | 'skull'
   | 'boot' | 'stairs' | 'layers' | 'book'
   | 'eye' | 'fist' | 'feather' | 'backpack'
   | 'key' | 'hammer' | 'cup' | 'crown'
-  | 'arrow-right' | 'globe' | 'check' | 'x' | 'dot'| 'dice';
+  | 'arrow-right' | 'globe' | 'check' | 'x' | 'dot' | 'dice';
 
 @Component({
   selector: 'app-icon',
@@ -25,6 +25,11 @@ export type IconName =
           <line x1="9.2" y1="10.6" x2="12" y2="13.4"/>
           <line x1="7" y1="15" x2="5" y2="19"/>
           <circle cx="5" cy="19.4" r="1" fill="currentColor" stroke="none"/>
+        }
+        @case ('swords') {
+          <svg [attr.width]="size" [attr.height]="size" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.5 17.5L3 6V3h3l11.5 11.5m-3-11.5L21 3v3l-11.5 11.5M4 17l3 3M17 4l3 3M3 21l3-3m12 3l-3-3" />
+          </svg>
         }
         @case ('dagger') {
           <line x1="7" y1="7" x2="17" y2="17"/>

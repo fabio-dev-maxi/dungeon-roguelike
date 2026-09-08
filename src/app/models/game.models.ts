@@ -137,13 +137,34 @@ export interface LogMessage {
   cls: string;
 }
 
+// --- NUOVI TIPI PER LA MAPPA A NODI ---
+export type NodeType = 'combat' | 'treasure' | 'trap' | 'shrine' | 'merchant' | 'tavern' | 'boss';
+export type NodeStatus = 'locked' | 'available' | 'visited' | 'current';
+
+export interface MapNode {
+  id: string;             // ID univoco del nodo (es: "node_L3_2")
+  layer: number;          // Layer di profondità (1..7)
+  type: NodeType;         // Reale tipo di incontro nascosto o visibile
+  status: NodeStatus;     // 'locked' | 'available' | 'visited' | 'current'
+  nextNodes: string[];    // ID dei nodi raggiungibili al layer successivo (DAG)
+  isMystery?: boolean;    // Se true, il nodo viene mostrato come '?' fino all'esplorazione
+}
+
+export interface FloorMap {
+  nodes: Record<string, MapNode>;
+  layers: string[][];  // Matrice dei layer: layers[0] = Layer 1, layers[6] = Layer 7 (Boss)
+  currentNodeId: string | null;
+}
+
 export interface GameState {
   screen: 'title' | 'create' | 'run' | 'gameover';
   lang: LangCode;
   player: Player | null;
-  depth: number;
+  depth: number;       // Ora rappresenta il Numero del Piano Globale (Piano 1, Piano 2, ecc.)
   monster: Monster | null;
-  phase: 'explore' | 'combat' | 'choice' | 'levelup' | null;
+  phase: 'map' | 'explore' | 'combat' | 'choice' | 'levelup' | null; // Aggiunto 'map'
+  currentMap: FloorMap | null; // Mappa attiva del piano corrente
+  mapViewActive: boolean;     // Controllo di visibilità: true = mostra mappa, false = mostra incontro
   combatFlags: CombatFlags;
   log: LogMessage[];
   pendingChoice: PendingChoice | null;

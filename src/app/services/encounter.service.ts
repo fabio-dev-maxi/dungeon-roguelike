@@ -1,217 +1,241 @@
 import { Injectable } from '@angular/core';
-import { BOSS_IDS, BOSS_STATS } from '../data/monster.data';
-import { ChoiceOption, PendingChoice, StatKey } from '../models/game.models';
-import { DiceService, WeightedItem } from './dice.service';
+import { ChoiceOption, MapNode, PendingChoice, StatKey } from '../models/game.models';
+import { DiceService } from './dice.service';
 import { GameStateService } from './game-state.service';
+import { MapGeneratorService } from './map-generator.service';
 import { MonsterService } from './monster.service';
+import { EncounterDataService } from './encounter-data.service';
 
+/**
+ * SERVIZIO GESTORE INCONTRI E NAVIGAZIONE MAPPA
+ * 
+ * Coordina l'avvio del piano, l'interazione con i nodi della mappa DAG
+ * e la risoluzione delle scelte (Trappole, Santuari, Mercanti, Taverne).
+ */
 @Injectable({ providedIn: 'root' })
 export class EncounterService {
   constructor(
-    private stateService: GameStateService,
-    private monsterService: MonsterService,
-    private dice: DiceService
+    private readonly stateService: GameStateService,
+    private readonly monsterService: MonsterService,
+    private readonly mapGenerator: MapGeneratorService,
+    private readonly encounterData: EncounterDataService,
+    private readonly dice: DiceService
   ) { }
 
-  encounterWeightsForDepth(depth: number): WeightedItem<string>[] {
-    let weights: WeightedItem<string>[];
-    if (depth <= 5) weights = [
-      { v: 'combat', w: 80 },
-      { v: 'treasure', w: 10 },
-      { v: 'trap', w: 5 },
-      { v: 'shrine', w: 5 },
-      { v: 'merchant', w: 0 },
-      { v: 'tavern', w: 0 }];
-    else if (depth <= 9) weights = [
-      { v: 'combat', w: 60 },
-      { v: 'trap', w: 10 },
-      { v: 'treasure', w: 10 },
-      { v: 'merchant', w: 10 },
-      { v: 'shrine', w: 7 },
-      { v: 'tavern', w: 3 }];
-    else if (depth <= 14) weights = [
-      { v: 'combat', w: 50 },
-      { v: 'treasure', w: 13 },
-      { v: 'merchant', w: 11 },
-      { v: 'shrine', w: 10 },
-      { v: 'trap', w: 10 },
-      { v: 'tavern', w: 6 }];
-    else weights = [
-      { v: 'combat', w: 45 },
-      { v: 'merchant', w: 15 },
-      { v: 'treasure', w: 10 },
-      { v: 'trap', w: 10 },
-      { v: 'shrine', w: 10 },
-      { v: 'tavern', w: 10 }];
-
-    if (depth - this.stateService.state().lastTavernDepth < 5) {
-      weights = weights.filter(w => w.v !== 'tavern');
-    }
-    if (depth - this.stateService.state().lastTrapDepth < 5) {
-      weights = weights.filter(w => w.v !== 'trap');
-    }
-    if (depth - this.stateService.state().lastMerchantDepth < 5) {
-      weights = weights.filter(w => w.v !== 'merchant');
-    }
-    if (depth - this.stateService.state().lastShrineDepth < 5) {
-      weights = weights.filter(w => w.v !== 'shrine');
-    }
-    return weights;
-  }
-
-  startFloor(): void {
+  /**
+   * Genera il nuovo piano con mappa verticale e apre il modal overlay della Mappa.
+   */
+  public startFloor(): void {
     const s = this.stateService.state();
     s.depth++;
 
     const completedFloors = Math.max(0, s.depth - 1);
     this.stateService.bestDepth.set(Math.max(this.stateService.bestDepth(), completedFloors));
 
-    const forcedBoss = BOSS_IDS.some(id => BOSS_STATS[id].atDepth === s.depth);
-    let type = forcedBoss ? 'combat' : this.dice.weightedPick(this.encounterWeightsForDepth(s.depth));
+    s.currentMap = this.mapGenerator.generateMapForFloor(s.depth);
+    s.mapViewActive = true;
+    s.phase = 'map';
 
     this.stateService.touch();
-    this.stateService.log(this.stateService.tf('log.floorHeader', { depth: s.depth }), 'sys floor');
+    this.stateService.log(
+      this.stateService.tf('log.floorHeader', { depth: s.depth }),
+      'sys floor'
+    );
+  }
 
-    if (type === 'combat') {
-      const m = this.monsterService.makeMonster(s.depth);
-      s.monster = m;
-      s.combatFlags = {};
-      s.phase = 'combat';
-      this.stateService.touch();
-      const name = this.monsterService.monsterDisplayName(m);
-      this.stateService.log(m.isBoss ? this.stateService.tf('log.bossAppear', { name }) : this.stateService.tf('log.monsterAppear', { name }));
-    } else if (type === 'trap') {
-      s.lastTrapDepth = s.depth;
-      s.phase = 'choice';
-      s.pendingChoice = this.makeTrapChoice();
-      this.stateService.touch();
-      this.stateService.log(this.stateService.t('log.trapIntro'), 'flavor');
-    } else if (type === 'treasure') {
-      this.resolveTreasure();
-    } else if (type === 'shrine') {
-      s.lastShrineDepth = s.depth;
-      s.phase = 'choice';
-      s.pendingChoice = this.makeShrineChoice();
-      this.stateService.touch();
-      this.stateService.log(this.stateService.t('log.shrineIntro'), 'flavor');
-    } else if (type === 'merchant') {
-      s.lastMerchantDepth = s.depth;
-      s.phase = 'choice';
-      s.pendingChoice = this.makeMerchantChoice();
-      this.stateService.touch();
-      this.stateService.log(this.stateService.t('log.merchantIntro'), 'flavor');
-    } else if (type === 'tavern') {
-      s.lastTavernDepth = s.depth;
-      s.phase = 'choice';
-      s.pendingChoice = this.makeTavernChoice();
-      this.stateService.touch();
-      this.stateService.log(this.stateService.t('log.tavernIntro'), 'flavor');
+  /**
+   * Seleziona un nodo sulla mappa, sposta il giocatore e chiude il modal overlay per avviare l'incontro.
+   */
+  public selectMapNode(node: MapNode): void {
+    const s = this.stateService.state();
+    const map = s.currentMap;
+    if (!map || node.status !== 'available') return;
+
+    // Imposta il nodo precedente come visitato
+    if (map.currentNodeId && map.nodes[map.currentNodeId]) {
+      map.nodes[map.currentNodeId].status = 'visited';
+    }
+
+    // Disabilita tutti gli altri nodi attualmente 'available' non scelti
+    Object.values(map.nodes).forEach((n) => {
+      if (n.status === 'available') {
+        n.status = 'locked';
+      }
+    });
+
+    // Imposta il nodo selezionato come posizione corrente
+    node.status = 'current';
+    map.currentNodeId = node.id;
+    s.mapViewActive = false; // Chiude il modal della mappa e mostra l'arena di combattimento/scelta
+
+    this.stateService.touch();
+
+    switch (node.type) {
+      case 'combat':
+        this.initCombatEncounter(s.depth, false);
+        break;
+      case 'boss':
+        this.initCombatEncounter(s.depth, true);
+        break;
+      case 'trap':
+        s.phase = 'choice';
+        s.pendingChoice = this.makeTrapChoice();
+        this.stateService.touch();
+        this.stateService.log(this.stateService.t('log.trapIntro'), 'flavor');
+        break;
+      case 'treasure':
+        this.resolveTreasure();
+        break;
+      case 'shrine':
+        s.phase = 'choice';
+        s.pendingChoice = this.makeShrineChoice();
+        this.stateService.touch();
+        this.stateService.log(this.stateService.t('log.shrineIntro'), 'flavor');
+        break;
+      case 'merchant':
+        s.phase = 'choice';
+        s.pendingChoice = this.makeMerchantChoice();
+        this.stateService.touch();
+        this.stateService.log(this.stateService.t('log.merchantIntro'), 'flavor');
+        break;
+      case 'tavern':
+        s.phase = 'choice';
+        s.pendingChoice = this.makeTavernChoice();
+        this.stateService.touch();
+        this.stateService.log(this.stateService.t('log.tavernIntro'), 'flavor');
+        break;
     }
   }
 
-  // Calcola la forza e il costo della pozione in base al piano corrente
-  private getPotionConfigForDepth(depth: number): { dice: [number, number], cost: number } {
-    let n = 2;
-    let d = 6;
-    let cost = 8 + Math.floor(depth / 5) * 5; // Il costo sale progressivamente
+  /**
+   * Al completamento dell'incontro:
+   * Se il nodo completato è il Boss (Layer 7), genera automaticamente il Piano Successivo.
+   */
+  public completeCurrentNode(): void {
+    const s = this.stateService.state();
+    const map = s.currentMap;
+    if (!map || !map.currentNodeId) return;
 
-    if (depth > 10) {
-      d = 8; // Dal piano 11 passano a d8
-      n = 2 + Math.floor((depth - 11) / 10); // 11-20: 2d8, 21-30: 3d8, 31-40: 4d8, 41-50: 5d8
+    const currNode = map.nodes[map.currentNodeId];
+    if (currNode) {
+      currNode.status = 'visited';
+
+      // SE IL NODO È IL BOSS DI LAYER 7: AVANZA AUTOMATICAMENTE AL PIANO SUCCESSIVO
+      if (currNode.layer === 7 || currNode.type === 'boss') {
+        this.startFloor();
+        return;
+      }
+
+      // Sblocca solo i nodi figli collegati
+      currNode.nextNodes.forEach((nextId) => {
+        const nextNode = map.nodes[nextId];
+        if (nextNode && nextNode.status === 'locked') {
+          nextNode.status = 'available';
+        }
+      });
     }
 
+    s.phase = 'map';
+    s.mapViewActive = true;
+    this.stateService.touch();
+  }
+
+  private initCombatEncounter(floorNumber: number, isBossNode: boolean): void {
+    const s = this.stateService.state();
+    const m = this.monsterService.makeMonster(floorNumber, isBossNode);
+    s.monster = m;
+    s.combatFlags = {};
+    s.phase = 'combat';
+    this.stateService.touch();
+
+    const name = this.monsterService.monsterDisplayName(m);
+    this.stateService.log(
+      m.isBoss
+        ? this.stateService.tf('log.bossAppear', { name })
+        : this.stateService.tf('log.monsterAppear', { name })
+    );
+  }
+
+  private getPotionConfigForDepth(depth: number): { dice: [number, number]; cost: number } {
+    let n = 2;
+    let d = 6;
+    let cost = 8 + Math.floor(depth / 5) * 5;
+    if (depth > 10) {
+      d = 8;
+      n = 2 + Math.floor((depth - 11) / 10);
+    }
     return { dice: [n, d], cost };
   }
 
-  resolveTreasure(): void {
+  public resolveTreasure(): void {
     const s = this.stateService.state();
     const gold = this.dice.rollNdM(2, 6) + s.depth * 2;
     s.player!.gold += gold;
     this.stateService.touch();
     this.stateService.log(this.stateService.tf('log.treasureFound', { gold }), 'flavor');
 
-    // Possibilità di trovare una pozione scalata
     if (Math.random() < 0.4) {
       const potionConfig = this.getPotionConfigForDepth(s.depth);
       s.player!.inventory.push({ type: 'potion', heal: potionConfig.dice });
       this.stateService.touch();
-      this.stateService.log(this.stateService.tf('log.treasurePotion', { potion: this.stateService.t('potionName') }), 'heal');
+      this.stateService.log(
+        this.stateService.tf('log.treasurePotion', { potion: this.stateService.t('potionName') }),
+        'heal'
+      );
     }
 
-    s.phase = 'explore';
-    this.stateService.touch();
+    this.completeCurrentNode();
   }
 
-  makeTrapChoice(): PendingChoice {
-    const dc = 10 + Math.floor(this.stateService.state().depth / 3);
-    return {
-      kind: 'trap',
-      dc,
-      options: [
-        { label: this.stateService.t('choices.disarm'), stat: 'dex' },
-        { label: this.stateService.t('choices.force'), stat: 'str' },
-        { label: this.stateService.t('choices.study'), stat: 'int' }
-      ],
-      onResolve: (success: boolean) => {
-        const s = this.stateService.state();
-        if (success) {
-          const gold = this.dice.rollNdM(1, 6) + Math.floor(s.depth / 2);
-          s.player!.gold += gold;
-          this.stateService.touch();
-          this.stateService.log(this.stateService.tf('log.trapSuccess', { gold }), 'heal');
-        } else {
-          const diceN = 1 + Math.floor(s.depth / 15);
-          const dmg = this.dice.rollNdM(diceN, 6);
-          s.player!.hp = this.dice.clamp(s.player!.hp - dmg, 0, s.player!.maxHp);
-          this.stateService.touch();
-          this.stateService.log(this.stateService.tf('log.trapFail', { dmg }), 'dmg');
-        }
-      }
-    };
-  }
-
-  makeShrineChoice(): PendingChoice {
+  public makeTrapChoice(): PendingChoice {
     const depth = this.stateService.state().depth;
-    return {
-      kind: 'shrine',
-      dc: null,
-      options: [
-        { label: this.stateService.t('choices.prayHeal'), action: 'heal' },
-        { label: this.stateService.t('choices.prayBuff'), action: 'buff' },
-        { label: this.stateService.t('choices.ignoreAltar'), action: 'skip' }
-      ],
-      onChoose: (opt: ChoiceOption) => {
-        const s = this.stateService.state();
-        if (opt.action === 'heal') {
-          // La cura dell'altare scala con i piani
-          const diceN = 2 + Math.floor(depth / 10);
-          const h = this.dice.rollNdM(diceN, 6) + Math.floor(depth / 4);
-          s.player!.hp = this.dice.clamp(s.player!.hp + h, 0, s.player!.maxHp);
-          this.stateService.touch();
-          this.stateService.log(this.stateService.tf('log.shrineHeal', { heal: h }), 'heal');
-        } else if (opt.action === 'buff') {
-          s.player!.tempAtkBonus = (s.player!.tempAtkBonus || 0) + 2;
-          this.stateService.touch();
-          this.stateService.log(this.stateService.t('log.shrineBuff'), 'heal');
-        } else {
-          this.stateService.log(this.stateService.t('log.shrineSkip'), 'flavor');
-        }
+    return this.encounterData.buildTrapEncounter(depth, (success: boolean) => {
+      const s = this.stateService.state();
+      if (success) {
+        const gold = this.dice.rollNdM(1, 6) + Math.floor(s.depth / 2);
+        s.player!.gold += gold;
+        this.stateService.touch();
+        this.stateService.log(this.stateService.tf('log.trapSuccess', { gold }), 'heal');
+      } else {
+        const diceN = 1 + Math.floor(s.depth / 12);
+        const dmg = this.dice.rollNdM(diceN, 6);
+        s.player!.hp = this.dice.clamp(s.player!.hp - dmg, 0, s.player!.maxHp);
+        this.stateService.touch();
+        this.stateService.log(this.stateService.tf('log.trapFail', { dmg }), 'dmg');
       }
-    };
+    });
   }
 
-  makeMerchantChoice(): PendingChoice {
-    const s = this.stateService.state();
+  public makeShrineChoice(): PendingChoice {
+    const depth = this.stateService.state().depth;
+    return this.encounterData.buildShrineEncounter(depth, (opt: ChoiceOption) => {
+      const s = this.stateService.state();
+      if (opt.action === 'heal') {
+        const diceN = 2 + Math.floor(depth / 10);
+        const h = this.dice.rollNdM(diceN, 6) + Math.floor(depth / 4);
+        s.player!.hp = this.dice.clamp(s.player!.hp + h, 0, s.player!.maxHp);
+        this.stateService.touch();
+        this.stateService.log(this.stateService.tf('log.shrineHeal', { heal: h }), 'heal');
+      } else if (opt.action === 'buff') {
+        s.player!.tempAtkBonus = (s.player!.tempAtkBonus || 0) + 2;
+        this.stateService.touch();
+        this.stateService.log(this.stateService.t('log.shrineBuff'), 'heal');
+      } else {
+        this.stateService.log(this.stateService.t('log.shrineSkip'), 'flavor');
+      }
+    });
+  }
 
-    // Determina statistiche e costo della pozione
+  public makeMerchantChoice(): PendingChoice {
+    const s = this.stateService.state();
     const potionConfig = this.getPotionConfigForDepth(s.depth);
     const potionLabel = `${this.stateService.tf('choices.buyPotion', { cost: potionConfig.cost })} [${potionConfig.dice[0]}d${potionConfig.dice[1]}]`;
-
-    const upgradeCost = 15 + (s.depth * 2);
+    const upgradeCost = 15 + s.depth * 2;
 
     return {
       kind: 'merchant',
-      dc: null, canFail: true,
+      dc: null,
+      canFail: true,
       options: [
         { label: potionLabel, action: 'potion', cost: potionConfig.cost },
         { label: this.stateService.tf('choices.upgradeWeapon', { cost: upgradeCost }), action: 'upgrade', cost: upgradeCost },
@@ -227,10 +251,13 @@ export class EncounterService {
           state.player!.gold -= opt.cost || 0;
           state.player!.inventory.push({ type: 'potion', heal: potionConfig.dice });
           this.stateService.touch();
-          this.stateService.log(this.stateService.tf('log.merchantBuyPotion', { potion: this.stateService.t('potionName') }), 'heal');
+          state.player!.inventory.push({ type: 'potion', heal: potionConfig.dice });
+          this.stateService.log(
+            this.stateService.tf('log.merchantBuyPotion', { potion: this.stateService.t('potionName') }),
+            'heal'
+          );
         } else if (opt.action === 'upgrade') {
           state.player!.gold -= opt.cost || 0;
-          // Incrementa il bonus dell'arma CORRENTE (verrà sostituito al cambio arma)
           state.player!.weapon.bonus = (state.player!.weapon.bonus || 0) + 1;
           this.stateService.touch();
           this.stateService.log(
@@ -247,13 +274,13 @@ export class EncounterService {
     };
   }
 
-  makeTavernChoice(): PendingChoice {
+  public makeTavernChoice(): PendingChoice {
     const s = this.stateService.state();
     const restCost = 18 + Math.floor(s.depth * 1.8);
-
     return {
       kind: 'tavern',
-      dc: null, canFail: true,
+      dc: null,
+      canFail: true,
       options: [
         { label: this.stateService.tf('choices.tavernRest', { cost: restCost }), action: 'rest', cost: restCost },
         { label: this.stateService.t('choices.tavernDrink'), action: 'drink', cost: 0 },
@@ -273,7 +300,6 @@ export class EncounterService {
           this.stateService.touch();
           this.stateService.log(this.stateService.tf('log.tavernRest', { heal: healed }), 'heal');
         } else if (opt.action === 'drink') {
-          // La bevanda gratuita al banco scala leggermente
           const diceN = 1 + Math.floor(state.depth / 15);
           const heal = this.dice.rollNdM(diceN, 6) + Math.floor(state.depth / 5);
           state.player!.hp = this.dice.clamp(state.player!.hp + heal, 0, state.player!.maxHp);
@@ -287,36 +313,50 @@ export class EncounterService {
     };
   }
 
-  async resolveChoiceOption(opt: ChoiceOption, onGameOver: () => void): Promise<void> {
+  public async resolveChoiceOption(opt: ChoiceOption, onGameOver: () => void): Promise<void> {
     const s = this.stateService.state();
     const pc = s.pendingChoice;
     if (!pc) return;
+
     if (pc.canFail) {
       const ok = pc.onChoose!(opt);
       if (ok === false) return;
-      s.phase = 'explore'; s.pendingChoice = null; this.stateService.touch(); return;
-    }
-    if (pc.onChoose) {
-      pc.onChoose(opt);
-      s.phase = 'explore'; s.pendingChoice = null; this.stateService.touch(); return;
+      s.pendingChoice = null;
+      this.completeCurrentNode();
+      return;
     }
 
-    // Per Scelte con Tiro Caratteristica (es: Trappole)
+    if (pc.onChoose) {
+      pc.onChoose(opt);
+      s.pendingChoice = null;
+      this.completeCurrentNode();
+      return;
+    }
+
     const statMod = this.dice.mod(s.player!.stats[opt.stat as StatKey]);
     const raw = await this.stateService.animateRollAsync(this.dice.rnd(20), 20, 'check');
     const cur = this.stateService.state();
     const total = raw + statMod;
     const success = total >= pc.dc!;
 
-    this.stateService.log(this.stateService.tf('log.checkResult', {
-      stat: this.stateService.t('statAbbr.' + opt.stat), roll: raw, mod: this.dice.fmtMod(statMod),
-      total, dc: pc.dc, result: success ? this.stateService.t('log.checkSuccess') : this.stateService.t('log.checkFail')
-    }));
+    this.stateService.log(
+      this.stateService.tf('log.checkResult', {
+        stat: this.stateService.t('statAbbr.' + opt.stat),
+        roll: raw,
+        mod: this.dice.fmtMod(statMod),
+        total,
+        dc: pc.dc,
+        result: success ? this.stateService.t('log.checkSuccess') : this.stateService.t('log.checkFail')
+      })
+    );
 
     pc.onResolve!(success);
-    cur.phase = 'explore'; cur.pendingChoice = null;
-    this.stateService.touch();
+    cur.pendingChoice = null;
 
-    if (cur.player!.hp <= 0) { onGameOver(); }
+    if (cur.player!.hp <= 0) {
+      onGameOver();
+    } else {
+      this.completeCurrentNode();
+    }
   }
 }

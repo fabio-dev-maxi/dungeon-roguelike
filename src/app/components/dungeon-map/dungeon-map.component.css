@@ -1,0 +1,300 @@
+.map-modal-box {
+  width: 100%;
+  max-width: 520px;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 14px;
+  background: radial-gradient(circle at 50% 15%, rgba(28, 19, 12, 0.98), rgba(10, 7, 5, 0.99));
+  box-shadow: 0 0 35px var(--gold-glow), var(--shadow-gothic);
+}
+
+.map-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--stone-line);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-titles h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--gold-bright);
+}
+
+.close-btn {
+  color: var(--parchment-dim);
+  border-color: var(--stone-line);
+  padding: 6px;
+}
+
+.close-btn:hover {
+  color: var(--gold-bright);
+  border-color: var(--gold);
+}
+
+/* VIEWPORT MAPPA VERTICALE */
+.map-viewport {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  padding: 16px 8px;
+  margin: 10px 0;
+}
+
+.connections-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.map-line {
+  stroke-width: 2.5px;
+  transition: stroke 0.25s ease;
+}
+
+.map-line.locked {
+  stroke: var(--stone-line-soft);
+  stroke-dasharray: 4 4;
+  opacity: 0.25;
+}
+
+.map-line.active {
+  stroke: var(--gold);
+  filter: drop-shadow(0 0 6px var(--gold-glow));
+  stroke-width: 3px;
+}
+
+/* Linee dei layer visitati colorate in Verde Smeraldo */
+.map-line.visited {
+  stroke: var(--emerald);
+  filter: drop-shadow(0 0 4px var(--emerald-glow));
+  opacity: 0.85;
+}
+
+/* STACK DEI LAYER VERTICALI */
+.map-vertical-stack {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 10px 0;
+}
+
+.map-layer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.layer-badge {
+  font-family: var(--font-heading);
+  font-size: 0.68rem;
+  color: var(--gold-dim);
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--stone-line);
+  padding: 3px 6px;
+  border-radius: var(--radius-sm);
+  width: 28px;
+  text-align: center;
+}
+
+.layer-nodes-row {
+  flex: 1;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+/* CARD NODO */
+.map-node-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--stone-700) 0%, var(--stone-900) 100%);
+  border: 2px solid var(--stone-line);
+  color: var(--parchment-dim);
+  cursor: pointer;
+  transition: transform 0.2s var(--ease-out), border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* STILE NODO MISTERIOSO '?' */
+.map-node-card.mystery .mystery-mark {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--gold-dim);
+}
+
+.map-node-card.available.mystery .mystery-mark {
+  color: var(--gold-bright);
+}
+
+/* STATO: DISPONIBILE */
+.map-node-card.available {
+  border-color: var(--gold);
+  color: var(--gold-bright);
+  box-shadow: 0 0 16px var(--gold-glow);
+  animation: nodePulse 1.8s ease-in-out infinite alternate;
+}
+
+.map-node-card.available:hover {
+  transform: scale(1.15);
+  border-color: var(--gold-bright);
+  box-shadow: 0 0 24px var(--gold-glow);
+}
+
+/* STATO: VISITATO (VERDE SMERALDO) */
+.map-node-card.visited {
+  border-color: var(--emerald);
+  color: var(--emerald);
+  background: radial-gradient(circle, #064e3b 0%, var(--stone-900) 100%);
+  box-shadow: 0 0 10px var(--emerald-glow);
+  opacity: 0.9;
+}
+
+/* STATO: POSIZIONE ATTUALE (VERDE SMERALDO BRILLANTE / TU SEI QUI) */
+.map-node-card.current {
+  border-color: var(--emerald);
+  color: #ffffff;
+  background: radial-gradient(circle, #10b981 0%, #064e3b 100%);
+  box-shadow: 0 0 22px var(--emerald-glow), 0 0 8px #ffffff;
+  transform: scale(1.1);
+}
+
+/* STATO: BOSS */
+.map-node-card.boss {
+  width: 52px;
+  height: 52px;
+  border-color: var(--blood-bright);
+}
+
+.map-node-card.boss.available {
+  animation: bossPulse 1.2s ease-in-out infinite alternate;
+}
+
+/* STATO: DISABILITATO / NON RAGGIUNGIBILE */
+.map-node-card.locked {
+  opacity: 0.2;
+  cursor: not-allowed;
+  border-color: var(--stone-line-soft);
+  filter: grayscale(1);
+}
+
+/* TOOLTIP NODO */
+.node-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  white-space: nowrap;
+  background: rgba(10, 7, 4, 0.98);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-sm);
+  padding: 5px 8px;
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 100;
+}
+
+.map-node-card:hover .node-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.node-tooltip .type-name {
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  color: var(--gold-bright);
+}
+
+/* LEGENDA FOOTER */
+.map-footer {
+  display: flex;
+  justify-content: center;
+  padding-top: 10px;
+  border-top: 1px solid var(--stone-line-soft);
+}
+
+.legend {
+  display: flex;
+  gap: 12px;
+  font-family: var(--font-heading);
+  font-size: 0.7rem;
+  color: var(--parchment-dim);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dot.current {
+  background: var(--emerald);
+  box-shadow: 0 0 6px var(--emerald-glow);
+}
+
+.dot.available {
+  background: var(--gold);
+}
+
+.dot.visited {
+  background: var(--emerald-dim);
+}
+
+.dot.locked {
+  background: var(--stone-line);
+  opacity: 0.4;
+}
+
+@keyframes nodePulse {
+  0% {
+    box-shadow: 0 0 8px var(--gold-glow);
+  }
+
+  100% {
+    box-shadow: 0 0 20px var(--gold-glow);
+  }
+}
+
+@keyframes bossPulse {
+  0% {
+    box-shadow: 0 0 12px var(--blood-glow);
+    transform: scale(1);
+  }
+
+  100% {
+    box-shadow: 0 0 26px var(--blood-glow);
+    transform: scale(1.08);
+  }
+}

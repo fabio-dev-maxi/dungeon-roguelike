@@ -5,6 +5,7 @@ import {
   ChoiceOption,
   ClassKey,
   GameState,
+  MapNode,
   Monster,
   Player,
   StatKey,
@@ -30,7 +31,7 @@ export class GameService {
     private encounterService: EncounterService,
     private combatService: CombatService,
     private levelUpService: LevelUpService
-  ) {}
+  ) { }
 
   get bestDepth(): Signal<number> {
     return this.stateService.bestDepth;
@@ -39,7 +40,7 @@ export class GameService {
   state(): GameState {
     return this.stateService.state();
   }
-  // Dentro freshState() in src/app/services/game-state.service.ts
+
   freshState(prevLang: LangCode): GameState {
     return {
       screen: 'title',
@@ -48,6 +49,8 @@ export class GameService {
       depth: 0,
       monster: null,
       phase: null,
+      currentMap: null,       // Mappa non ancora generata
+      mapViewActive: false,   // Vista mappa inattiva di default
       combatFlags: {},
       log: [],
       pendingChoice: null,
@@ -60,11 +63,16 @@ export class GameService {
       lastShrineDepth: -99,
       statsExpanded: false,
       inventoryExpanded: false,
-      rollingDie: { active: false, value: null, cls: '' },
+      rollingDie: {
+        active: false,
+        value: null,
+        cls: '',
+      },
       tempStats: null,
       tempName: '',
     };
   }
+
   setLang(lang: LangCode): void {
     this.stateService.setLang(lang);
   }
@@ -173,5 +181,27 @@ export class GameService {
     this.stateService.touch();
     this.descendFloor();
   }
-  
+
+  // --- NUOVI METODI PER LA MAPPA A NODI ---
+  selectMapNode(node: MapNode): void {
+    this.encounterService.selectMapNode(node);
+  }
+
+  completeCurrentNode(): void {
+    this.encounterService.completeCurrentNode();
+  }
+
+  openMapReadOnly(): void {
+    const s = this.stateService.state();
+    if (s.currentMap) {
+      s.mapViewActive = true;
+      this.stateService.touch();
+    }
+  }
+
+  closeMapReadOnly(): void {
+    const s = this.stateService.state();
+    s.mapViewActive = false;
+    this.stateService.touch();
+  }
 }

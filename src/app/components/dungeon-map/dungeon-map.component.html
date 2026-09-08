@@ -1,0 +1,97 @@
+<!-- MODAL OVERLAY MAPPA GOTICA -->
+<div class="modal-backdrop" (click)="isReadOnly() && closeMapReadOnly()">
+  <div class="panel modal-box gothic-frame map-modal-box" (click)="$event.stopPropagation()">
+
+    <!-- HEADER MAPPA CON BOTTONE DI CHIUSURA QUANDO IN SOLA LETTURA -->
+    <header class="map-header">
+      <div class="header-left">
+        <div class="sigil sigil--sm">
+          <app-icon name="stairs" [size]="18"></app-icon>
+        </div>
+        <div class="header-titles">
+          <h2>{{ i18n.tf('ui.floorHeader', { depth: game.state().depth }) }}</h2>
+          <span class="eyebrow">
+            @if (isReadOnly()) {
+            Mappa della Guglia &bull; Consulta Sola Lettura
+            } @else {
+            Mappa della Guglia &bull; Scegli il Percorso
+            }
+          </span>
+        </div>
+      </div>
+
+      <!-- BOTTONE CHIUDI MAPPA IN SOLA LETTURA -->
+      @if (isReadOnly()) {
+      <button type="button" class="btn btn--icon close-btn" (click)="closeMapReadOnly()" title="Chiudi Mappa">
+        <app-icon name="x" [size]="18"></app-icon>
+      </button>
+      }
+    </header>
+
+    <!-- VIEWPORT CON MATRICE VERTICALE ED OVERLAY SVG -->
+    <div class="map-viewport" #mapViewport>
+      <!-- LINEE DI CONNESSIONE SVG -->
+      <svg class="connections-overlay" aria-hidden="true">
+        @for (line of connections(); track line.id) {
+        <line [attr.x1]="line.x1" [attr.y1]="line.y1" [attr.x2]="line.x2" [attr.y2]="line.y2"
+          [class]="'map-line ' + line.status" />
+        }
+      </svg>
+
+      <!-- STACK DEI LAYER VERTICALI (DAL LAYER 7 IN ALTO AL LAYER 1 IN BASSO) -->
+      <div class="map-vertical-stack">
+        @for (layerData of reversedLayers(); track layerData.layerNum) {
+        <div class="map-layer-row" [attr.data-layer]="layerData.layerNum">
+          <div class="layer-badge">L{{ layerData.layerNum }}</div>
+
+          <div class="layer-nodes-row">
+            @for (nodeId of layerData.nodeIds; track nodeId) {
+            @if (currentMap()?.nodes?.[nodeId]; as node) {
+            <button type="button" class="map-node-card" [attr.data-node-id]="node.id"
+              [class.locked]="node.status === 'locked'" [class.available]="node.status === 'available' && !isReadOnly()"
+              [class.visited]="node.status === 'visited'" [class.current]="node.status === 'current'"
+              [class.boss]="node.type === 'boss'" [class.mystery]="isHiddenMysteryNode(node)"
+              [disabled]="isReadOnly() || node.status !== 'available'" (click)="onNodeClick(node)">
+              <div class="node-sigil">
+                @if (getNodeIcon(node); as iconName) {
+                <app-icon [name]="iconName" [size]="20"></app-icon>
+                } @else {
+                <span class="mystery-mark">?</span>
+                }
+              </div>
+
+              <!-- TOOLTIP INFORMATIVO -->
+              <div class="node-tooltip">
+                <span class="type-name">{{ getNodeTypeLabel(node) }}</span>
+                <span class="small status-text">
+                  @switch (node.status) {
+                  @case ('current') { Posizione attuale }
+                  @case ('visited') { Anfratto perlustrato }
+                  @case ('available') {
+                  @if (isReadOnly()) { Sbloccato } @else { Clicca per avanzare }
+                  }
+                  @default { Percorso non raggiungibile }
+                  }
+                </span>
+              </div>
+            </button>
+            }
+            }
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+
+    <!-- FOOTER LEGENDA -->
+    <footer class="map-footer">
+      <div class="legend">
+        <span class="legend-item"><span class="dot current"></span> Tu sei qui</span>
+        <span class="legend-item"><span class="dot available"></span> Disponibile</span>
+        <span class="legend-item"><span class="dot visited"></span> Visitato</span>
+        <span class="legend-item"><span class="dot locked"></span> Disabilitato</span>
+      </div>
+    </footer>
+
+  </div>
+</div>

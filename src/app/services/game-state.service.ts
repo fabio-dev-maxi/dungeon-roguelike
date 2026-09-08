@@ -9,7 +9,10 @@ const SPIN_MS = 500;
 const READ_RESULT_MS = 950;
 
 /**
- * Gestione dello stato reattivo centrale (Signals), log e animazioni dadi
+ * GESTORE DELLO STATO REATTIVO CENTRALE (ANGULAR 20 SIGNALS)
+ * 
+ * Contiene lo stato immutabile aggiornato tramite versione reattiva,
+ * gestisce il reset pulito della sessione e le animazioni dei dadi 3D.
  */
 @Injectable({ providedIn: 'root' })
 export class GameStateService {
@@ -20,7 +23,7 @@ export class GameStateService {
   constructor(
     private i18n: I18nService,
     private dice: DiceService
-  ) {}
+  ) { }
 
   state(): GameState {
     this._version();
@@ -43,6 +46,10 @@ export class GameStateService {
     return this.i18n.equipmentName(key, kind);
   }
 
+  /**
+   * Crea uno stato di gioco completamente pulito.
+   * Resetta la mappa, i nodi visitati e disattiva la vista mappa.
+   */
   freshState(prevLang: LangCode): GameState {
     return {
       screen: 'title',
@@ -51,6 +58,8 @@ export class GameStateService {
       depth: 0,
       monster: null,
       phase: null,
+      currentMap: null,       // Mappa non ancora generata
+      mapViewActive: false,   // Vista mappa inattiva di default
       combatFlags: {},
       log: [],
       pendingChoice: null,
@@ -156,9 +165,11 @@ export class GameStateService {
     this.touch();
   }
 
-  restartGame(): void {
+  /**
+   * Resetta completamente la sessione corrente per iniziare un nuovo tentativo.
+   */
+  public restartGame(): void {
     const lang = this.state().lang as LangCode;
-
     this._state = this.freshState(lang);
     this.touch();
   }

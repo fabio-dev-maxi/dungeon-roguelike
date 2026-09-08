@@ -21,7 +21,8 @@
   box-sizing: border-box;
 }
 
-.header-left, .header-right {
+.header-left,
+.header-right {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -33,7 +34,9 @@
   gap: 6px;
 }
 
-.gold-icon { color: var(--gold); }
+.gold-icon {
+  color: var(--gold);
+}
 
 .floor-label {
   font-family: var(--font-heading);
@@ -61,8 +64,15 @@
   font-size: 0.82rem;
 }
 
-.gold-pill { color: var(--gold-bright); border-color: rgba(212, 175, 55, 0.3); }
-.potion-pill { color: var(--emerald); border-color: rgba(52, 211, 153, 0.3); }
+.gold-pill {
+  color: var(--gold-bright);
+  border-color: rgba(212, 175, 55, 0.3);
+}
+
+.potion-pill {
+  color: var(--emerald);
+  border-color: rgba(52, 211, 153, 0.3);
+}
 
 /* PILL E POPOVER RELIQUIE */
 .relic-pill {
@@ -99,8 +109,15 @@
 }
 
 @keyframes popoverFade {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .popover-title {
@@ -309,7 +326,8 @@
 .potion-modal-actions {
   display: flex;
   justify-content: center;
-  gap: 12px; /* Spazio tra Annulla e Bevi */
+  gap: 12px;
+  /* Spazio tra Annulla e Bevi */
   margin-top: 6px;
 }
 
@@ -363,7 +381,8 @@
   flex: 1;
 }
 
-.char-name, .enemy-name {
+.char-name,
+.enemy-name {
   font-family: var(--font-heading);
   font-size: 0.95rem;
   margin: 0;
@@ -574,8 +593,17 @@
   font-weight: 700;
 }
 
-.gold-crit { background: #3d2b12; border: 1px solid var(--gold); color: var(--gold-bright); }
-.red-fail { background: #3a1010; border: 1px solid var(--blood-bright); color: #ff9999; }
+.gold-crit {
+  background: #3d2b12;
+  border: 1px solid var(--gold);
+  color: var(--gold-bright);
+}
+
+.red-fail {
+  background: #3a1010;
+  border: 1px solid var(--blood-bright);
+  color: #ff9999;
+}
 
 .dice-arena {
   display: flex;
@@ -593,15 +621,45 @@
   align-items: center;
   min-width: 0;
 }
+
 /* Consente al lato del giocatore di espandersi quando vengono lanciati più dadi */
 .dice-slot.left {
   flex: 1.5;
 }
-.dice-fighter { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.dice-name { font-family: var(--font-heading); font-size: 0.72rem; text-transform: uppercase; max-width: 110px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.dice-name.player { color: var(--gold); }
-.dice-name.enemy { color: var(--emerald); }
-.dice-slot-placeholder { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--parchment-dim); opacity: 0.4; }
+
+.dice-fighter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.dice-name {
+  font-family: var(--font-heading);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  max-width: 110px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dice-name.player {
+  color: var(--gold);
+}
+
+.dice-name.enemy {
+  color: var(--emerald);
+}
+
+.dice-slot-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--parchment-dim);
+  opacity: 0.4;
+}
 
 /* PLANCIA AZIONI */
 .actions-console {
@@ -688,9 +746,19 @@
   scrollbar-color: var(--gold-dim) rgba(0, 0, 0, 0.3);
 }
 
-.log::-webkit-scrollbar { width: 5px; }
-.log::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); border-radius: 3px; }
-.log::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 3px; }
+.log::-webkit-scrollbar {
+  width: 5px;
+}
+
+.log::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+}
+
+.log::-webkit-scrollbar-thumb {
+  background: var(--gold-dim);
+  border-radius: 3px;
+}
 
 .log p {
   margin: 0 0 5px;
@@ -730,7 +798,9 @@
   text-transform: uppercase;
 }
 
-.choice-actions-heading.trap-alert { color: #ffb3a7; }
+.choice-actions-heading.trap-alert {
+  color: #ffb3a7;
+}
 
 .choice-actions .encounter-btn {
   height: 74px;
@@ -740,20 +810,75 @@
   line-height: 1.15;
 }
 
-.log p.hero, .log p.player { border-left-color: var(--blue-hero); background: rgba(52, 152, 219, 0.08); }
-.log p.enemy, .log p.dmg { border-left-color: var(--red-monster); background: rgba(231, 76, 60, 0.08); }
-.log p.heal { border-left-color: var(--green-heal); background: rgba(46, 204, 113, 0.08); }
-.log p.crit { border-left-color: var(--gold); background: rgba(212, 175, 55, 0.12); font-weight: 600; }
-.log p.flavor { border-left-color: var(--gold-dim); background: rgba(212, 175, 55, 0.1); color: var(--parchment); font-size: 0.9rem; }
-.log p.sys.floor { border-left-color: var(--gold); background: rgba(212, 175, 55, 0.14); color: var(--gold-bright); font-family: var(--font-heading); font-weight: 700; letter-spacing: 0.08em; text-align: center; text-transform: uppercase; }
+.log p.hero,
+.log p.player {
+  border-left-color: var(--blue-hero);
+  background: rgba(52, 152, 219, 0.08);
+}
+
+.log p.enemy,
+.log p.dmg {
+  border-left-color: var(--red-monster);
+  background: rgba(231, 76, 60, 0.08);
+}
+
+.log p.heal {
+  border-left-color: var(--green-heal);
+  background: rgba(46, 204, 113, 0.08);
+}
+
+.log p.crit {
+  border-left-color: var(--gold);
+  background: rgba(212, 175, 55, 0.12);
+  font-weight: 600;
+}
+
+.log p.flavor {
+  border-left-color: var(--gold-dim);
+  background: rgba(212, 175, 55, 0.1);
+  color: var(--parchment);
+  font-size: 0.9rem;
+}
+
+.log p.sys.floor {
+  border-left-color: var(--gold);
+  background: rgba(212, 175, 55, 0.14);
+  color: var(--gold-bright);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
 
 /* SCHEDA MOSTRO DESTRA */
-.enemy-card { border-color: var(--stone-line); }
-.enemy-card.boss-card { border-color: var(--blood-bright); box-shadow: 0 0 20px rgba(139, 0, 0, 0.35); }
+.enemy-card {
+  border-color: var(--stone-line);
+}
 
-.enemy-tag-row { margin-bottom: 2px; }
-.tier-badge { font-family: var(--font-heading); font-size: 0.62rem; color: var(--emerald); text-transform: uppercase; }
-.boss-badge { font-family: var(--font-heading); font-size: 0.62rem; color: var(--blood-bright); font-weight: 700; text-transform: uppercase; }
+.enemy-card.boss-card {
+  border-color: var(--blood-bright);
+  box-shadow: 0 0 20px rgba(139, 0, 0, 0.35);
+}
+
+.enemy-tag-row {
+  margin-bottom: 2px;
+}
+
+.tier-badge {
+  font-family: var(--font-heading);
+  font-size: 0.62rem;
+  color: var(--emerald);
+  text-transform: uppercase;
+}
+
+.boss-badge {
+  font-family: var(--font-heading);
+  font-size: 0.62rem;
+  color: var(--blood-bright);
+  font-weight: 700;
+  text-transform: uppercase;
+}
 
 .enemy-traits-box {
   padding: 8px 10px;
@@ -762,8 +887,19 @@
   border-radius: var(--radius-sm);
 }
 
-.trait-label { font-family: var(--font-heading); color: var(--gold-dim); font-size: 0.68rem; text-transform: uppercase; margin-bottom: 2px; }
-.trait-desc { margin: 0; color: var(--parchment-dim); line-height: 1.35; }
+.trait-label {
+  font-family: var(--font-heading);
+  color: var(--gold-dim);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.trait-desc {
+  margin: 0;
+  color: var(--parchment-dim);
+  line-height: 1.35;
+}
 
 .enemy-empty-state {
   display: flex;
@@ -776,7 +912,9 @@
   height: 100%;
 }
 
-.sigil--empty { opacity: 0.35; }
+.sigil--empty {
+  opacity: 0.35;
+}
 
 /* SCELTE DI INCONTRO */
 .encounter-btn {
@@ -795,7 +933,9 @@
   box-sizing: border-box;
 }
 
-.mobile-vs-hud { display: none; }
+.mobile-vs-hud {
+  display: none;
+}
 
 /* ==========================================================================
    ADATTAMENTO MOBILE (< 768px)
@@ -859,13 +999,70 @@
     box-sizing: border-box;
   }
 
-  .hud-fighter { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-  .hud-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; }
-  .hud-name { font-family: var(--font-heading); color: var(--parchment); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; }
-  .hud-hp-num { font-size: 0.72rem; }
-  .hud-vs-badge { font-family: var(--font-heading); font-size: 0.75rem; color: var(--gold-dim); font-weight: bold; }
+  .hud-fighter {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
 
-  .combatant-card.hero-card { order: 3; }
-  .combatant-card.enemy-card { order: 4; }
-  .tactical-center { order: 1; }
+  .hud-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.72rem;
+  }
+
+  .hud-name {
+    font-family: var(--font-heading);
+    color: var(--parchment);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90px;
+  }
+
+  .hud-hp-num {
+    font-size: 0.72rem;
+  }
+
+  .hud-vs-badge {
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    color: var(--gold-dim);
+    font-weight: bold;
+  }
+
+  .combatant-card.hero-card {
+    order: 3;
+  }
+
+  .combatant-card.enemy-card {
+    order: 4;
+  }
+
+  .tactical-center {
+    order: 1;
+  }
+}
+
+.map-pill {
+  color: var(--gold-bright);
+  border-color: rgba(212, 175, 55, 0.4);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.map-pill:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: var(--gold-bright);
+}
+
+.map-pill-label {
+  font-family: var(--font-heading);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }

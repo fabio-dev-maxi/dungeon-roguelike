@@ -1,4 +1,10 @@
-<div class="panel">
+<!-- ==========================================================================
+     PANNELLO WIKI & EDITOR STATISTICHE
+     Consente la consultazione e la modifica in tempo reale dei parametri di D&D 3.5
+     ========================================================================== -->
+<div class="panel gothic-frame">
+
+  <!-- INTESTAZIONE PRINCIPALE -->
   <div class="wiki-header" style="display: flex; justify-content: space-between; align-items: center;">
     <h2>Wiki &amp; Editor Statistiche</h2>
     <div>
@@ -7,232 +13,359 @@
     </div>
   </div>
 
+  <!-- BARRA DI NAVIGAZIONE TAB -->
   <div class="wiki-tabs">
-    <button type="button" class="btn" [class.primary]="activeTab() === 'monsters'" (click)="setTab('monsters')">Mostri</button>
-    <button type="button" class="btn" [class.primary]="activeTab() === 'bosses'" (click)="setTab('bosses')">Boss</button>
-    <button type="button" class="btn" [class.primary]="activeTab() === 'equipment'" (click)="setTab('equipment')">Armi &amp; Armature</button>
-    <button type="button" class="btn" [class.primary]="activeTab() === 'relics_feats'" (click)="setTab('relics_feats')">Reliquie &amp; Talenti</button>
-    <button type="button" class="btn" [class.primary]="activeTab() === 'heroes'" (click)="setTab('heroes')">Eroi Predefiniti</button>
+    <button type="button" class="btn" [class.primary]="activeTab() === 'map_system'" (click)="setTab('map_system')">
+      Mappa &amp; Regole DAG
+    </button>
+    <button type="button" class="btn" [class.primary]="activeTab() === 'monsters'" (click)="setTab('monsters')">
+      Mostri &amp; CR
+    </button>
+    <button type="button" class="btn" [class.primary]="activeTab() === 'bosses'" (click)="setTab('bosses')">
+      Custodi dei Piani
+    </button>
+    <button type="button" class="btn" [class.primary]="activeTab() === 'equipment'" (click)="setTab('equipment')">
+      Armi &amp; Armature
+    </button>
+    <button type="button" class="btn" [class.primary]="activeTab() === 'relics_feats'" (click)="setTab('relics_feats')">
+      Reliquie &amp; Talenti
+    </button>
+    <button type="button" class="btn" [class.primary]="activeTab() === 'heroes'" (click)="setTab('heroes')">
+      Eroi Evocabili
+    </button>
   </div>
 
-  <!-- MOSTRI -->
+  <!-- ==========================================================================
+       TAB 1: STRUTTURA DEL DUNGEON & SISTEMA MAPPA (DAG A 7 LAYER)
+       ========================================================================== -->
+  @if (activeTab() === 'map_system') {
+  <div class="section-container">
+    <div class="wiki-card gothic-frame">
+      <h3>Architettura della Guglia Cava (Grafo Aciclico Diretto)</h3>
+      <p class="small" style="color: var(--parchment-dim); line-height: 1.6;">
+        Ogni Piano della Guglia è strutturato come un <b>Grafo Aciclico Diretto (DAG)</b> composto da <b>7 Layer di
+          profondità</b>.
+        Il giocatore sceglie autonomamente il proprio percorso tra le ramificazioni disponibili.
+      </p>
+
+      <table class="wiki-table" style="margin-top: 14px;">
+        <thead>
+          <tr>
+            <th>Layer</th>
+            <th>Tipo Incontro</th>
+            <th>Descrizione &amp; Meccaniche D&amp;D 3.5</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="num">Layer 1</td>
+            <td><b class="highlight">Ingresso</b></td>
+            <td>Nodi di apertura sbloccati (Scontro leggero o Trappola CD 10+).</td>
+          </tr>
+          <tr>
+            <td class="num">Layer 2 - 5</td>
+            <td><b class="highlight">Anfratti del Dungeon</b></td>
+            <td>Incontri casuali pesati (Combattimenti, Forzieri, Trappole, Altari, Mercanti, Taverne). I percorsi si
+              incrociano.</td>
+          </tr>
+          <tr>
+            <td class="num">Layer 6</td>
+            <td><b class="highlight">Zona di Santificazione</b></td>
+            <td>Nodi di supporto e riposo (Taverna, Mercante, Altare) prima dello scontro decisivo.</td>
+          </tr>
+          <tr>
+            <td class="num">Layer 7</td>
+            <td><b style="color: var(--blood-bright);">Custode del Piano</b></td>
+            <td>Nodo Boss unico. Sconfiggerlo assegna bottino di classe/reliquia e sblocca il Piano successivo.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  }
+
+  <!-- ==========================================================================
+       TAB 2: MOSTRI E GRADI DI SFIDA (TIERS 1..6)
+       ========================================================================== -->
   @if (activeTab() === 'monsters') {
-    <div class="section-container">
-      @for (tier of monsterTiers; track tier) {
-        <div class="wiki-card">
-          <h3>Tier {{ tier }}</h3>
-          <table class="wiki-table">
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>PF Base</th>
-                <th>Dado Danno</th>
-                <th>CA</th>
-                <th>Atk Base</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (id of monsterIdsTier[tier]; track id) {
-                @if (customData.monsters()[id]; as m) {
-                  <tr>
-                    <td><b>{{ i18n.t('monsters.' + id) }}</b></td>
-                    <td><input type="text" inputmode="numeric" [(ngModel)]="m.hpBase" (input)="customData.saveChanges()"></td>
-                    <td>
-                      <input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="m.dmg[0]" (input)="customData.saveChanges()"> d 
-                      <input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="m.dmg[1]" (input)="customData.saveChanges()">
-                    </td>
-                    <td><input type="text" inputmode="numeric" [(ngModel)]="m.ac" (input)="customData.saveChanges()"></td>
-                    <td><input type="text" inputmode="numeric" [(ngModel)]="m.atk" (input)="customData.saveChanges()"></td>
-                  </tr>
-                }
-              }
-            </tbody>
-          </table>
-        </div>
-      }
-    </div>
-  }
-
-  <!-- BOSS -->
-  @if (activeTab() === 'bosses') {
-    <div class="section-container">
-      <div class="wiki-card">
-        <h3>I Custodi dei Piani</h3>
-        <table class="wiki-table">
-          <thead>
-            <tr>
-              <th>Piano</th>
-              <th>Boss</th>
-              <th>PF Base</th>
-              <th>Danno</th>
-              <th>CA</th>
-              <th>Atk Base</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (id of Object.keys(customData.bosses()); track id) {
-              @if (customData.bosses()[id]; as b) {
-                <tr>
-                  <td class="num">Piano {{ b.atDepth }}</td>
-                  <td><b class="highlight">{{ i18n.t('bosses.' + id) }}</b></td>
-                  <td><input type="text" inputmode="numeric" [(ngModel)]="b.hpBase" (input)="customData.saveChanges()"></td>
-                  <td>
-                    <input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="b.dmg[0]" (input)="customData.saveChanges()"> d 
-                    <input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="b.dmg[1]" (input)="customData.saveChanges()">
-                  </td>
-                  <td><input type="text" inputmode="numeric" [(ngModel)]="b.ac" (input)="customData.saveChanges()"></td>
-                  <td><input type="text" inputmode="numeric" [(ngModel)]="b.atk" (input)="customData.saveChanges()"></td>
-                </tr>
-              }
-            }
-          </tbody>
-        </table>
-      </div>
-    </div>
-  }
-
-  <!-- ARMI E ARMATURE -->
-  @if (activeTab() === 'equipment') {
-    <div class="class-selector">
-      @for (cls of classKeys; track cls) {
-        <button type="button" class="btn" [class.primary]="selectedClass() === cls" (click)="setClass(cls)">
-          {{ i18n.t('classes.' + cls + '.name') }}
-        </button>
-      }
-    </div>
-
-    <div class="section-container">
-      <div class="wiki-card">
-        <h3>Armi - {{ i18n.t('classes.' + selectedClass() + '.name') }}</h3>
-        <table class="wiki-table">
-          <thead>
-            <tr>
-              <th>Tier</th>
-              <th>Nome</th>
-              <th>Dadi Danno</th>
-              <th>Bonus Fisso</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (tier of equipmentTiers; track tier) {
-              @for (w of customData.weapons()[selectedClass()][tier]; track w.key) {
-                <tr>
-                  <td class="num">Tier {{ tier }}</td>
-                  <td><b>{{ i18n.equipmentName(w.key, 'weapons') }}</b></td>
-                  <td>
-                    <input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="w.dice[0]" (input)="customData.saveChanges()"> d 
-                    <input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="w.dice[1]" (input)="customData.saveChanges()">
-                  </td>
-                  <td><input type="text" inputmode="numeric" [(ngModel)]="w.bonus" (input)="customData.saveChanges()"></td>
-                </tr>
-              }
-            }
-          </tbody>
-        </table>
-      </div>
-
-      <div class="wiki-card">
-        <h3>Armature - {{ i18n.t('classes.' + selectedClass() + '.name') }}</h3>
-        <table class="wiki-table">
-          <thead>
-            <tr>
-              <th>Tier</th>
-              <th>Nome</th>
-              <th>Bonus CA</th>
-              <th>Riduzione Danno (DR)</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (tier of equipmentTiers; track tier) {
-              @for (a of customData.armors()[selectedClass()][tier]; track a.key) {
-                <tr>
-                  <td class="num">Tier {{ tier }}</td>
-                  <td><b>{{ i18n.equipmentName(a.key, 'armors') }}</b></td>
-                  <td><input type="text" inputmode="numeric" [(ngModel)]="a.bonus" (input)="customData.saveChanges()"></td>
-                  <td><input type="text" inputmode="numeric" [(ngModel)]="a.drBonus" (input)="customData.saveChanges()"></td>
-                </tr>
-              }
-            }
-          </tbody>
-        </table>
-      </div>
-    </div>
-  }
-
-  <!-- RELIQUIE -->
-  @if (activeTab() === 'relics_feats') {
-    <div class="class-selector">
-      @for (cls of classKeys; track cls) {
-        <button type="button" class="btn" [class.primary]="selectedClass() === cls" (click)="setClass(cls)">
-          {{ i18n.t('classes.' + cls + '.name') }}
-        </button>
-      }
-    </div>
-
-    <div class="section-container">
-      <div class="wiki-card">
-        <h3>Reliquie di Classe Modificabili</h3>
-        <div class="grid-list">
-          @for (relicKey of Object.keys(customData.relics()[selectedClass()]); track relicKey) {
-            @if (customData.relics()[selectedClass()][relicKey]; as r) {
-              <div class="wiki-item">
-                <div class="item-title">{{ i18n.t('relics.' + relicKey + '.name') }}</div>
-                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px;">
-                  <label class="small">CA: <input style="width: 44px;" type="text" inputmode="numeric" [(ngModel)]="r.ac" (input)="customData.saveChanges()"></label>
-                  <label class="small">Max HP: <input style="width: 44px;" type="text" inputmode="numeric" [(ngModel)]="r.maxHp" (input)="customData.saveChanges()"></label>
-                  <label class="small">Dmg: <input style="width: 44px;" type="text" inputmode="numeric" [(ngModel)]="r.dmg" (input)="customData.saveChanges()"></label>
-                  <label class="small">Atk: <input style="width: 44px;" type="text" inputmode="numeric" [(ngModel)]="r.atk" (input)="customData.saveChanges()"></label>
-                </div>
-              </div>
-            }
+  <div class="section-container">
+    @for (tier of monsterTiers; track tier) {
+    <div class="wiki-card gothic-frame">
+      <h3>Tier {{ tier }} (Challenge Rating {{ tier }})</h3>
+      <table class="wiki-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>PF Base</th>
+            <th>Dado Danno</th>
+            <th>CA</th>
+            <th>TxC Base</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (id of monsterIdsTier[tier]; track id) {
+          @if (customData.monsters()[id]; as m) {
+          <tr>
+            <td><b>{{ i18n.t('monsters.' + id) }}</b></td>
+            <td>
+              <input type="text" inputmode="numeric" [(ngModel)]="m.hpBase" (input)="customData.saveChanges()">
+            </td>
+            <td>
+              <input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="m.dmg[0]"
+                (input)="customData.saveChanges()"> d
+              <input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="m.dmg[1]"
+                (input)="customData.saveChanges()">
+            </td>
+            <td>
+              <input type="text" inputmode="numeric" [(ngModel)]="m.ac" (input)="customData.saveChanges()">
+            </td>
+            <td>
+              <input type="text" inputmode="numeric" [(ngModel)]="m.atk" (input)="customData.saveChanges()">
+            </td>
+          </tr>
           }
+          }
+        </tbody>
+      </table>
+    </div>
+    }
+  </div>
+  }
+
+  <!-- ==========================================================================
+       TAB 3: CUSTODI DEI PIANI (BOSS DI LAYER 7)
+       ========================================================================== -->
+  @if (activeTab() === 'bosses') {
+  <div class="section-container">
+    <div class="wiki-card gothic-frame">
+      <h3>I Custodi dei Piani</h3>
+      <table class="wiki-table">
+        <thead>
+          <tr>
+            <th>Piano</th>
+            <th>Boss</th>
+            <th>PF Base</th>
+            <th>Dado Danno</th>
+            <th>CA</th>
+            <th>TxC Base</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (id of Object.keys(customData.bosses()); track id) {
+          @if (customData.bosses()[id]; as b) {
+          <tr>
+            <td class="num">Piano {{ b.atDepth }}</td>
+            <td><b class="highlight">{{ i18n.t('bosses.' + id) }}</b></td>
+            <td>
+              <input type="text" inputmode="numeric" [(ngModel)]="b.hpBase" (input)="customData.saveChanges()">
+            </td>
+            <td>
+              <input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="b.dmg[0]"
+                (input)="customData.saveChanges()"> d
+              <input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="b.dmg[1]"
+                (input)="customData.saveChanges()">
+            </td>
+            <td>
+              <input type="text" inputmode="numeric" [(ngModel)]="b.ac" (input)="customData.saveChanges()">
+            </td>
+            <td>
+              <input type="text" inputmode="numeric" [(ngModel)]="b.atk" (input)="customData.saveChanges()">
+            </td>
+          </tr>
+          }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+  }
+
+  <!-- ==========================================================================
+       TAB 4: EQUIPAGGIAMENTO (ARMI ED ARMATURE DI CLASSE)
+       ========================================================================== -->
+  @if (activeTab() === 'equipment') {
+  <!-- FILTRO PER CLASSE -->
+  <div class="class-selector">
+    @for (cls of classKeys; track cls) {
+    <button type="button" class="btn" [class.primary]="selectedClass() === cls" (click)="setClass(cls)">
+      {{ i18n.t('classes.' + cls + '.name') }}
+    </button>
+    }
+  </div>
+
+  <div class="section-container">
+    <!-- TABELLA ARMI -->
+    <div class="wiki-card gothic-frame">
+      <h3>Armi - {{ i18n.t('classes.' + selectedClass() + '.name') }}</h3>
+      <table class="wiki-table">
+        <thead>
+          <tr>
+            <th>Tier</th>
+            <th>Nome</th>
+            <th>Dadi Danno</th>
+            <th>Bonus Fisso</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (tier of equipmentTiers; track tier) {
+          @for (w of customData.weapons()[selectedClass()][tier]; track w.key) {
+          <tr>
+            <td class="num">Tier {{ tier }}</td>
+            <td><b>{{ i18n.equipmentName(w.key, 'weapons') }}</b></td>
+            <td>
+              <input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="w.dice[0]"
+                (input)="customData.saveChanges()"> d
+              <input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="w.dice[1]"
+                (input)="customData.saveChanges()">
+            </td>
+            <td>
+              <input type="text" inputmode="numeric" [(ngModel)]="w.bonus" (input)="customData.saveChanges()">
+            </td>
+          </tr>
+          }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- TABELLA ARMATURE -->
+    <div class="wiki-card gothic-frame">
+      <h3>Armature - {{ i18n.t('classes.' + selectedClass() + '.name') }}</h3>
+      <table class="wiki-table">
+        <thead>
+          <tr>
+            <th>Tier</th>
+            <th>Nome</th>
+            <th>Bonus CA</th>
+            <th>Riduzione Danno (DR)</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (tier of equipmentTiers; track tier) {
+          @for (a of customData.armors()[selectedClass()][tier]; track a.key) {
+          <tr>
+            <td class="num">Tier {{ tier }}</td>
+            <td><b>{{ i18n.equipmentName(a.key, 'armors') }}</b></td>
+            <td>
+              <input type="text" inputmode="numeric" [(ngModel)]="a.bonus" (input)="customData.saveChanges()">
+            </td>
+            <td>
+              <input type="text" inputmode="numeric" [(ngModel)]="a.drBonus" (input)="customData.saveChanges()">
+            </td>
+          </tr>
+          }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+  }
+
+  <!-- ==========================================================================
+       TAB 5: RELIQUIE E TALENTI DI CLASSE
+       ========================================================================== -->
+  @if (activeTab() === 'relics_feats') {
+  <div class="class-selector">
+    @for (cls of classKeys; track cls) {
+    <button type="button" class="btn" [class.primary]="selectedClass() === cls" (click)="setClass(cls)">
+      {{ i18n.t('classes.' + cls + '.name') }}
+    </button>
+    }
+  </div>
+
+  <div class="section-container">
+    <!-- RELIQUIE DI CLASSE -->
+    <div class="wiki-card gothic-frame">
+      <h3>Reliquie di Classe Modificabili</h3>
+      <div class="grid-list">
+        @for (relicKey of Object.keys(customData.relics()[selectedClass()]); track relicKey) {
+        @if (customData.relics()[selectedClass()][relicKey]; as r) {
+        <div class="wiki-item gothic-frame">
+          <div class="item-title">{{ i18n.t('relics.' + relicKey + '.name') }}</div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px;">
+            <label class="small">CA: <input style="width: 44px;" type="text" inputmode="numeric" [(ngModel)]="r.ac"
+                (input)="customData.saveChanges()"></label>
+            <label class="small">Max HP: <input style="width: 44px;" type="text" inputmode="numeric"
+                [(ngModel)]="r.maxHp" (input)="customData.saveChanges()"></label>
+            <label class="small">Dmg: <input style="width: 44px;" type="text" inputmode="numeric" [(ngModel)]="r.dmg"
+                (input)="customData.saveChanges()"></label>
+            <label class="small">Atk: <input style="width: 44px;" type="text" inputmode="numeric" [(ngModel)]="r.atk"
+                (input)="customData.saveChanges()"></label>
+          </div>
         </div>
+        }
+        }
       </div>
     </div>
+
+    <!-- TALENTI DI CLASSE -->
+    <div class="wiki-card gothic-frame">
+      <h3>Talenti Acquisibili (Level-Up)</h3>
+      <div class="grid-list">
+        @for (feat of selectedClassFeats(); track feat.id) {
+        <div class="wiki-item gothic-frame">
+          <div class="item-title">{{ i18n.t(feat.nameKey) }}</div>
+          <p class="small item-desc">{{ i18n.t(feat.descKey) }}</p>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
   }
 
-  <!-- EROI PREDEFINITI -->
+  <!-- ==========================================================================
+       TAB 6: EROI PREDEFINITI (RITUALE DI EVOCAZIONE)
+       ========================================================================== -->
   @if (activeTab() === 'heroes') {
-    <div class="class-selector">
-      @for (cls of classKeys; track cls) {
-        <button type="button" class="btn" [class.primary]="selectedClass() === cls" (click)="setClass(cls)">
-          {{ i18n.t('classes.' + cls + '.name') }}
-        </button>
-      }
-    </div>
+  <div class="class-selector">
+    @for (cls of classKeys; track cls) {
+    <button type="button" class="btn" [class.primary]="selectedClass() === cls" (click)="setClass(cls)">
+      {{ i18n.t('classes.' + cls + '.name') }}
+    </button>
+    }
+  </div>
 
-    <div class="section-container">
-      <div class="wiki-card">
-        <h3>Eroi Evocabili - {{ i18n.t('classes.' + selectedClass() + '.name') }}</h3>
-        <table class="wiki-table">
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>Titolo</th>
-              <th>FOR</th>
-              <th>DES</th>
-              <th>COS</th>
-              <th>INT</th>
-              <th>SAG</th>
-              <th>CAR</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (hero of customData.heroes()[selectedClass()]; track hero.id) {
-              <tr>
-                <td><input style="width: 140px; text-align: left;" type="text" [(ngModel)]="hero.name" (input)="customData.saveChanges()"></td>
-                <td><input style="width: 140px; text-align: left;" type="text" [(ngModel)]="hero.title" (input)="customData.saveChanges()"></td>
-                <td><input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="hero.stats.str" (input)="customData.saveChanges()"></td>
-                <td><input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="hero.stats.dex" (input)="customData.saveChanges()"></td>
-                <td><input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="hero.stats.con" (input)="customData.saveChanges()"></td>
-                <td><input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="hero.stats.int" (input)="customData.saveChanges()"></td>
-                <td><input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="hero.stats.wis" (input)="customData.saveChanges()"></td>
-                <td><input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="hero.stats.cha" (input)="customData.saveChanges()"></td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
+  <div class="section-container">
+    <div class="wiki-card gothic-frame">
+      <h3>Eroi Evocabili - {{ i18n.t('classes.' + selectedClass() + '.name') }}</h3>
+      <table class="wiki-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Titolo</th>
+            <th>FOR</th>
+            <th>DES</th>
+            <th>COS</th>
+            <th>INT</th>
+            <th>SAG</th>
+            <th>CAR</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (hero of customData.heroes()[selectedClass()]; track hero.id) {
+          <tr>
+            <td><input style="width: 140px; text-align: left;" type="text" [(ngModel)]="hero.name"
+                (input)="customData.saveChanges()"></td>
+            <td><input style="width: 140px; text-align: left;" type="text" [(ngModel)]="hero.title"
+                (input)="customData.saveChanges()"></td>
+            <td><input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="hero.stats.str"
+                (input)="customData.saveChanges()"></td>
+            <td><input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="hero.stats.dex"
+                (input)="customData.saveChanges()"></td>
+            <td><input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="hero.stats.con"
+                (input)="customData.saveChanges()"></td>
+            <td><input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="hero.stats.int"
+                (input)="customData.saveChanges()"></td>
+            <td><input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="hero.stats.wis"
+                (input)="customData.saveChanges()"></td>
+            <td><input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="hero.stats.cha"
+                (input)="customData.saveChanges()"></td>
+          </tr>
+          }
+        </tbody>
+      </table>
     </div>
+  </div>
   }
+
 </div>

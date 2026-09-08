@@ -1,16 +1,24 @@
-<div class="panel">
+<!-- ==========================================================================
+     PANNELLO ADMIN & SIMULATORE BATCH MAPPA
+     ========================================================================== -->
+<div class="panel gothic-frame">
+
+  <!-- INTESTAZIONE AMMINISTRAZIONE -->
   <div class="admin-header">
     <h2>Pannello Admin &amp; Simulatore</h2>
     <a routerLink="/wiki" class="btn">Apri Wiki &amp; Compendio</a>
   </div>
 
-  <div class="config-card">
-    <h3>Simulazione Bilanciamento</h3>
+  <!-- CONFIGURAZIONE RUNS DI SIMULAZIONE -->
+  <div class="config-card gothic-frame">
+    <h3>Simulazione Bilanciamento Mappe (50 Piani &bull; 7 Layer)</h3>
     <p class="small config-intro">
-      Esegue simulazioni automatiche in batch sfruttando le regole TypeScript reali del gioco.
+      Esegue simulazioni automatiche in batch testando la navigazione delle mappe a nodi,
+      il bilanciamento dei dadi 3D e lo scaling del CR tra i Piani 1 e 50.
     </p>
 
     <div class="form-row">
+      <!-- SELEZIONE CLASSE -->
       <div class="form-group">
         <label class="field-label" for="admin-class">Classe da Testare</label>
         <select id="admin-class" class="admin-select" [(ngModel)]="selectedClass">
@@ -22,6 +30,7 @@
         </select>
       </div>
 
+      <!-- NUMERO DI RUNS BATCH -->
       <div class="form-group">
         <label class="field-label" for="admin-runs">Numero di Run (N)</label>
         <input id="admin-runs" class="admin-input" type="number" min="10" max="5000" [(ngModel)]="runsCount">
@@ -29,27 +38,29 @@
     </div>
 
     <div class="config-actions">
-      <button class="btn" [disabled]="isSimulating()" (click)="startSimulation()">
-        {{ isSimulating() ? 'Simulazione in corso...' : '⚡ Avvia Simulazione' }}
+      <button class="btn primary" [disabled]="isSimulating()" (click)="startSimulation()">
+        {{ isSimulating() ? 'Simulazione Mappe in corso...' : 'Avvia Simulazione Batch' }}
       </button>
     </div>
   </div>
 
+  <!-- RISULTATI DELLA SIMULAZIONE -->
   @if (results().length > 0) {
   <div class="results-container">
-    <h3>Esito Simulazione</h3>
+    <h3>Esito Simulatore Mappa DAG</h3>
 
     @for (res of results(); track res.cls) {
-    <div class="result-card">
+    <div class="result-card gothic-frame">
       <h4>Classe: <span class="highlight">{{ res.cls | uppercase }}</span> (N={{ res.N }})</h4>
 
+      <!-- STATISTICHE PRIMARIE DI SOPRAVVIVENZA -->
       <div class="stat-summary-grid">
         <div class="stat-box">
-          <div class="label">Vittorie (Piano 50)</div>
+          <div class="label">Vittorie (Piano 50 - Layer 7)</div>
           <div class="val num gain">{{ (res.completionRate * 100).toFixed(1) }}%</div>
         </div>
         <div class="stat-box">
-          <div class="label">Profondità Media Morte</div>
+          <div class="label">Piano Medio Morte</div>
           <div class="val num">{{ res.avgDeathDepth ? res.avgDeathDepth.toFixed(1) : 'N/A' }}</div>
         </div>
         <div class="stat-box">
@@ -58,6 +69,7 @@
         </div>
       </div>
 
+      <!-- RIEPILOGO BOTTINO ED EQUIPAGGIAMENTO -->
       <div class="stat-summary-grid" style="margin-top: 12px;">
         <div class="stat-box">
           <div class="label">Reliquie Medie / Run</div>
@@ -73,6 +85,7 @@
         </div>
       </div>
 
+      <!-- ISPEZIONE OUTPUT JSON DETTAGLIATO -->
       <details class="json-details">
         <summary class="details-toggle">Visualizza JSON di Output completo</summary>
         <pre class="json-block">{{ formatJson(res) }}</pre>
@@ -81,4 +94,5 @@
     }
   </div>
   }
+
 </div>

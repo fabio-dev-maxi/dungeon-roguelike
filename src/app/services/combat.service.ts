@@ -13,6 +13,7 @@ import { DiceService } from './dice.service';
 import { GameStateService } from './game-state.service';
 import { LevelUpService } from './level-up.service';
 import { MonsterService } from './monster.service';
+import { EncounterService } from './encounter.service';
 
 /**
  * Gestisce la logica di combattimento, attacchi speciali, animazioni dadi 3D e ricompense dei Boss.
@@ -23,8 +24,9 @@ export class CombatService {
     private stateService: GameStateService,
     private monsterService: MonsterService,
     private levelUpService: LevelUpService,
+    private encounterService: EncounterService,
     private dice: DiceService
-  ) {}
+  ) { }
 
   /** In D&D 3.5 una minaccia critica deve colpire di nuovo il bersaglio. */
   private async confirmCritical(
@@ -616,20 +618,39 @@ export class CombatService {
     }
   }
 
+  /**
+   * Risoluzione della vittoria in combattimento:
+   * Calcola XP dinamica scalata sul costo del livello attuale dell'eroe, 
+   * garantendo almeno 1 passaggio di livello per piano completato.
+   */
   monsterDefeated(): void {
     const s = this.stateService.state();
     const name = this.monsterService.monsterDisplayName(s.monster);
-    const gold = this.dice.rollNdM(1, 6) + Math.floor(s.depth / 2);
-    const xp = s.monster!.isBoss
-      ? BOSS_XP[s.monster!.id] + s.depth
-      : MONSTER_XP[s.monster!.id] + Math.floor(s.depth / 2);
-    const wasBoss = s.monster!.isBoss;
+    const p = s.player!;
 
-    s.player!.gold += gold;
-    s.player!.xp += xp;
-    s.player!.usedSpecial = false;
-    s.player!.tempAcBonus = 0;
-    s.player!.mightyBlowActive = false;
+    // Calcola l'XP richiesta per il livello attuale dell'eroe (20 * livello)
+    const levelXpReq = xpToNext(p.level);
+
+    // BOTTINO ORO
+    const gold = this.dice.rollNdM(1, 6) + Math.floor(s.depth * 1.5);
+
+    // --- CURVA XP GARANTITA ---
+    // Mostro Standard: Almeno 25% dell'XP necessaria per il livello attuale
+    // Boss del Piano: Almeno 55% dell'XP necessaria per il livello attuale
+    // Totale 3 mostri + 1 Boss = 130% XP -> Garantisce >= 1 Level-Up a piano
+    const wasBoss = s.monster!.isBoss;
+    const baseMonsterXp = MONSTER_XP[s.monster!.id] || 15;
+    const baseBossXp = BOSS_XP[s.monster!.id] || 80;
+
+    const xp = wasBoss
+      ? Math.max(baseBossXp + s.depth * 5, Math.ceil(levelXpReq * 0.55))
+      : Math.max(baseMonsterXp + Math.floor(s.depth * 2), Math.ceil(levelXpReq * 0.25));
+
+    p.gold += gold;
+    p.xp += xp;
+    p.usedSpecial = false;
+    p.tempAcBonus = 0;
+    p.mightyBlowActive = false;
     this.stateService.touch();
 
     this.stateService.log(
@@ -643,13 +664,12 @@ export class CombatService {
 
     const drops: DropInfo[] = [];
 
+    // Gestione bottino Boss (Layer 7)
     if (wasBoss) {
-      const p = cur.player!;
       const tier = Math.min(5, Math.max(1, Math.ceil(s.depth / 10)));
       const rollLoot = Math.random();
 
       if (rollLoot < 0.2) {
-        // 20% ORO EXTRA
         const bonusGold = (this.dice.rollNdM(3, 6) + s.depth) * 5;
         p.gold += bonusGold;
         this.stateService.touch();
@@ -660,60 +680,33 @@ export class CombatService {
           effect: `+${bonusGold} Monete d'oro`,
         });
       } else if (rollLoot < 0.6) {
-        // 40% ARMA DI CLASSE
         const weapons = WEAPON_POOLS[p.cls]?.[tier];
         if (weapons && weapons.length > 0) {
-          const qRoll = Math.random();
-          const weaponIdx = qRoll < 0.5 ? 0 : qRoll < 0.85 ? 1 : 2;
-          const selectedWeapon =
-            weapons[Math.min(weaponIdx, weapons.length - 1)];
+          const selectedWeapon = weapons[Math.min(Math.floor(Math.random() * weapons.length), weapons.length - 1)];
           equipWeapon(p, selectedWeapon);
           this.stateService.touch();
-          const wName = this.stateService.equipmentName(
-            selectedWeapon.key,
-            'weapons'
-          );
-          const wEffect = `Danno: ${selectedWeapon.dice[0]}d${selectedWeapon.dice[1]} + ${selectedWeapon.bonus}`;
           drops.push({
             type: 'weapon',
             id: selectedWeapon.key,
-            name: wName,
-            effect: wEffect,
+            name: this.stateService.equipmentName(selectedWeapon.key, 'weapons'),
+            effect: `Danno: ${selectedWeapon.dice[0]}d${selectedWeapon.dice[1]} + ${selectedWeapon.bonus}`,
           });
         }
       } else {
-        // 40% ARMATURA DI CLASSE
         const armors = ARMOR_POOLS[p.cls]?.[tier];
         if (armors && armors.length > 0) {
-          const qRoll = Math.random();
-          const armorIdx = qRoll < 0.5 ? 0 : qRoll < 0.85 ? 1 : 2;
-          const selectedArmor = armors[Math.min(armorIdx, armors.length - 1)];
+          const selectedArmor = armors[Math.min(Math.floor(Math.random() * armors.length), armors.length - 1)];
           equipArmor(p, selectedArmor);
           this.stateService.touch();
-          const aName = this.stateService.equipmentName(
-            selectedArmor.key,
-            'armors'
-          );
-          let aEffect = `Classe Armatura: +${selectedArmor.bonus}`;
-          if (selectedArmor.drBonus)
-            aEffect += `, Riduzione Danno: +${selectedArmor.drBonus}`;
-          if (selectedArmor.specialDmgBonus)
-            aEffect += `, Danni Magici: +${selectedArmor.specialDmgBonus}`;
-          if (selectedArmor.specialHealBonus)
-            aEffect += `, Cure Magiche: +${selectedArmor.specialHealBonus}`;
-          if (selectedArmor.critBonus)
-            aEffect += `, Soglia Critico: -${selectedArmor.critBonus}`;
-
           drops.push({
             type: 'armor',
             id: selectedArmor.key,
-            name: aName,
-            effect: aEffect,
+            name: this.stateService.equipmentName(selectedArmor.key, 'armors'),
+            effect: `Classe Armatura: +${selectedArmor.bonus}`,
           });
         }
       }
 
-      // Reliquie Boss
       const pool = RELIC_CLASS_POOLS[cur.player!.cls];
       if (pool) {
         const available = pool.filter((id) => !cur.player!.relics.includes(id));
@@ -722,24 +715,18 @@ export class CombatService {
           applyRelicEffect(cur.player!, relicId);
           cur.player!.relics.push(relicId);
           this.stateService.touch();
-
-          const relicName = this.stateService.t('relics.' + relicId + '.name');
-          const relicEffect = this.stateService.t(
-            'relics.' + relicId + '.effect'
-          );
-
           drops.push({
             type: 'relic',
             id: relicId,
-            name: relicName,
-            effect: relicEffect,
+            name: this.stateService.t('relics.' + relicId + '.name'),
+            effect: this.stateService.t('relics.' + relicId + '.effect'),
           });
         }
       }
     }
 
+    // CALCOLO AVANZAMENTO LIVELLI MULTIPLI
     const final = this.stateService.state();
-
     let lvl = final.player!.level;
     let xpLeft = final.player!.xp;
     let levelsToGain = 0;
@@ -763,8 +750,7 @@ export class CombatService {
       if (levelsToGain > 0) {
         this.levelUpService.startLevelUp();
       } else {
-        final.phase = 'explore';
-        this.stateService.touch();
+        this.encounterService.completeCurrentNode();
       }
     }
   }
@@ -777,8 +763,8 @@ export class CombatService {
     if (s.pendingLevelUps > 0) {
       this.levelUpService.startLevelUp();
     } else {
-      s.phase = 'explore';
-      this.stateService.touch();
+      // Boss del piano sconfitto: Avanza al Piano Successivo (Floor successivo)
+      this.encounterService.startFloor();
     }
   }
 
