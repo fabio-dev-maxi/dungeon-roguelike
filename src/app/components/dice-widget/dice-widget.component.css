@@ -16,10 +16,18 @@
   transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.35s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Plancia allargata a 230px per ospitare fino a 4-5 dadi senza schiacciarli */
+/* Plancia espansa per Desktop */
 .dice-container.multi {
   width: 230px;
   border-radius: 18px;
+}
+
+/* Adattamento Responsivo per Mobile */
+@media (max-width: 768px) {
+  .dice-container.multi {
+    width: 180px;
+    border-radius: 14px;
+  }
 }
 
 .dice-bezel-rim {
