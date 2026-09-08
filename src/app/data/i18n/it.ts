@@ -7,7 +7,7 @@ export const IT = {
     forgeTitle: 'Forgia il tuo Personaggio', nameLabel: "Nome dell'avventuriero", namePlaceholder: 'Senza Nome',
     rollButton: 'Tira le Statistiche (4d6, scarta il minimo)', rerollButton: 'Tira di nuovo le statistiche', chooseClassTitle: 'Scegli la tua classe',
     weaponCharLabel: 'Arma: {weapon}   Danno: {dice} + {stat}', castingStatLabel: 'Caratteristica magica: {stat} ({mod})',
-    armorCharLabel: 'Armatura: {armor} (+{bonus} CA)', descendButton: 'Scendi al piano successivo', drinkPotionButton: 'Bevi una Pozione',
+    armorCharLabel: 'Armatura: {armor} (+{bonus} CA)', descendButton: 'Scendi di piano', drinkPotionButton: 'Bevi una Pozione',
     attackButton: 'Attacca', defendButton: 'Difenditi', potionButton: 'Pozione', fleeButton: 'Fuggi', levelLabel: '{cls} di livello {level}',
     hpLabel: 'Punti Ferita', acLabel: 'Classe Armatura', goldLabel: 'Oro', weaponLabel: 'Arma', dmgLabel: 'Danno', armorLabel: 'Armatura',
     showStatsButton: '▸ Statistiche', hideStatsButton: '▾ Statistiche', showInventoryButton: '▸ Inventario', hideInventoryButton: '▾ Inventario', relicsLabel: 'Reliquie',

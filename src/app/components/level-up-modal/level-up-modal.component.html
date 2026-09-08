@@ -78,7 +78,8 @@
         <span>{{ i18n.t('ui.rerollHpButton') }}</span>
       </button>
       }
-      <button type="button" class="btn primary heal" [disabled]="hpDieActive()" (click)="confirmHp()">
+      <button type="button" class="btn primary heal"
+        [disabled]="hpDieActive() || levelUp()?.hpRollTotal == null" (click)="confirmHp()">
         <app-icon name="check" [size]="16"></app-icon>
         <span>{{ i18n.t('ui.confirmButton') }}</span>
       </button>
