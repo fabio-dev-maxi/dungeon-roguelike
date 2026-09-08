@@ -223,7 +223,7 @@
             <div class="dice-arena">
               <div class="dice-slot left">
                 <div class="dice-fighter">
-                  <app-dice-widget [themeColor]="'#8b0000'" [labelColor]="'#d4af37'" [value]="playerDieValue()"
+                  <app-dice-widget [themeColor]="'#a11b1b'" [labelColor]="'#d4af37'" [value]="playerDieValue()"
                     [isActive]="playerDieActive()" [sides]="playerDieSides()" />
                   <span class="dice-name player">{{ p().name || i18n.t('ui.namePlaceholder') }}</span>
                 </div>
@@ -232,7 +232,7 @@
               <div class="dice-slot right">
                 @if (s().monster; as m) {
                   <div class="dice-fighter">
-                    <app-dice-widget [themeColor]="'#142918'" [labelColor]="'#34d399'" [value]="monsterDieValue()"
+                    <app-dice-widget [themeColor]="'#2d6a4f'" [labelColor]="'#34d399'" [value]="monsterDieValue()"
                       [isActive]="monsterDieActive()" [sides]="monsterDieSides()" />
                     <span class="dice-name enemy">{{ game.monsterDisplayName(m) }}</span>
                   </div>

@@ -170,7 +170,7 @@ export const IT = {
     floorHeader: '  Piano {depth}  '
   },
   choices: {
-    disarm: 'Disarma il meccanismo (Destrezza)', force: 'Sfonda con la forza (Forza)', study: 'Studia il pattern delle rune (Intelligenza)',
+    disarm: 'Disarma (Destrezza)', force: 'Sfonda (Forza)', study: 'Studia il pattern (Intelligenza)',
     prayHeal: 'Prega per la guarigione', prayBuff: 'Prega per la forza (bonus temporaneo)', ignoreAltar: "Ignora l'altare e prosegui",
     buyPotion: 'Compra una Pozione ({cost} oro)', upgradeWeapon: "Affila l'arma, +1 al danno ({cost} oro)", skipMerchant: 'Rifiuta e vai oltre',
     tavernRest: 'Affitti una stanza e riposa ({cost} oro)', tavernDrink: 'Bevi qualcosa al bancone (gratis)', tavernSkip: 'Rifiuta e prosegui'
