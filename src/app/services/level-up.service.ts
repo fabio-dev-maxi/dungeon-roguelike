@@ -6,23 +6,24 @@ import { Feat, StatKey } from '../models/game.models';
 import { EncounterService } from './encounter.service';
 
 /**
- * SERVIZIO GESTIONE AVANZAMENTO LIVELLO (LEVEL-UP SYSTEM)
+ * SERVIZIO GESTIONE AVANZAMENTO LIVELLO (LEVEL-UP SYSTEM D&D 3.5)
  * 
- * Gestione avanzamento livello: tiro dadi vita, punti caratteristica e acquisizione talenti.
+ * Regola il tiro del Dado Vita, la selezione dei talenti di classe
+ * e la distribuzione dei punti caratteristica con sanificazione numerica.
  */
 @Injectable({ providedIn: 'root' })
 export class LevelUpService {
   constructor(
-    private stateService: GameStateService,
-    private encounterService: EncounterService,
-    private dice: DiceService
+    private readonly stateService: GameStateService,
+    private readonly encounterService: EncounterService,
+    private readonly dice: DiceService
   ) { }
 
-  startLevelUp(): void {
+  public startLevelUp(): void {
     const s = this.stateService.state();
     s.player!.level++;
     s.phase = 'levelup';
-    s.mapViewActive = false; // Mantiene la mappa nascosta durante il modal di level-up
+    s.mapViewActive = false;
     s.rollingDie = { active: false, value: null, cls: '' };
 
     const newLevel = s.player!.level;
@@ -31,6 +32,7 @@ export class LevelUpService {
 
     let initialStep: 'stat' | 'feat' | 'hp' = 'hp';
     let featsForLevel: Feat[] = [];
+
     if (hasStat) {
       initialStep = 'stat';
     } else if (hasFeat) {
@@ -39,6 +41,7 @@ export class LevelUpService {
       const userFeats = s.player!.feats || [];
       featsForLevel = allFeats.filter((f) => !userFeats.includes(f.id));
     }
+
     s.levelUp = {
       step: initialStep,
       chosenStat: null,
@@ -48,26 +51,30 @@ export class LevelUpService {
       hpRollTotal: null,
       rerolled: false,
     };
+
     this.stateService.touch();
     this.stateService.log(
       this.stateService.tf('log.levelUpAnnounce', { level: newLevel }),
       'sys'
     );
+
     if (initialStep === 'hp') {
       this.rollLevelUpHp();
     }
   }
 
-  chooseLevelUpStat(statKey: StatKey): void {
+  public chooseLevelUpStat(statKey: StatKey): void {
     const s = this.stateService.state();
     if (!s.levelUp || s.levelUp.step !== 'stat') return;
-    const oldConMod = mod(s.player!.stats.con);
 
-    // Cast esplicito a Number per evitare la concatenazione stringa ("18" + 1 = "181")
+    const oldConMod = mod(Number(s.player!.stats.con) || 10);
     const currentVal = Number(s.player!.stats[statKey]) || 10;
+
+    // Incremento con cast numerico per prevenire la concatenazione stringa ("18" + 1 = "181")
     s.player!.stats[statKey] = currentVal + 1;
     s.levelUp.chosenStat = statKey;
     this.stateService.touch();
+
     this.stateService.log(
       this.stateService.tf('log.levelUpStatChosen', {
         stat: this.stateService.t('stats.' + statKey),
@@ -76,8 +83,9 @@ export class LevelUpService {
       'heal'
     );
 
+    // Gestione HP retroattivi da incremento Costituzione
     if (statKey === 'con') {
-      const newConMod = mod(s.player!.stats.con);
+      const newConMod = mod(Number(s.player!.stats.con) || 10);
       if (newConMod > oldConMod) {
         const retro = s.player!.level;
         s.player!.maxHp += retro;
@@ -108,15 +116,16 @@ export class LevelUpService {
     }
   }
 
-  chooseLevelUpFeat(featId: string): void {
+  public chooseLevelUpFeat(featId: string): void {
     const s = this.stateService.state();
     if (!s.levelUp || s.levelUp.step !== 'feat') return;
+
     const p = s.player!;
     if (!p.feats) p.feats = [];
     p.feats.push(featId);
     s.levelUp.chosenFeatId = featId;
 
-    // --- APPLICAZIONE EFFETTI SPECIFICI DEI TALENTI (INLINE ORIGINALE) ---
+    // --- EFFETTI PASSIVI DEI TALENTI DI CLASSE D&D 3.5 ---
     switch (featId) {
       // GUERRIERO
       case 'juggernaut':
@@ -150,7 +159,7 @@ export class LevelUpService {
 
       // LADRO
       case 'shadow_step':
-        p.stats.dex += 2;
+        p.stats.dex = Number(p.stats.dex) + 2;
         p.fleeBonus = (p.fleeBonus || 0) + 3;
         break;
       case 'lethal_precision':
@@ -177,7 +186,7 @@ export class LevelUpService {
 
       // MAGO
       case 'arcane_mind':
-        p.stats.int += 2;
+        p.stats.int = Number(p.stats.int) + 2;
         p.flatAtkBonus = (p.flatAtkBonus || 0) + 1;
         break;
       case 'spell_amplification':
@@ -200,14 +209,14 @@ export class LevelUpService {
         p.flatDmgBonus = (p.flatDmgBonus || 0) + 2;
         break;
       case 'vital_transmutation':
-        p.stats.int += 2;
+        p.stats.int = Number(p.stats.int) + 2;
         p.maxHp += 12;
         p.hp += 12;
         break;
 
       // CHIERICO
       case 'divine_grace':
-        p.stats.wis += 2;
+        p.stats.wis = Number(p.stats.wis) + 2;
         p.ac += 1;
         break;
       case 'radiant_cure':
@@ -243,13 +252,14 @@ export class LevelUpService {
     this.rollLevelUpHp();
   }
 
-  async rollLevelUpHp(): Promise<void> {
+  public async rollLevelUpHp(): Promise<void> {
     const s = this.stateService.state();
     const hitDie = CLASS_DATA[s.player!.cls].hitDie;
-    const conMod = mod(s.player!.stats.con);
+    const conMod = mod(Number(s.player!.stats.con) || 10);
 
     s.levelUp!.hpRollTotal = null;
     this.stateService.touch();
+
     const finalBase = await this.stateService.animateRollAsync(
       this.dice.rnd(hitDie),
       hitDie,
@@ -264,7 +274,7 @@ export class LevelUpService {
     }
   }
 
-  rerollLevelUpHp(): void {
+  public rerollLevelUpHp(): void {
     const s = this.stateService.state();
     if (!s.levelUp || s.levelUp.rerolled) return;
     s.levelUp.rerolled = true;
@@ -272,18 +282,21 @@ export class LevelUpService {
     this.rollLevelUpHp();
   }
 
-  confirmLevelUp(): void {
+  public confirmLevelUp(): void {
     const s = this.stateService.state();
     const levelUp = s.levelUp;
     if (!levelUp || levelUp.hpRollTotal === null || levelUp.hpRollTotal === undefined) return;
+
     const gain = levelUp.hpRollTotal;
     s.player!.maxHp += gain;
     s.player!.hp += gain;
     this.stateService.touch();
+
     this.stateService.log(
       this.stateService.tf('log.levelUpHpGained', { hp: gain, maxhp: s.player!.maxHp }),
       'heal'
     );
+
     const cur = this.stateService.state();
     cur.pendingLevelUps--;
     cur.rollingDie = { active: false, value: null, cls: '' };
@@ -293,12 +306,9 @@ export class LevelUpService {
       this.startLevelUp();
     } else {
       cur.levelUp = null;
-
-      // Se c'è la finestra di ricompensa Boss attiva, attendi prima di tornare alla mappa
       if (cur.bossRewardModal) {
         cur.phase = null;
       } else {
-        // Altrimenti completa il nodo corrente e torna alla vista Mappa
         this.encounterService.completeCurrentNode();
       }
       this.stateService.touch();

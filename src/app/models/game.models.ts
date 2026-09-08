@@ -92,8 +92,9 @@ export interface PendingChoice {
   onResolve?: (success: boolean) => void;
 }
 
+/** Informazioni sul singolo oggetto droppato dal Boss di fine piano */
 export interface DropInfo {
-  type: 'relic' | 'weapon' | 'armor' | 'gold';
+  type: 'gold' | 'weapon' | 'armor' | 'relic' | 'potion';
   id: string;
   name: string;
   effect: string;

@@ -1,49 +1,58 @@
-@if (reward(); as r) {
-  <div class="modal-backdrop">
-    <div class="panel modal-box gothic-frame boss-reward-frame">
-      <div class="sigil sigil--lg reward-sigil">
-        <app-icon name="crown" [size]="40"></app-icon>
+@if (game.state().bossRewardModal; as modal) {
+<div class="modal-backdrop">
+  <div class="panel modal-box gothic-frame reward-modal">
+
+    <!-- INTESTAZIONE MODALE -->
+    <header class="reward-header">
+      <div class="sigil sigil--gold">
+        <app-icon name="crown" [size]="24"></app-icon>
+      </div>
+      <h2>{{ i18n.tf('ui.bossDefeatedTitle', { name: modal.name }) }}</h2>
+    </header>
+
+    <div class="reward-body">
+      <!-- RIEPILOGO ESPERIENZA E ORO -->
+      <div class="stats-gained">
+        <div class="stat-pill">
+          <app-icon name="star" [size]="16"></app-icon>
+          <span>+{{ modal.xp }} {{ i18n.t('ui.xpLabel') }}</span>
+        </div>
+        <div class="stat-pill gold">
+          <app-icon name="coin" [size]="16"></app-icon>
+          <span>+{{ modal.gold }} {{ i18n.t('ui.goldLabel') }}</span>
+        </div>
       </div>
 
-      <div class="depth-badge">{{ i18n.tf('ui.bossDefeatedTitle', { name: r.name }) }}</div>
-
-      <div class="rewards-summary">
-        <div class="reward-gain-card">
-          <app-icon name="star" [size]="16" class="star-gain"></app-icon>
-          <span class="gain-label">{{ i18n.t('ui.xpGainedLabel') }}</span>
-          <span class="num gain-val">+{{ r.xp }}</span>
-        </div>
-        <div class="reward-gain-card">
-          <app-icon name="coin" [size]="16" class="coin-gain"></app-icon>
-          <span class="gain-label">{{ i18n.t('ui.goldGainedLabel') }}</span>
-          <span class="num gain-val">+{{ r.gold }}</span>
-        </div>
-      </div>
-
+      <!-- LISTA BOTTINO DROPPATO -->
       <div class="drops-section">
-        <div class="small drops-title">{{ i18n.t('ui.dropsLabel') }}</div>
-
-        @if (r.drops.length > 0) {
-          @for (d of r.drops; track d.id) {
-            <div class="drop-card gothic-frame">
-              <div class="drop-header">
-                <app-icon name="gem" [size]="18" class="drop-icon"></app-icon>
-                <b>{{ d.name }}</b>
-              </div>
-              <p class="small">{{ d.effect }}</p>
+        <h3>{{ i18n.t('ui.dropsLabel') }}</h3>
+        @if (modal.drops.length > 0) {
+        <div class="drops-list">
+          @for (drop of modal.drops; track drop.id) {
+          <div class="drop-card gothic-frame">
+            <div class="drop-icon-box">
+              <app-icon [name]="getDropIcon(drop.type)" [size]="22"></app-icon>
             </div>
+            <div class="drop-info">
+              <div class="drop-name">{{ drop.name }}</div>
+              <div class="drop-effect">{{ drop.effect }}</div>
+            </div>
+          </div>
           }
+        </div>
         } @else {
-          <p class="small no-drops">{{ i18n.t('ui.noDropsText') }}</p>
+        <p class="small empty-text">{{ i18n.t('ui.noDropsText') }}</p>
         }
       </div>
-
-      <div class="reward-actions">
-        <button class="btn primary btn-descent" (click)="game.confirmBossReward()">
-          <span>{{ i18n.t('ui.continueButton') }}</span>
-          <app-icon name="arrow-right" [size]="16"></app-icon>
-        </button>
-      </div>
     </div>
+
+    <!-- FOOTER CON PULSANTE CONTINUA -->
+    <footer class="reward-footer">
+      <button type="button" class="btn primary" (click)="onConfirm()">
+        {{ i18n.t('ui.continueButton') }}
+      </button>
+    </footer>
+
   </div>
+</div>
 }

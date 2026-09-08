@@ -47,6 +47,20 @@ export class CombatService {
     return confirmed;
   }
 
+  /**
+   * Helper per determinare la configurazione delle pozioni in base alla profondità del piano.
+   */
+  private getPotionConfigForDepth(depth: number): { dice: [number, number]; cost: number } {
+    let n = 2;
+    let d = 6;
+    let cost = 8 + Math.floor(depth / 5) * 5;
+    if (depth > 10) {
+      d = 8;
+      n = 2 + Math.floor((depth - 11) / 10);
+    }
+    return { dice: [n, d], cost };
+  }
+
   async playerAttack(): Promise<void> {
     const s = this.stateService.state();
     if (s.combatFlags.acting) return;
@@ -628,16 +642,13 @@ export class CombatService {
     const name = this.monsterService.monsterDisplayName(s.monster);
     const p = s.player!;
 
-    // Calcola l'XP richiesta per il livello attuale dell'eroe (20 * livello)
+    // Calcola l'XP richiesta per il livello attuale (20 * livello)
     const levelXpReq = xpToNext(p.level);
 
-    // BOTTINO ORO
+    // BOTTINO ORO BASE
     const gold = this.dice.rollNdM(1, 6) + Math.floor(s.depth * 1.5);
 
-    // --- CURVA XP GARANTITA ---
-    // Mostro Standard: Almeno 25% dell'XP necessaria per il livello attuale
-    // Boss del Piano: Almeno 55% dell'XP necessaria per il livello attuale
-    // Totale 3 mostri + 1 Boss = 130% XP -> Garantisce >= 1 Level-Up a piano
+    // BOTTINO XP (Mostro: >= 25% XP livello, Boss: >= 55% XP livello)
     const wasBoss = s.monster!.isBoss;
     const baseMonsterXp = MONSTER_XP[s.monster!.id] || 15;
     const baseBossXp = BOSS_XP[s.monster!.id] || 80;
@@ -664,8 +675,28 @@ export class CombatService {
 
     const drops: DropInfo[] = [];
 
-    // Gestione bottino Boss (Layer 7)
+    // =========================================================================
+    // BOTTINO CUSTODE DEL PIANO (LAYER 7 BOSS)
+    // =========================================================================
+    // All'interno del metodo monsterDefeated() in CombatService:
     if (wasBoss) {
+      const potionConfig = this.getPotionConfigForDepth(s.depth);
+
+      // Drop garantito: 2 Pozioni
+      p.inventory.push({ type: 'potion', heal: potionConfig.dice });
+      p.inventory.push({ type: 'potion', heal: potionConfig.dice });
+      this.stateService.touch();
+
+      drops.push({
+        type: 'potion',
+        id: 'boss_potions',
+        name: 'Pozione di Cura x2',
+        effect: `Ripristina salute (${potionConfig.dice[0]}d${potionConfig.dice[1]})`,
+      });
+
+      // ... resto del metodo inalterato
+
+      // --- DROP DI CLASSE & EQUIPAGGIAMENTO RARO ---
       const tier = Math.min(5, Math.max(1, Math.ceil(s.depth / 10)));
       const rollLoot = Math.random();
 
@@ -707,6 +738,7 @@ export class CombatService {
         }
       }
 
+      // --- RELIQUIA MAGICA ---
       const pool = RELIC_CLASS_POOLS[cur.player!.cls];
       if (pool) {
         const available = pool.filter((id) => !cur.player!.relics.includes(id));

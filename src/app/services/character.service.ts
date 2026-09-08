@@ -58,11 +58,21 @@ export class CharacterService {
   }
 
   /**
-   * Costruisce l'oggetto Player iniziale applicando i modificatori di classe e razza.
-   */
+    * Costruisce l'oggetto Player applicando il casting numerico esplicito
+    * per evitare la concatenazione delle stringhe ("18" + 1 = "181").
+    */
   public buildPlayer(name: string, classKey: ClassKey, stats: Stats): Player {
+    const cleanStats: Stats = {
+      str: Number(stats.str) || 10,
+      dex: Number(stats.dex) || 10,
+      con: Number(stats.con) || 10,
+      int: Number(stats.int) || 10,
+      wis: Number(stats.wis) || 10,
+      cha: Number(stats.cha) || 10,
+    };
+
     const c = CLASS_DATA[classKey];
-    const conMod = mod(stats.con);
+    const conMod = mod(cleanStats.con);
     const maxHp = c.hpBase + conMod;
     const weapon: Weapon = { key: c.weaponKey, dice: c.weaponDice, bonus: 0 };
     const armor: Armor = { key: c.armorKey, bonus: c.armor };
@@ -70,10 +80,10 @@ export class CharacterService {
     return {
       name: name || this.stateService.t('ui.namePlaceholder'),
       cls: classKey,
-      stats,
+      stats: cleanStats,
       hp: maxHp,
       maxHp,
-      ac: 10 + mod(stats.dex) + c.armor,
+      ac: 10 + mod(cleanStats.dex) + c.armor,
       gold: this.dice.rollNdM(2, 6),
       weapon,
       armor,
