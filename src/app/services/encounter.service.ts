@@ -173,6 +173,7 @@ export class EncounterService {
   makeShrineChoice(): PendingChoice {
     const depth = this.stateService.state().depth;
     return {
+      kind: 'shrine',
       dc: null,
       options: [
         { label: this.stateService.t('choices.prayHeal'), action: 'heal' },
@@ -209,6 +210,7 @@ export class EncounterService {
     const upgradeCost = 15 + (s.depth * 2);
 
     return {
+      kind: 'merchant',
       dc: null, canFail: true,
       options: [
         { label: potionLabel, action: 'potion', cost: potionConfig.cost },
@@ -250,6 +252,7 @@ export class EncounterService {
     const restCost = 18 + Math.floor(s.depth * 1.8);
 
     return {
+      kind: 'tavern',
       dc: null, canFail: true,
       options: [
         { label: this.stateService.tf('choices.tavernRest', { cost: restCost }), action: 'rest', cost: restCost },

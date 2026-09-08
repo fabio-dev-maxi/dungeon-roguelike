@@ -251,13 +251,18 @@ export class GameScreenComponent implements AfterViewChecked {
   }
 
   encounterTitle(): string {
-    return this.s().pendingChoice?.kind === 'trap'
-      ? this.i18n.t('ui.trapEncounterTitle')
-      : this.i18n.t('ui.encounterTitle');
+    const kind = this.s().pendingChoice?.kind;
+    return this.i18n.t(`ui.${kind}EncounterTitle`);
   }
 
   encounterIcon(): IconName {
-    return this.s().pendingChoice?.kind === 'trap' ? 'skull' : 'scroll';
+    switch (this.s().pendingChoice?.kind) {
+      case 'trap': return 'skull';
+      case 'shrine': return 'sun';
+      case 'merchant': return 'coin';
+      case 'tavern': return 'cup';
+      default: return 'scroll';
+    }
   }
 
   ngAfterViewChecked(): void {

@@ -528,9 +528,9 @@
 }
 
 .actions-console.choice-actions-console {
-  height: 122px !important;
-  min-height: 122px !important;
-  max-height: 122px !important;
+  height: 148px !important;
+  min-height: 148px !important;
+  max-height: 148px !important;
 }
 
 .actions.choice-actions {
@@ -557,10 +557,11 @@
 .choice-actions-heading.trap-alert { color: #ffb3a7; }
 
 .choice-actions .encounter-btn {
-  height: 58px;
-  min-height: 58px;
+  height: 74px;
+  min-height: 74px;
   padding: 6px;
   font-size: 0.74rem;
+  line-height: 1.15;
 }
 
 .log p.hero, .log p.player { border-left-color: var(--blue-hero); background: rgba(52, 152, 219, 0.08); }

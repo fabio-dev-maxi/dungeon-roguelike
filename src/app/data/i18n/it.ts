@@ -16,7 +16,7 @@ export const IT = {
     goldCollected: 'Oro raccolto: {gold}', sessionRecord: 'Record di sessione: piano {depth}', restartButton: 'Ricomincia la Discesa', langLabel: 'Lingua', diceLetter: 'd',
     bossDefeatedTitle: 'Boss Sconfitto: {name}', xpGainedLabel: 'Esperienza Guadagnata', goldGainedLabel: 'Oro Guadagnato', dropsLabel: 'Bottino', noDropsText: 'Nessun oggetto raro questa volta.', continueButton: 'Continua',
     xpLabel: 'Esperienza', levelUpTitle: 'Sali di Livello!', levelUpHeader: 'Livello {level} Raggiunto!', chooseStatPrompt: 'Scegli una caratteristica da aumentare (+1):', chooseFeatPrompt: 'Scegli un nuovo talento per il tuo personaggio:',
-    hpRollPrompt: 'Tiro per i Punti Ferita:', rerollHpButton: 'Ritira (1 volta)', confirmButton: 'Conferma', critThreatBanner: 'MINACCIA CRITICO!', critConfirmedBanner: 'Critico confermato!', trapEncounterTitle: 'Attenzione: trappola!', encounterTitle: 'Incontro nella Guglia', descentChronicleTitle: 'Cronaca della Discesa', goldExtraTitle: 'Forziere di Monete d\'Oro'
+    hpRollPrompt: 'Tiro per i Punti Ferita:', rerollHpButton: 'Ritira (1 volta)', confirmButton: 'Conferma', critThreatBanner: 'MINACCIA CRITICO!', critConfirmedBanner: 'Critico confermato!', trapEncounterTitle: 'Attenzione: trappola!', shrineEncounterTitle: 'Hai trovato un santuario', merchantEncounterTitle: 'Hai incontrato un mercante', tavernEncounterTitle: 'Hai trovato una taverna', descentChronicleTitle: 'Cronaca della Discesa', goldExtraTitle: 'Forziere di Monete d\'Oro'
   },
   stats: { str: 'Forza', dex: 'Destrezza', con: 'Costituzione', int: 'Intelligenza', wis: 'Saggezza', cha: 'Carisma' },
   statAbbr: { str: 'FOR', dex: 'DES', con: 'COS', int: 'INT', wis: 'SAG', cha: 'CAR' },

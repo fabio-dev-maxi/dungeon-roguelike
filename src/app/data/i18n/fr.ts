@@ -16,7 +16,7 @@ export const FR = {
         goldCollected: 'Or récolté : {gold}', sessionRecord: 'Record de session : étage {depth}', restartButton: 'Redescendre', langLabel: 'Langue', diceLetter: 'd',
         bossDefeatedTitle: 'Boss Vaincu : {name}', xpGainedLabel: 'Expérience Gagnée', goldGainedLabel: 'Or Gagné', dropsLabel: 'Butin', noDropsText: 'Aucun objet rare cette fois.', continueButton: 'Continuer',
         xpLabel: 'Expérience', levelUpTitle: 'Montée de Niveau !', levelUpHeader: 'Niveau {level} Atteint !', chooseStatPrompt: 'Choisis une caractéristique à augmenter (+1) :', chooseFeatPrompt: 'Choisis un nouveau talent pour ton personnage :',
-        hpRollPrompt: 'Jet de Points de Vie :', rerollHpButton: 'Relancer (une fois)', confirmButton: 'Confirmer', critThreatBanner: 'MENACE DE CRITIQUE !', critConfirmedBanner: 'CRITIQUE CONFIRMÉ !', trapEncounterTitle: 'Attention : piège !', encounterTitle: 'Rencontre dans la Flèche', descentChronicleTitle: 'Chronique de la Descente', goldExtraTitle: 'Coffre de Pièces d\'Or'
+        hpRollPrompt: 'Jet de Points de Vie :', rerollHpButton: 'Relancer (une fois)', confirmButton: 'Confirmer', critThreatBanner: 'MENACE DE CRITIQUE !', critConfirmedBanner: 'CRITIQUE CONFIRMÉ !', trapEncounterTitle: 'Attention : piège !', shrineEncounterTitle: 'Vous avez trouvé un sanctuaire', merchantEncounterTitle: 'Vous avez rencontré un marchand', tavernEncounterTitle: 'Vous avez trouvé une taverne', descentChronicleTitle: 'Chronique de la Descente', goldExtraTitle: 'Coffre de Pièces d\'Or'
     },
     stats: { str: 'Force', dex: 'Dextérité', con: 'Constitution', int: 'Intelligence', wis: 'Sagesse', cha: 'Charisme' },
     statAbbr: { str: 'FOR', dex: 'DEX', con: 'CON', int: 'INT', wis: 'SAG', cha: 'CHA' },

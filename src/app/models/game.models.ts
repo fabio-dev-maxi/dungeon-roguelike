@@ -84,7 +84,7 @@ export interface ChoiceOption {
 }
 
 export interface PendingChoice {
-  kind?: 'trap' | 'shrine' | 'merchant' | 'tavern';
+  kind: 'trap' | 'shrine' | 'merchant' | 'tavern';
   dc: number | null;
   canFail?: boolean;
   options: ChoiceOption[];
