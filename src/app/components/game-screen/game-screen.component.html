@@ -21,18 +21,54 @@
         <span class="num">{{ p().gold }}</span>
       </div>
 
-      <div class="res-pill potion-pill">
+      <div
+        class="res-pill potion-pill"
+        [class.has-potions]="potionCount() > 0"
+        (click)="togglePotionPopover()"
+        (mouseleave)="closePotionPopover()"
+        [title]="
+          potionCount() > 0
+            ? 'Clicca per vedere le Pozioni nell\'inventario'
+            : 'Nessuna pozione nell\'inventario'
+        "
+      >
         <app-icon name="flask" [size]="15"></app-icon>
         <span class="num">{{ potionCount() }}</span>
+
+        @if (showPotionPopover() && potionCount() > 0) {
+          <div class="potion-popover" (click)="$event.stopPropagation()">
+            <div class="popover-title">
+              <app-icon name="flask" [size]="14"></app-icon>
+              <span>Pozioni in Inventario</span>
+            </div>
+            <ul class="popover-potion-list">
+              @for (item of potionsList(); track item.index) {
+                <li class="popover-potion-item">
+                  <div class="potion-info">
+                    <span class="potion-name">{{ i18n.t('potionName') }}</span>
+                    <span class="potion-heal num"
+                      >{{ item.item.heal[0] }}d{{ item.item.heal[1] }}</span
+                    >
+                  </div>
+                </li>
+              }
+            </ul>
+          </div>
+        }
       </div>
 
       <!-- PILL RELIQUIE CON POPOVER -->
-      <div 
-        class="res-pill relic-pill" 
+      <div
+        class="res-pill relic-pill"
         [class.has-relics]="p().relics.length > 0"
-        (click)="toggleRelicPopover()" 
+        (click)="toggleRelicPopover()"
         (mouseleave)="closeRelicPopover()"
-        [title]="p().relics.length > 0 ? 'Clicca o passa sopra per vedere le Reliquie' : 'Nessuna reliquia trovata'">
+        [title]="
+          p().relics.length > 0
+            ? 'Clicca o passa sopra per vedere le Reliquie'
+            : 'Nessuna reliquia trovata'
+        "
+      >
         <app-icon name="gem" [size]="15"></app-icon>
         <span class="num">{{ p().relics.length }}</span>
 
@@ -46,8 +82,12 @@
             <ul class="popover-relic-list">
               @for (rid of p().relics; track rid) {
                 <li class="popover-relic-item">
-                  <div class="relic-name">{{ i18n.t('relics.' + rid + '.name') }}</div>
-                  <div class="relic-effect">{{ i18n.t('relics.' + rid + '.effect') }}</div>
+                  <div class="relic-name">
+                    {{ i18n.t('relics.' + rid + '.name') }}
+                  </div>
+                  <div class="relic-effect">
+                    {{ i18n.t('relics.' + rid + '.effect') }}
+                  </div>
                 </li>
               }
             </ul>
@@ -59,13 +99,14 @@
 
   <!-- ARENA DI COMBATTIMENTO -->
   <section class="duel-arena">
-    
     <!-- HUD COMPATTO MOBILE -->
     @if (s().phase === 'combat' && s().monster; as m) {
       <div class="mobile-vs-hud">
         <div class="hud-fighter player">
           <div class="hud-meta">
-            <span class="hud-name">{{ p().name || i18n.t('ui.namePlaceholder') }}</span>
+            <span class="hud-name">{{
+              p().name || i18n.t('ui.namePlaceholder')
+            }}</span>
             <span class="hud-hp-num num">{{ p().hp }}/{{ p().maxHp }}</span>
           </div>
           <div class="hpbar-outer slim">
@@ -81,7 +122,10 @@
             <span class="hud-hp-num num">{{ m.hp }}/{{ m.maxHp }}</span>
           </div>
           <div class="hpbar-outer slim">
-            <div class="hpbar-inner enemybar-inner" [style.width.%]="pct(m.hp, m.maxHp)"></div>
+            <div
+              class="hpbar-inner enemybar-inner"
+              [style.width.%]="pct(m.hp, m.maxHp)"
+            ></div>
           </div>
         </div>
       </div>
@@ -97,7 +141,12 @@
           <div class="combatant-meta">
             <h3 class="char-name">{{ p().name }}</h3>
             <p class="small char-sub">
-              {{ i18n.tf('ui.levelLabel', { cls: i18n.t('classes.' + p().cls + '.name'), level: p().level }) }}
+              {{
+                i18n.tf('ui.levelLabel', {
+                  cls: i18n.t('classes.' + p().cls + '.name'),
+                  level: p().level,
+                })
+              }}
             </p>
           </div>
         </div>
@@ -105,7 +154,10 @@
         <!-- BARRE HP ED ESPERIENZA -->
         <div class="bar-block">
           <div class="bar-header">
-            <span class="bar-label"><app-icon name="heart" [size]="12"></app-icon> {{ i18n.t('ui.hpLabel') }}</span>
+            <span class="bar-label"
+              ><app-icon name="heart" [size]="12"></app-icon>
+              {{ i18n.t('ui.hpLabel') }}</span
+            >
             <span class="num bar-val">{{ p().hp }} / {{ p().maxHp }}</span>
           </div>
           <div class="hpbar-outer">
@@ -115,11 +167,17 @@
 
         <div class="bar-block xp-block">
           <div class="bar-header">
-            <span class="bar-label"><app-icon name="star" [size]="12"></app-icon> {{ i18n.t('ui.xpLabel') }}</span>
+            <span class="bar-label"
+              ><app-icon name="star" [size]="12"></app-icon>
+              {{ i18n.t('ui.xpLabel') }}</span
+            >
             <span class="num bar-val">{{ p().xp }} / {{ xpNeeded() }}</span>
           </div>
           <div class="hpbar-outer slim">
-            <div class="hpbar-inner xpbar-inner" [style.width.%]="xpPct()"></div>
+            <div
+              class="hpbar-inner xpbar-inner"
+              [style.width.%]="xpPct()"
+            ></div>
           </div>
         </div>
 
@@ -127,15 +185,19 @@
         <div class="combat-metrics-grid">
           <div class="metric-badge">
             <app-icon name="shield" [size]="13"></app-icon>
-            <span>CA <strong>{{ p().ac }}</strong></span>
+            <span
+              >CA <strong>{{ p().ac }}</strong></span
+            >
           </div>
           <div class="metric-badge">
             <app-icon name="sword" [size]="13"></app-icon>
-            <span>TxC <strong>{{ atkBonusDisplay() }}</strong></span>
+            <span
+              >TxC <strong>{{ atkBonusDisplay() }}</strong></span
+            >
           </div>
         </div>
 
-       <!-- STRISCIA EQUIPAGGIAMENTO (ARMA & ARMATURA) -->
+        <!-- STRISCIA EQUIPAGGIAMENTO (ARMA & ARMATURA) -->
         <div class="equipment-strip">
           <!-- ARMA -->
           <div class="equip-block">
@@ -144,8 +206,11 @@
               <span class="d20-threat-tag">{{ critThreatDisplay() }}</span>
             </div>
             <div class="equip-detail num">
-              {{ p().weapon.dice[0] }}d{{ p().weapon.dice[1] }} + {{ i18n.t('statAbbr.' + classData[p().cls].atkStat) }}
-              @if (p().weapon.bonus) { + {{ p().weapon.bonus }} }
+              {{ p().weapon.dice[0] }}d{{ p().weapon.dice[1] }} +
+              {{ i18n.t('statAbbr.' + classData[p().cls].atkStat) }}
+              @if (p().weapon.bonus) {
+                + {{ p().weapon.bonus }}
+              }
             </div>
           </div>
 
@@ -171,7 +236,9 @@
             <div class="ribbon-box" [title]="i18n.t('stats.' + k)">
               <span class="ribbon-k">{{ i18n.t('statAbbr.' + k) }}</span>
               <span class="ribbon-v num">{{ p().stats[k] }}</span>
-              <span class="ribbon-m">{{ dice.fmtMod(dice.mod(p().stats[k])) }}</span>
+              <span class="ribbon-m">{{
+                dice.fmtMod(dice.mod(p().stats[k]))
+              }}</span>
             </div>
           }
         </div>
@@ -180,57 +247,84 @@
 
     <!-- COLONNA 2 (CENTRO): DADI, PLANCIA & CRONACA -->
     <div class="tactical-center">
-      
       <!-- VASSOIO DADI: rimane sempre visibile, anche durante le scelte. -->
       <div class="dice-tray">
-          <div class="dice-tray-felt">
-            <div class="tray-stud stud-tl"></div>
-            <div class="tray-stud stud-tr"></div>
-            <div class="tray-stud stud-bl"></div>
-            <div class="tray-stud stud-br"></div>
-            <div class="tray-sigil-bg">VS</div>
+        <div class="dice-tray-felt">
+          <div class="tray-stud stud-tl"></div>
+          <div class="tray-stud stud-tr"></div>
+          <div class="tray-stud stud-bl"></div>
+          <div class="tray-stud stud-br"></div>
+          <div class="tray-sigil-bg">VS</div>
 
-            @if (isCriticalConfirmed()) {
-              <div class="crit-callout-banner gold-crit">{{ i18n.t('ui.critConfirmedBanner') }}</div>
-            } @else if (isRollingCrit()) {
-              <div class="crit-callout-banner gold-crit">{{ i18n.t('ui.critThreatBanner') }}</div>
-            }
-            @if (isRollingFail()) {
-              <div class="crit-callout-banner red-fail">FALLIMENTO CRITICO</div>
-            }
+          @if (isCriticalConfirmed()) {
+            <div class="crit-callout-banner gold-crit">
+              {{ i18n.t('ui.critConfirmedBanner') }}
+            </div>
+          } @else if (isRollingCrit()) {
+            <div class="crit-callout-banner gold-crit">
+              {{ i18n.t('ui.critThreatBanner') }}
+            </div>
+          }
+          @if (isRollingFail()) {
+            <div class="crit-callout-banner red-fail">FALLIMENTO CRITICO</div>
+          }
 
-            <div class="dice-arena">
-              <div class="dice-slot left">
-                <div class="dice-fighter">
-                  <app-dice-widget [themeColor]="'#a11b1b'" [labelColor]="'#d4af37'" [value]="playerDieValue()"
-                    [isActive]="playerDieActive()" [sides]="playerDieSides()" />
-                  <span class="dice-name player">{{ p().name || i18n.t('ui.namePlaceholder') }}</span>
-                </div>
-              </div>
-
-              <div class="dice-slot right">
-                @if (s().monster; as m) {
-                  <div class="dice-fighter">
-                    <app-dice-widget [themeColor]="'#2d6a4f'" [labelColor]="'#34d399'" [value]="monsterDieValue()"
-                      [isActive]="monsterDieActive()" [sides]="monsterDieSides()" />
-                    <span class="dice-name enemy">{{ game.monsterDisplayName(m) }}</span>
-                  </div>
-                } @else {
-                  <div class="dice-slot-placeholder">
-                    <app-icon name="shield" [size]="24" class="placeholder-icon"></app-icon>
-                    <span class="small">{{ i18n.t('ui.enemyLabel') }}</span>
-                  </div>
-                }
+          <div class="dice-arena">
+            <div class="dice-slot left">
+              <div class="dice-fighter">
+                <app-dice-widget
+                  [themeColor]="'#a11b1b'"
+                  [labelColor]="'#d4af37'"
+                  [value]="playerDieValue()"
+                  [isActive]="playerDieActive()"
+                  [sides]="playerDieSides()"
+                />
+                <span class="dice-name player">{{
+                  p().name || i18n.t('ui.namePlaceholder')
+                }}</span>
               </div>
             </div>
+
+            <div class="dice-slot right">
+              @if (s().monster; as m) {
+                <div class="dice-fighter">
+                  <app-dice-widget
+                    [themeColor]="'#2d6a4f'"
+                    [labelColor]="'#34d399'"
+                    [value]="monsterDieValue()"
+                    [isActive]="monsterDieActive()"
+                    [sides]="monsterDieSides()"
+                  />
+                  <span class="dice-name enemy">{{
+                    game.monsterDisplayName(m)
+                  }}</span>
+                </div>
+              } @else {
+                <div class="dice-slot-placeholder">
+                  <app-icon
+                    name="shield"
+                    [size]="24"
+                    class="placeholder-icon"
+                  ></app-icon>
+                  <span class="small">{{ i18n.t('ui.enemyLabel') }}</span>
+                </div>
+              }
+            </div>
           </div>
+        </div>
       </div>
 
       <!-- PLANCIA AZIONI -->
-      <div class="actions-console" [class.choice-actions-console]="s().phase === 'choice'">
+      <div
+        class="actions-console"
+        [class.choice-actions-console]="s().phase === 'choice'"
+      >
         <div class="actions" [class.choice-actions]="s().phase === 'choice'">
           @if (s().phase === 'choice' && s().pendingChoice; as choice) {
-            <div class="choice-actions-heading" [class.trap-alert]="choice.kind === 'trap'">
+            <div
+              class="choice-actions-heading"
+              [class.trap-alert]="choice.kind === 'trap'"
+            >
               <app-icon [name]="encounterIcon()" [size]="18"></app-icon>
               <span>{{ encounterTitle() }}</span>
               @if (choice.dc) {
@@ -238,59 +332,109 @@
               }
             </div>
             @for (o of choice.options; track $index) {
-              <button type="button" class="btn encounter-btn" (click)="game.resolveChoiceOption(o)">
+              <button
+                type="button"
+                class="btn encounter-btn"
+                (click)="game.resolveChoiceOption(o)"
+              >
                 <app-icon [name]="choiceIcon(o)" [size]="15"></app-icon>
                 <span>{{ o.label }}</span>
               </button>
             }
           }
           @if (s().phase === 'explore') {
-            <button type="button" class="btn primary btn-descent" (click)="game.descendFloor()">
+            <button
+              type="button"
+              class="btn primary btn-descent"
+              (click)="game.descendFloor()"
+            >
               <app-icon name="stairs" [size]="18"></app-icon>
               <span>{{ i18n.t('ui.descendButton') }}</span>
             </button>
             @if (hasPotion()) {
-              <button type="button" class="btn heal" (click)="game.playerUsePotion()">
+              <button
+                type="button"
+                class="btn heal"
+                (click)="usePotionAction()"
+              >
                 <app-icon name="flask" [size]="18"></app-icon>
-                <span>{{ i18n.t('ui.drinkPotionButton') }} ({{ potionCount() }})</span>
+                <span
+                  >{{ i18n.t('ui.drinkPotionButton') }} ({{
+                    potionCount()
+                  }})</span
+                >
               </button>
             }
           }
 
           @if (s().phase === 'combat') {
-            <button type="button" class="btn danger action-attack" [disabled]="acting()" (click)="game.playerAttack()">
+            <button
+              type="button"
+              class="btn danger action-attack"
+              [disabled]="acting()"
+              (click)="game.playerAttack()"
+            >
               <app-icon name="sword" [size]="18"></app-icon>
               <span>{{ i18n.t('ui.attackButton') }}</span>
             </button>
 
             @if (canSpecial()) {
-              <button type="button" class="btn primary action-special" [disabled]="acting()" (click)="game.playerUseSpecial()">
+              <button
+                type="button"
+                class="btn primary action-special"
+                [disabled]="acting()"
+                (click)="game.playerUseSpecial()"
+              >
                 <app-icon [name]="classIcon(p().cls)" [size]="18"></app-icon>
                 <span>{{ i18n.t('classes.' + p().cls + '.specialName') }}</span>
               </button>
             }
 
             @if (hasPotion()) {
-              <button type="button" class="btn heal action-potion" [disabled]="acting()" (click)="game.playerUsePotion()">
+              <button
+                type="button"
+                class="btn heal action-potion"
+                [disabled]="acting()"
+                (click)="usePotionAction()"
+              >
                 <app-icon name="flask" [size]="18"></app-icon>
-                <span>{{ i18n.t('ui.potionButton') }} ({{ potionCount() }})</span>
+                <span
+                  >{{ i18n.t('ui.potionButton') }} ({{ potionCount() }})</span
+                >
               </button>
             }
 
-            <button type="button" class="btn btn--ghost action-flee" [disabled]="acting()" (click)="game.playerFlee()">
+            <button
+              type="button"
+              class="btn btn--ghost action-flee"
+              [disabled]="acting()"
+              (click)="game.playerFlee()"
+            >
               <app-icon name="boot" [size]="16"></app-icon>
               <span>{{ i18n.t('ui.fleeButton') }}</span>
             </button>
           }
 
-          @if (s().phase === 'levelup' && s().levelUp?.step === 'hp' && s().levelUp?.hpRollTotal !== null) {
+          @if (
+            s().phase === 'levelup' &&
+            s().levelUp?.step === 'hp' &&
+            s().levelUp?.hpRollTotal !== null
+          ) {
             @if (!s().levelUp?.rerolled) {
-              <button type="button" class="btn" (click)="game.rerollLevelUpHp()">
+              <button
+                type="button"
+                class="btn"
+                (click)="game.rerollLevelUpHp()"
+              >
                 <app-icon name="dot" [size]="14"></app-icon>
                 <span>{{ i18n.t('ui.rerollHpButton') }}</span>
               </button>
             }
-            <button type="button" class="btn heal" (click)="game.confirmLevelUp()">
+            <button
+              type="button"
+              class="btn heal"
+              (click)="game.confirmLevelUp()"
+            >
               <app-icon name="check" [size]="16"></app-icon>
               <span>{{ i18n.t('ui.confirmButton') }}</span>
             </button>
@@ -301,7 +445,9 @@
       <!-- CRONACA DI BATTAGLIA -->
       <div class="battle-chronicle">
         <div class="chronicle-header">
-          <span class="chronicle-title">{{ i18n.t('ui.descentChronicleTitle') }}</span>
+          <span class="chronicle-title">{{
+            i18n.t('ui.descentChronicleTitle')
+          }}</span>
           <span class="divider-line"></span>
         </div>
         <div class="log" #logbox>
@@ -314,12 +460,18 @@
     </div>
 
     <!-- COLONNA 3 (DESTRA): SCHEDA MOSTRO -->
-    <div class="combatant-card enemy-card" [class.boss-card]="s().monster?.isBoss">
+    <div
+      class="combatant-card enemy-card"
+      [class.boss-card]="s().monster?.isBoss"
+    >
       @if (s().monster; as m) {
         <div class="card-top-content">
           <div class="combatant-header">
             <div class="sigil" [class.sigil--danger]="m.isBoss">
-              <app-icon [name]="m.isBoss ? 'crown' : 'skull'" [size]="24"></app-icon>
+              <app-icon
+                [name]="m.isBoss ? 'crown' : 'skull'"
+                [size]="24"
+              ></app-icon>
             </div>
             <div class="combatant-meta">
               <div class="enemy-tag-row">
@@ -329,28 +481,40 @@
                   <span class="tier-badge">NEMICO DELLA GUGLIA</span>
                 }
               </div>
-              <h3 class="enemy-name" [title]="game.monsterDisplayName(m)">{{ game.monsterDisplayName(m) }}</h3>
+              <h3 class="enemy-name" [title]="game.monsterDisplayName(m)">
+                {{ game.monsterDisplayName(m) }}
+              </h3>
             </div>
           </div>
 
           <div class="bar-block">
             <div class="bar-header">
-              <span class="bar-label"><app-icon name="heart" [size]="12"></app-icon> {{ i18n.t('ui.hpLabel') }}</span>
+              <span class="bar-label"
+                ><app-icon name="heart" [size]="12"></app-icon>
+                {{ i18n.t('ui.hpLabel') }}</span
+              >
               <span class="num bar-val">{{ m.hp }} / {{ m.maxHp }}</span>
             </div>
             <div class="hpbar-outer">
-              <div class="hpbar-inner enemybar-inner" [style.width.%]="pct(m.hp, m.maxHp)"></div>
+              <div
+                class="hpbar-inner enemybar-inner"
+                [style.width.%]="pct(m.hp, m.maxHp)"
+              ></div>
             </div>
           </div>
 
           <div class="combat-metrics-grid">
             <div class="metric-badge">
               <app-icon name="shield" [size]="13"></app-icon>
-              <span>CA <strong>{{ m.ac }}</strong></span>
+              <span
+                >CA <strong>{{ m.ac }}</strong></span
+              >
             </div>
             <div class="metric-badge">
               <app-icon name="sword" [size]="13"></app-icon>
-              <span>TxC <strong>{{ dice.fmtMod(m.atk) }}</strong></span>
+              <span
+                >TxC <strong>{{ dice.fmtMod(m.atk) }}</strong></span
+              >
             </div>
           </div>
 
@@ -359,9 +523,7 @@
               <span class="equip-name">Potenza Danno</span>
               <span class="d20-threat-tag">Dado Danno</span>
             </div>
-            <div class="equip-damage num">
-              {{ m.dmg[0] }}d{{ m.dmg[1] }}
-            </div>
+            <div class="equip-damage num">{{ m.dmg[0] }}d{{ m.dmg[1] }}</div>
           </div>
         </div>
 
@@ -372,7 +534,8 @@
               @if (m.isBoss) {
                 Resistenza eccelsa e attacchi critici micidiali.
               } @else {
-                Creatura d'attacco diretto. Usa le pozioni se i tuoi PF scendono troppo.
+                Creatura d'attacco diretto. Usa le pozioni se i tuoi PF scendono
+                troppo.
               }
             </p>
           </div>
@@ -396,4 +559,77 @@
 }
 @if (s().bossRewardModal) {
   <app-boss-reward-modal />
+}
+
+@if (showPotionModal()) {
+  <div class="modal-backdrop" (click)="showPotionModal.set(false)">
+    <div
+      class="panel modal-box gothic-frame potion-modal-frame"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="sigil sigil--lg potion-sigil">
+        <app-icon name="flask" [size]="40"></app-icon>
+      </div>
+      <h2>Scegli la Pozione</h2>
+      <p class="small potion-modal-sub">
+        Punti Ferita Attuali:
+        <strong class="num">{{ p().hp }} / {{ p().maxHp }}</strong>
+      </p>
+
+      <div class="potion-select-list">
+        @for (pItem of potionsList(); track pItem.index) {
+          <div
+            class="potion-select-card gothic-frame"
+            [class.is-disabled]="acting() || p().hp >= p().maxHp"
+            [class.selected]="selectedPotionIndex() === pItem.index"
+            (click)="
+              !(acting() || p().hp >= p().maxHp) && selectPotionRow(pItem.index)
+            "
+          >
+            <div class="potion-select-header">
+              <app-icon name="flask" [size]="20" class="potion-icon"></app-icon>
+              <div>
+                <div class="potion-select-title">
+                  {{ i18n.t('potionName') }}
+                </div>
+                <div class="potion-select-dice num">
+                  Cura: {{ pItem.item.heal[0] }}d{{ pItem.item.heal[1] }}
+                  @if (p().potionHealBonus) {
+                    <span class="gain">+{{ p().potionHealBonus }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Aggiungiamo una spunta se selezionato per un feedback visivo immediato -->
+            @if (selectedPotionIndex() === pItem.index) {
+              <app-icon name="check" [size]="20" class="potion-icon"></app-icon>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="potion-modal-actions">
+        <button
+          type="button"
+          class="btn btn--ghost"
+          (click)="showPotionModal.set(false)"
+        >
+          Annulla
+        </button>
+        <!-- Pulsante Unico "Bevi" posizionato qui sotto -->
+        <button
+          type="button"
+          class="btn heal"
+          [disabled]="
+            selectedPotionIndex() === null || acting() || p().hp >= p().maxHp
+          "
+          (click)="confirmDrinkPotion()"
+        >
+          <app-icon name="flask" [size]="16"></app-icon>
+          <span>Bevi Pozione</span>
+        </button>
+      </div>
+    </div>
+  </div>
 }

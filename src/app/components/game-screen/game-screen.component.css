@@ -147,6 +147,172 @@
   margin-top: 2px;
 }
 
+/* PILL & POPOVER POZIONI */
+.potion-pill {
+  position: relative;
+  color: var(--emerald);
+  border-color: rgba(52, 211, 153, 0.3);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.potion-pill.has-potions:hover {
+  background: rgba(52, 211, 153, 0.12);
+  border-color: var(--emerald);
+}
+
+.potion-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 250px;
+  max-height: 250px;
+  overflow-y: auto;
+  background: rgba(14, 10, 7, 0.98);
+  border: 1px solid var(--emerald-dim);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.9), 0 0 12px var(--emerald-glow);
+  padding: 10px;
+  z-index: 200;
+  cursor: default;
+  animation: popoverFade 0.15s ease-out;
+  scrollbar-width: thin;
+  scrollbar-color: var(--emerald-dim) transparent;
+}
+
+.popover-potion-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.popover-potion-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--stone-line-soft);
+  border-radius: var(--radius-sm);
+}
+
+.potion-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.potion-name {
+  font-family: var(--font-heading);
+  font-size: 0.78rem;
+  color: var(--emerald);
+  font-weight: 600;
+}
+
+.potion-heal {
+  font-size: 0.72rem;
+  color: var(--parchment-dim);
+}
+
+.btn--sm {
+  padding: 4px 10px !important;
+  font-size: 0.75rem !important;
+  height: auto !important;
+}
+
+/* MODALE SELEZIONE POZIONE */
+.potion-modal-frame {
+  max-width: 440px;
+  background: radial-gradient(circle at 50% 15%, rgba(18, 38, 26, 0.96), rgba(7, 16, 11, 0.98));
+  box-shadow: 0 0 35px var(--emerald-glow), var(--shadow-gothic);
+}
+
+.potion-sigil {
+  margin: 0 auto 12px;
+  color: var(--emerald);
+  border-color: var(--emerald);
+  box-shadow: 0 0 20px var(--emerald-glow);
+}
+
+.potion-modal-sub {
+  color: var(--parchment-dim);
+  margin-bottom: 16px;
+}
+
+.potion-select-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 280px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+  padding-right: 4px;
+}
+
+/* Stile base della riga pozione */
+.potion-select-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--emerald-dim);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Hover quando NON è selezionata e NON è disabilitata */
+.potion-select-card:hover:not(.is-disabled):not(.selected) {
+  border-color: rgba(52, 211, 153, 0.5);
+  background: rgba(52, 211, 153, 0.08);
+}
+
+/* Stile per la riga SELEZIONATA */
+.potion-select-card.selected {
+  border-color: var(--emerald);
+  background: rgba(52, 211, 153, 0.18);
+  box-shadow: 0 0 16px rgba(52, 211, 153, 0.25);
+}
+
+/* Stile HP massimi */
+.potion-select-card.is-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.potion-select-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.potion-icon {
+  color: var(--emerald);
+}
+
+.potion-select-title {
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  color: var(--parchment);
+}
+
+.potion-select-dice {
+  font-size: 0.78rem;
+  color: var(--parchment-dim);
+}
+
+/* Pulsanti in basso alla modale */
+.potion-modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px; /* Spazio tra Annulla e Bevi */
+  margin-top: 6px;
+}
+
 /* ==========================================================================
    DUELLO ARENA DESKTOP
    ========================================================================== */

@@ -83,7 +83,7 @@ freshState(prevLang: LangCode): GameState {
   playerAttack(): Promise<void> { return this.combatService.playerAttack(); }
   playerDefend(): Promise<void> { return this.combatService.playerDefend(); }
   playerUseSpecial(): Promise<void> { return this.combatService.playerUseSpecial(); }
-  playerUsePotion(): Promise<void> { return this.combatService.playerUsePotion(); }
+  playerUsePotion(inventoryIndex?: number): Promise<void> { return this.combatService.playerUsePotion(inventoryIndex); }
   playerFlee(): Promise<void> { return this.combatService.playerFlee(); }
   confirmBossReward(): void { this.combatService.confirmBossReward(); }
   gameOver(): void { this.combatService.gameOver(); }

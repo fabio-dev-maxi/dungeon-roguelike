@@ -7,7 +7,7 @@ import {
   ViewChild,
   computed,
   effect,
-  signal
+  signal,
 } from '@angular/core';
 import { GameService } from '../../services/game.service';
 import { I18nService } from '../../services/i18n.service';
@@ -32,14 +32,22 @@ function iconForChoice(o: ChoiceOption): IconName {
   if (o.stat) return STAT_ICONS[o.stat];
 
   switch (o.action) {
-    case 'heal': return 'heart';
-    case 'buff': return 'star';
-    case 'potion': return 'flask';
-    case 'upgrade': return 'hammer';
-    case 'rest': return 'cup';
-    case 'drink': return 'flask';
-    case 'skip': return 'x';
-    default: return 'dot';
+    case 'heal':
+      return 'heart';
+    case 'buff':
+      return 'star';
+    case 'potion':
+      return 'flask';
+    case 'upgrade':
+      return 'hammer';
+    case 'rest':
+      return 'cup';
+    case 'drink':
+      return 'flask';
+    case 'skip':
+      return 'x';
+    default:
+      return 'dot';
   }
 }
 
@@ -50,11 +58,11 @@ function iconForChoice(o: ChoiceOption): IconName {
     DiceWidgetComponent,
     LevelUpModalComponent,
     BossRewardModalComponent,
-    IconComponent
+    IconComponent,
   ],
   templateUrl: './game-screen.component.html',
   styleUrl: './game-screen.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GameScreenComponent implements AfterViewChecked {
   statKeys = STAT_KEYS;
@@ -62,12 +70,12 @@ export class GameScreenComponent implements AfterViewChecked {
 
   private readonly playerDie = signal<DieFace>({
     value: null,
-    sides: 20
+    sides: 20,
   });
 
   private readonly monsterDie = signal<DieFace>({
     value: null,
-    sides: 20
+    sides: 20,
   });
 
   readonly playerDieValue = computed(() => this.playerDie().value);
@@ -77,6 +85,11 @@ export class GameScreenComponent implements AfterViewChecked {
 
   readonly playerDieActive: Signal<boolean>;
   readonly monsterDieActive: Signal<boolean>;
+
+  // --- GESTIONE POZIONI ---
+  readonly showPotionPopover = signal(false);
+  readonly showPotionModal = signal(false);
+  readonly selectedPotionIndex = signal<number | null>(null); // Traccia la riga selezionata
 
   showRelicPopover = signal(false);
 
@@ -98,21 +111,19 @@ export class GameScreenComponent implements AfterViewChecked {
 
       return !!(
         rd &&
-        (rd.tag === 'monsterAttack' || rd.tag === 'monsterDamage' || rd.tag === 'monsterCritConfirm')
+        (rd.tag === 'monsterAttack' ||
+          rd.tag === 'monsterDamage' ||
+          rd.tag === 'monsterCritConfirm')
       );
     });
 
     this.playerDieActive = computed(() => {
       const rd = roll();
 
-      return !!rd?.active &&
-        !isEnemyRoll() &&
-        rd?.tag !== 'levelhp';
+      return !!rd?.active && !isEnemyRoll() && rd?.tag !== 'levelhp';
     });
 
-    this.monsterDieActive = computed(() =>
-      !!roll()?.active && isEnemyRoll()
-    );
+    this.monsterDieActive = computed(() => !!roll()?.active && isEnemyRoll());
 
     effect(() => {
       const rd = roll();
@@ -121,7 +132,7 @@ export class GameScreenComponent implements AfterViewChecked {
 
       const face: DieFace = {
         value: rd.value,
-        sides: rd.sides || 20
+        sides: rd.sides || 20,
       };
 
       if (isEnemyRoll()) {
@@ -130,6 +141,52 @@ export class GameScreenComponent implements AfterViewChecked {
         this.playerDie.set(face);
       }
     });
+  }
+
+  readonly potionsList = computed(() => {
+    const player = this.game.state().player;
+    if (!player) return [];
+    return player.inventory
+      .map((item, index) => ({ item, index }))
+      .filter((x) => x.item.type === 'potion');
+  });
+
+  togglePotionPopover(): void {
+    if (this.potionCount() > 0) {
+      this.showPotionPopover.update((v) => !v);
+    }
+  }
+
+  closePotionPopover(): void {
+    this.showPotionPopover.set(false);
+  }
+
+  usePotionAction(): void {
+    const list = this.potionsList();
+    if (list.length === 0) return;
+
+    if (list.length === 1) {
+      // Se ha una sola pozione, la beve direttamente per non far perdere tempo
+      this.showPotionPopover.set(false);
+      this.game.playerUsePotion(list[0].index);
+    } else {
+      // Se ne ha più di una, apre la modale e preseleziona la prima
+      this.showPotionPopover.set(false);
+      this.selectedPotionIndex.set(list[0].index);
+      this.showPotionModal.set(true);
+    }
+  }
+
+  selectPotionRow(index: number): void {
+    this.selectedPotionIndex.set(index);
+  }
+
+  confirmDrinkPotion(): void {
+    const idx = this.selectedPotionIndex();
+    if (idx !== null) {
+      this.showPotionModal.set(false);
+      this.game.playerUsePotion(idx);
+    }
   }
 
   s() {
@@ -141,9 +198,7 @@ export class GameScreenComponent implements AfterViewChecked {
   }
 
   pct(current: number, max: number): number {
-    return max > 0
-      ? Math.round((current / max) * 100)
-      : 0;
+    return max > 0 ? Math.round((current / max) * 100) : 0;
   }
 
   hpPct(): number {
@@ -159,12 +214,12 @@ export class GameScreenComponent implements AfterViewChecked {
   }
 
   hasPotion(): boolean {
-    return this.p().inventory.some(i => i.type === 'potion');
+    return this.p().inventory.some((i) => i.type === 'potion');
   }
 
   potionCount(): number {
     return this.p()
-      ? this.p().inventory.filter(i => i.type === 'potion').length
+      ? this.p().inventory.filter((i) => i.type === 'potion').length
       : 0;
   }
 
@@ -175,16 +230,13 @@ export class GameScreenComponent implements AfterViewChecked {
   canSpecial(): boolean {
     const cls = this.p().cls;
 
-    return !this.p().usedSpecial &&
-      !!this.i18n.t('classes.' + cls + '.active');
+    return !this.p().usedSpecial && !!this.i18n.t('classes.' + cls + '.active');
   }
 
   isLowHp = computed(() => {
     const player = this.game.state().player;
 
-    return player
-      ? player.hp / player.maxHp <= 0.25
-      : false;
+    return player ? player.hp / player.maxHp <= 0.25 : false;
   });
 
   critThreatDisplay = computed(() => {
@@ -214,23 +266,21 @@ export class GameScreenComponent implements AfterViewChecked {
     return this.dice.fmtMod(modVal);
   });
 
-  isRollingCrit = computed(() =>
-    this.game.state().rollingDie?.cls === 'crit'
-  );
+  isRollingCrit = computed(() => this.game.state().rollingDie?.cls === 'crit');
 
   isCriticalConfirmed = computed(() => {
     const roll = this.game.state().rollingDie;
-    return roll?.cls === 'crit' &&
-      (roll.tag === 'critConfirm' || roll.tag === 'monsterCritConfirm');
+    return (
+      roll?.cls === 'crit' &&
+      (roll.tag === 'critConfirm' || roll.tag === 'monsterCritConfirm')
+    );
   });
 
-  isRollingFail = computed(() =>
-    this.game.state().rollingDie?.cls === 'fail'
-  );
+  isRollingFail = computed(() => this.game.state().rollingDie?.cls === 'fail');
 
   toggleRelicPopover(): void {
     if (this.p().relics.length > 0) {
-      this.showRelicPopover.update(v => !v);
+      this.showRelicPopover.update((v) => !v);
     }
   }
 
@@ -257,11 +307,16 @@ export class GameScreenComponent implements AfterViewChecked {
 
   encounterIcon(): IconName {
     switch (this.s().pendingChoice?.kind) {
-      case 'trap': return 'skull';
-      case 'shrine': return 'sun';
-      case 'merchant': return 'coin';
-      case 'tavern': return 'cup';
-      default: return 'scroll';
+      case 'trap':
+        return 'skull';
+      case 'shrine':
+        return 'sun';
+      case 'merchant':
+        return 'coin';
+      case 'tavern':
+        return 'cup';
+      default:
+        return 'scroll';
     }
   }
 
@@ -274,8 +329,7 @@ export class GameScreenComponent implements AfterViewChecked {
     const curLogLen = state.log.length;
 
     const shouldScroll =
-      this.lastPhase !== curPhase ||
-      this.lastLogLength !== curLogLen;
+      this.lastPhase !== curPhase || this.lastLogLength !== curLogLen;
 
     if (!shouldScroll) return;
 
@@ -286,7 +340,7 @@ export class GameScreenComponent implements AfterViewChecked {
     // Uno scroll diretto è più leggero di una coda di smooth-scroll ripetuta.
     anchor.scrollIntoView({
       block: 'end',
-      behavior: 'auto'
+      behavior: 'auto',
     });
   }
 }
