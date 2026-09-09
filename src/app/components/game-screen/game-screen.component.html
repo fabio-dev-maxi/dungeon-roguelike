@@ -178,6 +178,14 @@
           </div>
         </div>
 
+        <!-- PULSANTE SCHEDA EROE -->
+        <button type="button" class="btn secondary"
+          style="width: 100%; margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 8px;"
+          (click)="isCharacterSheetOpen.set(true)">
+          <app-icon name="scroll" [size]="16"></app-icon>
+          <span>SCHEDA EROE</span>
+        </button>
+
         <!-- STRISCIA EQUIPAGGIAMENTO (ARMA & ARMATURA) -->
         <div class="equipment-strip">
           <!-- ARMA -->
@@ -574,3 +582,6 @@
   </div>
 </div>
 }
+
+<app-character-sheet-modal [isOpen]="isCharacterSheetOpen()" (closeModal)="isCharacterSheetOpen.set(false)">
+</app-character-sheet-modal>

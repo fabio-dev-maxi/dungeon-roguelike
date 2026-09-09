@@ -21,6 +21,7 @@ import { xpToNext } from '../../data/monster.data';
 import { IconComponent, IconName } from '../../shared/icon/icon.component';
 import { CLASS_ICONS, STAT_ICONS } from '../../shared/icon/icon-maps';
 import { DungeonMapComponent } from '../dungeon-map/dungeon-map.component';
+import { CharacterSheetModalComponent } from '../character-sheet-modal/character-sheet-modal.component';
 
 const STAT_KEYS: StatKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 
@@ -62,6 +63,7 @@ function iconForChoice(o: ChoiceOption): IconName {
     BossRewardModalComponent,
     DungeonMapComponent,
     IconComponent,
+    CharacterSheetModalComponent,
   ],
   templateUrl: './game-screen.component.html',
   styleUrl: './game-screen.component.css',
@@ -96,6 +98,9 @@ export class GameScreenComponent implements AfterViewChecked {
 
   readonly playerDieActive: Signal<boolean>;
   readonly monsterDieActive: Signal<boolean>;
+
+  // Aggiungi questo segnale per controllare la visibilità della scheda
+  public isCharacterSheetOpen = signal<boolean>(false);
 
   // --- GESTIONE POZIONI ---
   readonly showPotionPopover = signal(false);
@@ -362,5 +367,14 @@ export class GameScreenComponent implements AfterViewChecked {
    */
   openMapReadOnly(): void {
     this.game.openMapReadOnly();
+  }
+
+  // Metodi per aprire e chiudere la scheda
+  public openCharacterSheet(): void {
+    this.isCharacterSheetOpen.set(true);
+  }
+
+  public closeSheet(): void {
+    this.isCharacterSheetOpen.set(false);
   }
 }

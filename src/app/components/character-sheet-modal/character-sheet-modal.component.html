@@ -1,0 +1,206 @@
+@if (isOpen() && player) {
+<div class="modal-backdrop" (click)="closeModal.emit()">
+  <div class="panel modal-box gothic-frame character-sheet" (click)="$event.stopPropagation()">
+
+    <!-- INTESTAZIONE SCHEDA RESPONSIVE -->
+    <header class="sheet-header">
+      <div class="hero-title">
+        <div class="sigil sigil--gold">
+          <app-icon [name]="getIconForClass(player.cls)" [size]="28"></app-icon>
+        </div>
+        <div class="hero-meta">
+          <h2>{{ player.name }}</h2>
+          <span class="eyebrow">
+            {{ i18n.t('classes.' + player.cls + '.name') }} &bull; Livello {{ player.level }}
+          </span>
+        </div>
+      </div>
+
+      <!-- BARRE DI PROGRESSIONE -->
+      <div class="bars-container">
+        <div class="bar-group">
+          <div class="bar-label">
+            <span><app-icon name="heart" [size]="12"></app-icon> SALUTE</span>
+            <span>{{ player.hp }} / {{ player.maxHp }}</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill hp-fill" [style.width.%]="getHpPercent()"></div>
+          </div>
+        </div>
+        <div class="bar-group">
+          <div class="bar-label">
+            <span><app-icon name="star" [size]="12"></app-icon> ESPERIENZA</span>
+            <span>{{ player.xp }} / {{ getXpNext() }} XP</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill xp-fill" [style.width.%]="getXpPercent()"></div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn--icon close-btn" (click)="closeModal.emit()" title="Chiudi">
+        <app-icon name="x" [size]="20"></app-icon>
+      </button>
+    </header>
+
+    <!-- CORPO SCHEDA -->
+    <div class="sheet-body">
+
+      <!-- COLONNA SINISTRA: ATTRIBUTI & COMBATTIMENTO -->
+      <div class="sheet-col">
+        <h3 class="section-title">Attributi</h3>
+
+        <div class="stats-compact-grid">
+          <div class="stat-chip">
+            <span class="stat-lbl">FOR</span>
+            <span class="stat-num">{{ player.stats.str }}</span>
+            <span class="stat-badge" [class.pos]="getMod(player.stats.str) > 0">{{ formatMod(getMod(player.stats.str))
+              }}</span>
+          </div>
+          <div class="stat-chip">
+            <span class="stat-lbl">DES</span>
+            <span class="stat-num">{{ player.stats.dex }}</span>
+            <span class="stat-badge" [class.pos]="getMod(player.stats.dex) > 0">{{ formatMod(getMod(player.stats.dex))
+              }}</span>
+          </div>
+          <div class="stat-chip">
+            <span class="stat-lbl">COS</span>
+            <span class="stat-num">{{ player.stats.con }}</span>
+            <span class="stat-badge" [class.pos]="getMod(player.stats.con) > 0">{{ formatMod(getMod(player.stats.con))
+              }}</span>
+          </div>
+          <div class="stat-chip">
+            <span class="stat-lbl">INT</span>
+            <span class="stat-num">{{ player.stats.int }}</span>
+            <span class="stat-badge" [class.pos]="getMod(player.stats.int) > 0">{{ formatMod(getMod(player.stats.int))
+              }}</span>
+          </div>
+          <div class="stat-chip">
+            <span class="stat-lbl">SAG</span>
+            <span class="stat-num">{{ player.stats.wis }}</span>
+            <span class="stat-badge" [class.pos]="getMod(player.stats.wis) > 0">{{ formatMod(getMod(player.stats.wis))
+              }}</span>
+          </div>
+          <div class="stat-chip">
+            <span class="stat-lbl">CAR</span>
+            <span class="stat-num">{{ player.stats.cha }}</span>
+            <span class="stat-badge" [class.pos]="getMod(player.stats.cha) > 0">{{ formatMod(getMod(player.stats.cha))
+              }}</span>
+          </div>
+        </div>
+
+        <h3 class="section-title mt-3">Combattimento</h3>
+        <div class="combat-grid">
+          <div class="c-card">
+            <app-icon name="shield" [size]="18"></app-icon>
+            <div>
+              <span class="c-lbl">Classe Armatura</span>
+              <span class="c-val">{{ player.ac }} CA</span>
+            </div>
+          </div>
+
+          <div class="c-card">
+            <app-icon name="swords" [size]="18"></app-icon>
+            <div>
+              <span class="c-lbl">Tiro per Colpire</span>
+              <span class="c-val">{{ getAttackBonus() }} TxC</span>
+            </div>
+          </div>
+
+          <div class="c-card">
+            <app-icon name="star" [size]="18"></app-icon>
+            <div>
+              <span class="c-lbl">Minaccia Critico</span>
+              <span class="c-val">{{ getCritDisplay() }}</span>
+            </div>
+          </div>
+
+          <div class="c-card">
+            <app-icon name="coin" [size]="18"></app-icon>
+            <div>
+              <span class="c-lbl">Borsa d'Oro</span>
+              <span class="c-val">{{ player.gold }} Monete</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLONNA DESTRA: EQUIPAGGIAMENTO, RELIQUIE & TALENTI -->
+      <div class="sheet-col">
+        <h3 class="section-title">Equipaggiamento Attivo</h3>
+
+        <!-- ARMA PRINCIPALE -->
+        <div class="equip-slot">
+          <div class="equip-icon weapon">
+            <app-icon name="sword" [size]="22"></app-icon>
+          </div>
+          <div class="equip-details">
+            <span class="equip-type">Mano Principale</span>
+            <div class="equip-name">
+              {{ player.weapon.key ? i18n.equipmentName(player.weapon.key, 'weapons') : 'Mani Nude' }}
+            </div>
+            <div class="equip-effect">
+              Danno: <strong>{{ player.weapon.dice[0] || 1 }}d{{ player.weapon.dice[1] || 4 }} + {{
+                (player.weapon.bonus || 0) + (player.flatDmgBonus || 0) }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- ARMATURA -->
+        <div class="equip-slot">
+          <div class="equip-icon armor">
+            <app-icon name="shield" [size]="22"></app-icon>
+          </div>
+          <div class="equip-details">
+            <span class="equip-type">Corpo</span>
+            <div class="equip-name">
+              {{ player.armor.key ? i18n.equipmentName(player.armor.key, 'armors') : 'Abiti Comuni' }}
+            </div>
+            <div class="equip-effect">
+              Protezione: <strong>+{{ player.armor.bonus || 0 }} CA</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- RELIQUIE & ANELLI -->
+        <h3 class="section-title mt-3">Anelli & Reliquie ({{ player.relics.length || 0 }})</h3>
+        <div class="relics-scroll-box">
+          @if (player.relics && player.relics.length > 0) {
+          @for (relic of player.relics; track relic) {
+          <div class="relic-item-card">
+            <app-icon name="gem" [size]="16"></app-icon>
+            <div class="relic-info">
+              <span class="relic-title">{{ i18n.t('relics.' + relic + '.name') }}</span>
+              <span class="relic-desc">{{ i18n.t('relics.' + relic + '.effect') }}</span>
+            </div>
+          </div>
+          }
+          } @else {
+          <p class="empty-text">Nessun artefatto o anello ritrovato negli abissi.</p>
+          }
+        </div>
+
+        <!-- TALENTI PASSIVI -->
+        @if (player.feats && player.feats.length > 0) {
+        <h3 class="section-title mt-3">Talenti Passivi ({{ player.feats.length }})</h3>
+        <div class="feats-cloud">
+          @for (feat of player.feats; track feat) {
+          <div class="feat-pill-wrapper">
+            <span class="feat-pill">
+              <app-icon name="check" [size]="12"></app-icon>
+              {{ i18n.t('feats.' + feat + '.name') }}
+            </span>
+            <div class="feat-tooltip">
+              <strong>{{ i18n.t('feats.' + feat + '.name') }}</strong>
+              <p>{{ i18n.t('feats.' + feat + '.desc') }}</p>
+            </div>
+          </div>
+          }
+        </div>
+        }
+      </div>
+
+    </div>
+  </div>
+</div>
+}

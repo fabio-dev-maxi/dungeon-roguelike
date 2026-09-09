@@ -1066,3 +1066,14 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
+
+.sheet-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 16px;
+  font-family: var(--font-heading);
+  letter-spacing: 0.1em;
+}
