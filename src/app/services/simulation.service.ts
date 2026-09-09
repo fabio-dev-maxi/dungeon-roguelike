@@ -38,12 +38,6 @@ export interface SimulationResult {
   dropsSummary: DropsSummary;
 }
 
-/**
- * SERVIZIO SIMULATORE AUTOMATICO BATCH
- * 
- * Esegue centinaia/migliaia di simulazioni veloci in background senza rendering grafico
- * per verificare il bilanciamento matematico del gioco tra le 4 classi D&D 3.5.
- */
 @Injectable({ providedIn: 'root' })
 export class SimulationService {
   private origLog?: typeof GameStateService.prototype.log;
@@ -61,9 +55,6 @@ export class SimulationService {
     private readonly dice: DiceService
   ) { }
 
-  /**
-   * Attiva la modalità simulazione disabilitando i log visivi, le animazioni 3D e i delay del timer.
-   */
   private setSimulationMode(active: boolean): void {
     if (active) {
       this.origBestDepth = this.stateService.bestDepth();
@@ -72,7 +63,6 @@ export class SimulationService {
       this.origAnimateRollAsync = this.stateService.animateRollAsync.bind(this.stateService);
       this.origWait = this.stateService.wait.bind(this.stateService);
 
-      // Bypass temporaneo delle chiamate UI/Async
       this.stateService.log = () => { };
       this.stateService.touch = () => { };
       this.stateService.animateRollAsync = async (val: number | number[]) => {
@@ -89,7 +79,6 @@ export class SimulationService {
     }
   }
 
-  /** Genera una scheda statistiche ottimizzata per il test della classe */
   private generateStrongStats(cls: ClassKey): Stats {
     const rolls: number[] = [];
     for (let i = 0; i < 6; i++) {
@@ -129,15 +118,11 @@ export class SimulationService {
     return stats;
   }
 
-  /**
-   * Esegue un batch di N simulazioni complete della Guglia Cava.
-   */
   public async runBatch(cls: ClassKey, N: number): Promise<SimulationResult> {
     this.setSimulationMode(true);
     const deathsByDepth: Record<number, number> = {};
     const deathsByBoss: Record<string, number> = {};
     const bossReach: Record<string, { reach: number; survive: number; levels: number[] }> = {};
-
     const BOSS_IDS = [
       'boss1', 'boss2', 'boss3', 'chimera', 'archdemon',
       'lich', 'hydra', 'dragon_red', 'kraken', 'tarrasque',
@@ -211,13 +196,18 @@ export class SimulationService {
     };
   }
 
-  /**
-   * Simula una singola discesa completa di 50 Piani attraverso le Mappe a 7 Layer.
-   */
   private async simulateSingleRun(cls: ClassKey) {
     const s = this.stateService.freshState('it');
     const stats = this.generateStrongStats(cls);
-    s.player = this.characterService.buildPlayer('Sim', cls, stats);
+
+    // Registra i punteggi generati dal simulatore nello stato della bozza privata
+    this.characterService.resetDraft();
+    (Object.keys(stats) as StatKey[]).forEach((k) => {
+      this.characterService.recordDraftStat(k, stats[k]);
+    });
+
+    // Costruisce il personaggio per il batch attraverso il canale protetto
+    s.player = this.characterService.buildPlayerFromDraft('Sim', cls);
     s.screen = 'run';
     (this.stateService as any)._state = s;
 
@@ -225,19 +215,16 @@ export class SimulationService {
     let currentFloor = 0;
     const runDrops = { relics: 0, weapons: 0, armors: 0, gold: 0 };
     const bossEncounters: Record<string, { reached: boolean; survived: boolean; level: number }> = {};
-
     const BOSS_IDS = [
       'boss1', 'boss2', 'boss3', 'chimera', 'archdemon',
       'lich', 'hydra', 'dragon_red', 'kraken', 'tarrasque',
     ];
     BOSS_IDS.forEach((id) => (bossEncounters[id] = { reached: false, survived: false, level: 0 }));
 
-    // Ciclo sui 50 Piani della Guglia
     for (let floor = 1; floor <= 50; floor++) {
       currentFloor = floor;
-      this.encounterService.startFloor(); // Genera la Mappa a 7 Layer per il Piano
+      this.encounterService.startFloor();
 
-      // Navigazione dei 7 Layer del Piano corrente
       for (let layerIdx = 0; layerIdx < 7; layerIdx++) {
         const map = s.currentMap;
         if (!map) break;
@@ -245,18 +232,14 @@ export class SimulationService {
         const layerNodeIds = map.layers[layerIdx];
         if (!layerNodeIds || layerNodeIds.length === 0) break;
 
-        // Decisione Euristica Tattica del Percorso per il Bot Simulatore
         const selectedNodeId = this.pickBestNodeForSim(map.nodes, layerNodeIds, s.player!);
         const node = map.nodes[selectedNodeId];
 
-        // Seleziona ed esegue il nodo sulla mappa
         this.encounterService.selectMapNode(node);
 
-        // Se il nodo è un combattimento o il boss
         if (s.phase === 'combat' && s.monster) {
           const mId = s.monster.id;
           const isBoss = s.monster.isBoss;
-
           if (isBoss) {
             bossEncounters[mId].reached = true;
             bossEncounters[mId].level = s.player!.level;
@@ -305,7 +288,6 @@ export class SimulationService {
 
           await this.processPendingLevelUps();
         } else if (s.phase === 'choice' && s.pendingChoice) {
-          // Risoluzione automatica delle scelte nel nodo
           const choice = s.pendingChoice;
           const opt = choice.options[0];
           await this.encounterService.resolveChoiceOption(opt, () => {
@@ -338,9 +320,6 @@ export class SimulationService {
     };
   }
 
-  /**
-   * Euristica Tattica del Bot Simulatore per la selezione del nodo migliore nel Layer.
-   */
   private pickBestNodeForSim(
     nodes: Record<string, MapNode>,
     candidateIds: string[],
@@ -349,14 +328,12 @@ export class SimulationService {
     const availableCandidates = candidateIds.filter((id) => nodes[id].status === 'available');
     const pool = availableCandidates.length > 0 ? availableCandidates : candidateIds;
 
-    // Se i Punti Ferita sono bassi (< 40%), da priorità a Taverne, Santuari o Tesori
     const lowHp = player.hp / player.maxHp < 0.4;
     if (lowHp) {
       const restNode = pool.find((id) => nodes[id].type === 'tavern' || nodes[id].type === 'shrine');
       if (restNode) return restNode;
     }
 
-    // Altrimenti seleziona preferenzialmente Forzieri, Mercanti o Combattimenti
     const prefNode = pool.find((id) => nodes[id].type === 'treasure' || nodes[id].type === 'merchant');
     if (prefNode) return prefNode;
 

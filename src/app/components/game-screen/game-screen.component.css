@@ -74,40 +74,6 @@
   border-color: rgba(52, 211, 153, 0.3);
 }
 
-/* PILL E POPOVER RELIQUIE */
-.relic-pill {
-  position: relative;
-  color: var(--gold);
-  border-color: rgba(212, 175, 55, 0.3);
-  cursor: pointer;
-  user-select: none;
-  transition: border-color 0.18s ease, background 0.18s ease;
-}
-
-.relic-pill.has-relics:hover {
-  background: rgba(212, 175, 55, 0.12);
-  border-color: var(--gold);
-}
-
-.relic-popover {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  width: 250px;
-  max-height: 240px;
-  overflow-y: auto;
-  background: rgba(14, 10, 7, 0.98);
-  border: 1px solid var(--gold-dim);
-  border-radius: var(--radius-sm);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.9), 0 0 12px var(--gold-glow);
-  padding: 10px;
-  z-index: 200;
-  cursor: default;
-  animation: popoverFade 0.15s ease-out;
-  scrollbar-width: thin;
-  scrollbar-color: var(--gold-dim) transparent;
-}
-
 @keyframes popoverFade {
   from {
     opacity: 0;
@@ -132,36 +98,6 @@
   padding-bottom: 6px;
   border-bottom: 1px solid var(--stone-line-soft);
   margin-bottom: 6px;
-}
-
-.popover-relic-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.popover-relic-item {
-  padding: 6px 8px;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid var(--stone-line-soft);
-  border-radius: var(--radius-sm);
-}
-
-.relic-name {
-  font-family: var(--font-heading);
-  font-size: 0.78rem;
-  color: var(--gold);
-  font-weight: 600;
-}
-
-.relic-effect {
-  font-size: 0.72rem;
-  color: var(--parchment-dim);
-  line-height: 1.3;
-  margin-top: 2px;
 }
 
 /* PILL & POPOVER POZIONI */

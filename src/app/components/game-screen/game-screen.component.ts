@@ -108,7 +108,6 @@ export class GameScreenComponent implements AfterViewChecked {
   readonly showPotionModal = signal(false);
   readonly selectedPotionKey = signal<string | null>(null); // Traccia la pozione selezionata per chiave (es. "2d6")
 
-  showRelicPopover = signal(false);
 
   private lastPhase: string | null = null;
   private lastLogLength = 0;
@@ -298,16 +297,6 @@ export class GameScreenComponent implements AfterViewChecked {
   });
 
   isRollingFail = computed(() => this.game.state().rollingDie?.cls === 'fail');
-
-  toggleRelicPopover(): void {
-    if (this.p().relics.length > 0) {
-      this.showRelicPopover.update((v) => !v);
-    }
-  }
-
-  closeRelicPopover(): void {
-    this.showRelicPopover.set(false);
-  }
 
   classIcon(cls: ClassKey): IconName {
     return CLASS_ICONS[cls];

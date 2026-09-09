@@ -165,8 +165,9 @@ export class DungeonMapComponent implements AfterViewInit {
       if (!sourceEl) return;
 
       const sourceRect = sourceEl.getBoundingClientRect();
-      const x1 = sourceRect.left + sourceRect.width / 2 - viewportRect.left;
-      const y1 = sourceRect.top + sourceRect.height / 2 - viewportRect.top;
+      const cx1 = sourceRect.left + sourceRect.width / 2 - viewportRect.left;
+      const cy1 = sourceRect.top + sourceRect.height / 2 - viewportRect.top;
+      const r1 = sourceRect.width / 2; // Raggio del nodo di partenza
 
       sourceNode.nextNodes.forEach((targetId) => {
         const targetNode = map.nodes[targetId];
@@ -174,8 +175,30 @@ export class DungeonMapComponent implements AfterViewInit {
         if (!targetEl || !targetNode) return;
 
         const targetRect = targetEl.getBoundingClientRect();
-        const x2 = targetRect.left + targetRect.width / 2 - viewportRect.left;
-        const y2 = targetRect.top + targetRect.height / 2 - viewportRect.top;
+        const cx2 = targetRect.left + targetRect.width / 2 - viewportRect.left;
+        const cy2 = targetRect.top + targetRect.height / 2 - viewportRect.top;
+        const r2 = targetRect.width / 2; // Raggio del nodo di arrivo
+
+        // Calcolo vettoriale della distanza e offset sui bordi dei cerchi
+        const dx = cx2 - cx1;
+        const dy = cy2 - cy1;
+        const dist = Math.hypot(dx, dy);
+
+        let x1 = cx1;
+        let y1 = cy1;
+        let x2 = cx2;
+        let y2 = cy2;
+
+        if (dist > r1 + r2) {
+          const ux = dx / dist;
+          const uy = dy / dist;
+
+          // Trasla il punto iniziale verso l'esterno di r1 e il punto finale indietro di r2
+          x1 = cx1 + ux * r1;
+          y1 = cy1 + uy * r1;
+          x2 = cx2 - ux * r2;
+          y2 = cy2 - uy * r2;
+        }
 
         let lineStatus: 'active' | 'visited' | 'locked' = 'locked';
         if (

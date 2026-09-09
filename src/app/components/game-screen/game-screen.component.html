@@ -53,39 +53,6 @@
 
       </div>
 
-      <!-- PILL RELIQUIE CON POPOVER -->
-      <div class="res-pill relic-pill" [class.has-relics]="p().relics.length > 0" (click)="toggleRelicPopover()"
-        (mouseleave)="closeRelicPopover()" [title]="
-          p().relics.length > 0
-            ? 'Clicca o passa sopra per vedere le Reliquie'
-            : 'Nessuna reliquia trovata'
-        ">
-        <app-icon name="gem" [size]="15"></app-icon>
-        <span class="num">{{ p().relics.length }}</span>
-
-        <!-- DIALOG / POPOVER RELIQUIE -->
-        @if (showRelicPopover() && p().relics.length > 0) {
-        <div class="relic-popover" (click)="$event.stopPropagation()">
-          <div class="popover-title">
-            <app-icon name="gem" [size]="14"></app-icon>
-            <span>Reliquie Possedute</span>
-          </div>
-          <ul class="popover-relic-list">
-            @for (rid of p().relics; track rid) {
-            <li class="popover-relic-item">
-              <div class="relic-name">
-                {{ i18n.t('relics.' + rid + '.name') }}
-              </div>
-              <div class="relic-effect">
-                {{ i18n.t('relics.' + rid + '.effect') }}
-              </div>
-            </li>
-            }
-          </ul>
-        </div>
-        }
-      </div>
-
       <!-- PILL MAPPA IN SOLA LETTURA -->
       <div class="res-pill map-pill" (click)="openMapReadOnly()" title="Apri Mappa del Piano (Sola Lettura)">
         <app-icon name="stairs" [size]="15"></app-icon>

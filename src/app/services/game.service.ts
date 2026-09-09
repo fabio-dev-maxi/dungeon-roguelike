@@ -9,7 +9,6 @@ import {
   Monster,
   Player,
   StatKey,
-  Stats,
   Weapon,
 } from '../models/game.models';
 import { CharacterService } from './character.service';
@@ -20,7 +19,7 @@ import { LevelUpService } from './encounter/level-up.service';
 import { MonsterService } from './encounter/monster.service';
 
 /**
- * Facade centralizzato che coordina i sotto-servizi
+ * Facade centralizzato che coordina i sotto-servizi dell'applicazione
  */
 @Injectable({ providedIn: 'root' })
 export class GameService {
@@ -42,138 +41,41 @@ export class GameService {
   }
 
   freshState(prevLang: LangCode): GameState {
-    return {
-      screen: 'title',
-      lang: prevLang || 'it',
-      player: null,
-      depth: 0,
-      monster: null,
-      phase: null,
-      currentMap: null,       // Mappa non ancora generata
-      mapViewActive: false,   // Vista mappa inattiva di default
-      combatFlags: {},
-      log: [],
-      pendingChoice: null,
-      pendingLevelUps: 0,
-      levelUp: null,
-      bossRewardModal: null,
-      lastTavernDepth: -99,
-      lastTrapDepth: -99,
-      lastMerchantDepth: -99,
-      lastShrineDepth: -99,
-      statsExpanded: false,
-      inventoryExpanded: false,
-      rollingDie: {
-        active: false,
-        value: null,
-        cls: '',
-      },
-      tempStats: null,
-      tempName: '',
-    };
+    return this.stateService.freshState(prevLang);
   }
 
   setLang(lang: LangCode): void {
     this.stateService.setLang(lang);
   }
+
   log(html: string, cls = ''): void {
     this.stateService.log(html, cls);
   }
 
-  // Character
+  // --- CREAZIONE PERSONAGGIO (ZERO-TRUST ARCHITECTURE) ---
   rollStatsForCreate(name: string): void {
     this.characterService.rollStatsForCreate(name);
   }
-  buildPlayer(name: string, classKey: ClassKey, stats: Stats): Player {
-    return this.characterService.buildPlayer(name, classKey, stats);
-  }
+
   startCreateScreen(): void {
     this.characterService.startCreateScreen();
   }
-  chooseClass(classKey: ClassKey, name: string): void {
-    this.characterService.chooseClass(classKey, name, () =>
-      this.descendFloor()
-    );
-  }
-  weaponName(w: Weapon): string {
-    return this.characterService.weaponName(w);
-  }
-  armorName(a: Armor): string {
-    return this.characterService.armorName(a);
+
+  resetDraft(): void {
+    this.characterService.resetDraft();
   }
 
-  // Monster
-  monsterDisplayName(m: Monster | null): string {
-    return this.monsterService.monsterDisplayName(m);
+  recordDraftStat(key: StatKey, value: number): void {
+    this.characterService.recordDraftStat(key, value);
   }
 
-  // Encounters & Exploration
-  startFloor(): void {
-    this.encounterService.startFloor();
-  }
-  descendFloor(): void {
-    const s = this.state();
-    s.rollingDie = { active: false, value: null, cls: '' };
-    this.stateService.touch();
-    this.startFloor();
-  }
-  resolveChoiceOption(opt: ChoiceOption): Promise<void> {
-    return this.encounterService.resolveChoiceOption(opt, () =>
-      this.combatService.gameOver()
-    );
-  }
-
-  // Combat
-  playerAttack(): Promise<void> {
-    return this.combatService.playerAttack();
-  }
-  playerDefend(): Promise<void> {
-    return this.combatService.playerDefend();
-  }
-  playerUseSpecial(): Promise<void> {
-    return this.combatService.playerUseSpecial();
-  }
-  playerUsePotion(inventoryIndex?: number): Promise<void> {
-    return this.combatService.playerUsePotion(inventoryIndex);
-  }
-  playerFlee(): Promise<void> {
-    return this.combatService.playerFlee();
-  }
-  confirmBossReward(): void {
-    this.combatService.confirmBossReward();
-  }
-  gameOver(): void {
-    this.combatService.gameOver();
-  }
-
-  // Level Up
-  chooseLevelUpStat(statKey: StatKey): void {
-    this.levelUpService.chooseLevelUpStat(statKey);
-  }
-  chooseLevelUpFeat(featId: string): void {
-    this.levelUpService.chooseLevelUpFeat(featId);
-  }
-  rerollLevelUpHp(): void {
-    this.levelUpService.rerollLevelUpHp();
-  }
-  confirmLevelUp(): void {
-    this.levelUpService.confirmLevelUp();
-  }
-
-  // Misc UI Controls
-  toggleStats(): void {
-    this.stateService.toggleStats();
-  }
-  toggleInventory(): void {
-    this.stateService.toggleInventory();
-  }
-  restartGame(): void {
-    this.stateService.restartGame();
-  }
-
-  buildPlayerWithStats(name: string, classKey: ClassKey, stats: Stats): void {
+  /**
+   * Costruisce il personaggio attingendo ESCLUSIVAMENTE dal registro privato del CharacterService.
+   * Non accetta più oggetti Stats dall'esterno.
+   */
+  buildPlayerFromDraft(name: string, classKey: ClassKey): void {
     const s = this.stateService.state();
-    s.player = this.characterService.buildPlayer(name, classKey, stats);
+    s.player = this.characterService.buildPlayerFromDraft(name, classKey);
     s.depth = 0;
     s.log = [];
     s.screen = 'run';
@@ -182,7 +84,97 @@ export class GameService {
     this.descendFloor();
   }
 
-  // --- NUOVI METODI PER LA MAPPA A NODI ---
+  weaponName(w: Weapon): string {
+    return this.characterService.weaponName(w);
+  }
+
+  armorName(a: Armor): string {
+    return this.characterService.armorName(a);
+  }
+
+  // --- MONSTER ---
+  monsterDisplayName(m: Monster | null): string {
+    return this.monsterService.monsterDisplayName(m);
+  }
+
+  // --- ENCOUNTERS & EXPLORATION ---
+  startFloor(): void {
+    this.encounterService.startFloor();
+  }
+
+  descendFloor(): void {
+    const s = this.state();
+    s.rollingDie = { active: false, value: null, cls: '' };
+    this.stateService.touch();
+    this.startFloor();
+  }
+
+  resolveChoiceOption(opt: ChoiceOption): Promise<void> {
+    return this.encounterService.resolveChoiceOption(opt, () =>
+      this.combatService.gameOver()
+    );
+  }
+
+  // --- COMBAT ---
+  playerAttack(): Promise<void> {
+    return this.combatService.playerAttack();
+  }
+
+  playerDefend(): Promise<void> {
+    return this.combatService.playerDefend();
+  }
+
+  playerUseSpecial(): Promise<void> {
+    return this.combatService.playerUseSpecial();
+  }
+
+  playerUsePotion(inventoryIndex?: number): Promise<void> {
+    return this.combatService.playerUsePotion(inventoryIndex);
+  }
+
+  playerFlee(): Promise<void> {
+    return this.combatService.playerFlee();
+  }
+
+  confirmBossReward(): void {
+    this.combatService.confirmBossReward();
+  }
+
+  gameOver(): void {
+    this.combatService.gameOver();
+  }
+
+  // --- LEVEL UP ---
+  chooseLevelUpStat(statKey: StatKey): void {
+    this.levelUpService.chooseLevelUpStat(statKey);
+  }
+
+  chooseLevelUpFeat(featId: string): void {
+    this.levelUpService.chooseLevelUpFeat(featId);
+  }
+
+  rerollLevelUpHp(): void {
+    this.levelUpService.rerollLevelUpHp();
+  }
+
+  confirmLevelUp(): void {
+    this.levelUpService.confirmLevelUp();
+  }
+
+  // --- MISC UI CONTROLS ---
+  toggleStats(): void {
+    this.stateService.toggleStats();
+  }
+
+  toggleInventory(): void {
+    this.stateService.toggleInventory();
+  }
+
+  restartGame(): void {
+    this.stateService.restartGame();
+  }
+
+  // --- MAPPA A NODI ---
   selectMapNode(node: MapNode): void {
     this.encounterService.selectMapNode(node);
   }
@@ -205,8 +197,7 @@ export class GameService {
     this.stateService.touch();
   }
 
-  public confirmTreasure(): void {
+  confirmTreasure(): void {
     this.encounterService.confirmTreasure();
   }
-
 }

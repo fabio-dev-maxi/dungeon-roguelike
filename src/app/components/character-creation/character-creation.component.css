@@ -1,14 +1,17 @@
 /* ==========================================================================
-   SELEZIONE CLASSE (FASE 1)
+   SELEZIONE CLASSE & RITUALE DI EVOCAZIONE (FERRO SCURO & BRONZO BRUNITO)
    ========================================================================== */
+
 .name-entry-wrap {
   margin: 12px 0 20px;
 }
 
 .class-heading {
   margin-top: 18px;
-  font-size: 1.05rem;
-  color: var(--gold);
+  font-size: 1rem;
+  color: var(--parchment-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .class-grid {
@@ -18,29 +21,31 @@
   margin-top: 14px;
 }
 
+/* Card Classe: Fondo Ferro Scuro con bordi Bronzo opaco */
 .class-card {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  background: radial-gradient(circle at 50% 10%, rgba(30, 21, 13, 0.95), rgba(12, 9, 6, 0.98));
-  border: 1.5px solid var(--stone-line);
+  background: linear-gradient(180deg, rgba(21, 15, 10, 0.95), rgba(10, 7, 5, 0.98));
+  border: 1px solid var(--stone-line);
   border-radius: var(--radius-md);
   padding: 16px;
   cursor: pointer;
-  transition: border-color 0.22s ease, box-shadow 0.22s ease, transform 0.2s var(--ease-out);
+  transition: all 0.2s var(--ease-out);
 }
 
 .class-card:hover {
   border-color: var(--gold-dim);
+  background: linear-gradient(180deg, rgba(28, 20, 13, 0.95), rgba(14, 10, 7, 0.98));
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 12px rgba(212, 175, 55, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8), 0 0 12px rgba(212, 175, 55, 0.1);
 }
 
 .class-card.selected {
   border-color: var(--gold);
-  background: radial-gradient(circle at 50% 10%, rgba(55, 38, 20, 0.95), rgba(16, 11, 7, 0.98));
+  background: linear-gradient(180deg, rgba(42, 29, 18, 0.95), rgba(18, 12, 7, 0.98));
   transform: translateY(-3px);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.7), 0 0 24px var(--gold-glow);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.85), 0 0 20px var(--gold-glow);
 }
 
 .class-card-header {
@@ -52,12 +57,13 @@
 .class-card-header h3 {
   margin: 0 0 3px;
   font-size: 1.05rem;
+  color: var(--parchment);
 }
 
 .class-card .desc {
   margin: 0;
   font-size: 0.88rem;
-  color: var(--parchment-dim);
+  color: var(--parchment-faint);
   line-height: 1.45;
 }
 
@@ -78,7 +84,7 @@
   gap: 5px;
   font-family: var(--font-mono);
   font-size: 0.72rem;
-  color: var(--gold-bright);
+  color: var(--parchment-dim);
 }
 
 .action-footer {
@@ -87,36 +93,44 @@
 }
 
 /* ==========================================================================
-   DRAFT STATISTICHE & ROULETTE (FASE 2)
+   ALTARE DELLE STATISTICHE & ESTRATTORE (FASE 2)
    ========================================================================== */
+
+/* Pannello principale: integrato col Void scuro della pagina */
 .player-draft-board {
-  padding: 16px 14px;
+  padding: 18px 16px;
   margin-bottom: 22px;
   width: 100%;
+  background: linear-gradient(180deg, rgba(18, 12, 8, 0.92), rgba(10, 6, 4, 0.96));
+  border: 1px solid var(--stone-line);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.8);
 }
 
 .ritual-eyebrow {
   text-align: center;
-  color: var(--gold);
-  text-shadow: 0 0 8px var(--gold-glow);
+  color: var(--parchment-dim);
+  font-size: 0.73rem;
+  letter-spacing: 0.18em;
 }
 
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 8px;
-  margin-top: 12px;
+  margin-top: 14px;
   width: 100%;
 }
 
+/* Slot Statistica Inattivo: Pietra e Osso desaturato */
 .stat-box {
   min-width: 0;
   padding: 10px 6px;
   text-align: center;
-  border: 1.5px solid var(--stone-line);
+  border: 1px solid var(--stone-line-soft);
   border-radius: var(--radius-sm);
-  background: rgba(0, 0, 0, 0.4);
-  transition: all 0.25s ease;
+  background: rgba(0, 0, 0, 0.55);
+  transition: all 0.22s var(--ease-out);
 }
 
 .stat-box .label {
@@ -124,42 +138,43 @@
   align-items: center;
   justify-content: center;
   font-family: var(--font-heading);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   letter-spacing: 0.05em;
-  color: var(--gold-dim);
+  color: var(--parchment-faint);
   text-transform: uppercase;
 }
 
 .stat-box .val {
   font-family: var(--font-mono);
   font-size: 1.25rem;
-  color: var(--parchment-faint);
+  color: rgba(239, 225, 194, 0.25);
   margin-top: 4px;
 }
 
+/* Slot Statistica Assegnato: Oro Antico con contrasto pulito */
 .stat-box.filled {
-  border-color: var(--gold);
-  background: radial-gradient(circle at 50% 30%, rgba(212, 175, 55, 0.22), rgba(0, 0, 0, 0.5));
-  box-shadow: 0 0 16px rgba(212, 175, 55, 0.25), inset 0 0 12px rgba(212, 175, 55, 0.15);
-  animation: statAbsorb 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  border-color: var(--gold-dim);
+  background: radial-gradient(circle at 50% 30%, rgba(212, 175, 55, 0.14), rgba(12, 8, 5, 0.85));
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.15), inset 0 0 10px rgba(0, 0, 0, 0.5);
+  animation: statAbsorb 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .stat-box.filled .val {
-  color: var(--gold-bright);
-  font-weight: bold;
+  color: var(--parchment);
+  font-weight: 700;
 }
 
 .stat-box.filled .label {
   color: var(--gold);
 }
 
-/* Badge Modificatore (+X) */
-.mod-preview, .stat-mod-sub {
+.mod-preview,
+.stat-mod-sub {
   display: inline-block;
   font-size: 0.72rem;
   color: var(--gold);
-  background: rgba(212, 175, 55, 0.16);
-  border: 1px solid rgba(212, 175, 55, 0.35);
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.3);
   border-radius: 3px;
   padding: 1px 5px;
   margin-left: 3px;
@@ -167,12 +182,15 @@
   vertical-align: middle;
 }
 
-/* Astrolabio Rituale di Evocazione */
+/* ==========================================================================
+   ASTROLABIO / CERCHIO RITUALE DI EVOCAZIONE
+   ========================================================================== */
+
 .roulette-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin: 18px 0;
+  margin: 20px 0;
 }
 
 .roulette-astrolabe {
@@ -180,11 +198,11 @@
   width: 100%;
   max-width: 440px;
   padding: 22px;
-  background: radial-gradient(circle, #241910 0%, #0d0906 100%);
-  border: 2px solid var(--gold-dim);
+  background: radial-gradient(circle, rgba(22, 15, 10, 0.98) 0%, rgba(8, 5, 3, 0.99) 100%);
+  border: 1px solid var(--stone-line);
   border-radius: var(--radius-md);
   text-align: center;
-  box-shadow: var(--shadow-gothic), inset 0 0 25px rgba(0, 0, 0, 0.85);
+  box-shadow: var(--shadow-gothic), inset 0 0 35px rgba(0, 0, 0, 0.9);
   overflow: hidden;
   transition: all 0.25s ease;
 }
@@ -194,30 +212,25 @@
   inset: 0;
   pointer-events: none;
   background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%);
-  opacity: 0.3;
+  opacity: 0.15;
 }
 
 .roulette-astrolabe.spinning {
-  border-color: var(--gold);
-  box-shadow: 0 0 35px var(--gold-glow), inset 0 0 30px rgba(212, 175, 55, 0.2);
+  border-color: var(--gold-dim);
+  box-shadow: 0 0 25px var(--gold-glow), inset 0 0 20px rgba(212, 175, 55, 0.1);
 }
 
 .roulette-astrolabe.spinning .astrolabe-glow {
-  opacity: 0.8;
+  opacity: 0.65;
   animation: spinPulse 0.5s ease-in-out infinite alternate;
-}
-
-@keyframes spinPulse {
-  0% { transform: scale(0.9); opacity: 0.5; }
-  100% { transform: scale(1.1); opacity: 0.95; }
 }
 
 .roulette-label {
   font-family: var(--font-heading);
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   color: var(--gold-dim);
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.15em;
 }
 
 .roulette-name {
@@ -227,15 +240,14 @@
   gap: 10px;
   font-family: var(--font-heading);
   font-size: 1.45rem;
-  color: var(--gold-bright);
+  color: var(--parchment);
   margin: 8px 0;
   min-height: 36px;
-  text-shadow: 0 0 12px var(--gold-glow);
+  text-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
 }
 
 .roulette-icon {
-  color: var(--gold);
-  filter: drop-shadow(0 0 8px var(--gold-glow));
+  color: var(--gold-dim);
 }
 
 .roulette-title {
@@ -244,17 +256,23 @@
   font-style: italic;
 }
 
-/* Pannello Selezione Statistiche */
+/* ==========================================================================
+   PANNELLO SELEZIONE STATISTICHE EROI
+   ========================================================================== */
+
 .hero-stats-panel {
   padding: 18px 14px;
   text-align: center;
+  background: rgba(14, 9, 6, 0.9);
+  border: 1px solid var(--stone-line);
+  border-radius: var(--radius-md);
   animation: fadeIn 0.3s ease;
 }
 
 .hero-stats-panel h3 {
-  font-size: 1rem;
+  font-size: 0.95rem;
   margin-bottom: 14px;
-  color: var(--gold);
+  color: var(--parchment);
 }
 
 .hero-stat-buttons {
@@ -264,6 +282,7 @@
   margin-top: 12px;
 }
 
+/* Pulsanti selezione: Piastra di Ferro battuto con Hover Bronzo */
 .stat-pick-btn {
   display: flex;
   flex-direction: column;
@@ -271,14 +290,26 @@
   gap: 5px;
   padding: 10px 4px;
   min-width: 0;
-  border-color: var(--stone-line);
+  border: 1px solid var(--stone-line);
   background: linear-gradient(180deg, var(--stone-700), var(--stone-900));
+  color: var(--parchment);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.18s ease;
 }
 
 .stat-pick-btn:hover:not(:disabled) {
   border-color: var(--gold);
-  box-shadow: 0 0 16px var(--gold-glow);
+  background: linear-gradient(180deg, var(--stone-600), var(--stone-800));
+  box-shadow: 0 0 12px var(--gold-glow);
   transform: translateY(-2px);
+}
+
+.stat-pick-btn:disabled {
+  opacity: 0.22;
+  cursor: not-allowed;
+  border-color: transparent;
+  background: rgba(0, 0, 0, 0.4);
 }
 
 .stat-pick-btn .stat-k {
@@ -287,31 +318,39 @@
   gap: 3px;
   font-size: 0.68rem;
   letter-spacing: 0.04em;
+  color: var(--parchment-dim);
 }
 
 .stat-pick-btn .stat-v {
   font-size: 1.25rem;
-  color: var(--gold-bright);
+  color: var(--parchment);
   font-family: var(--font-mono);
 }
 
-/* Completamento Rituale */
+/* ==========================================================================
+   COMPLETAMENTO RITUALE & ANIMAZIONI
+   ========================================================================== */
+
 .completion-box {
   text-align: center;
   padding: 32px 20px;
+  background: rgba(10, 7, 4, 0.95);
+  border: 1px solid var(--emerald-dim);
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 25px rgba(52, 211, 153, 0.12);
 }
 
 .ritual-sigil {
   margin: 0 auto 16px;
   color: var(--emerald);
   border-color: var(--emerald);
-  box-shadow: 0 0 24px var(--emerald-glow);
+  box-shadow: 0 0 20px var(--emerald-glow);
 }
 
 .completion-box h3 {
   font-size: 1.45rem;
   margin-bottom: 8px;
-  color: var(--gold-bright);
+  color: var(--parchment);
 }
 
 .ritual-desc {
@@ -325,30 +364,64 @@
   font-size: 1rem;
 }
 
+@keyframes spinPulse {
+  0% {
+    transform: scale(0.99);
+    opacity: 0.3;
+  }
+
+  100% {
+    transform: scale(1.01);
+    opacity: 0.7;
+  }
+}
+
 @keyframes statAbsorb {
-  0% { transform: scale(0.9); opacity: 0.5; filter: brightness(1.8); }
-  50% { transform: scale(1.1); filter: brightness(1.5); }
-  100% { transform: scale(1); opacity: 1; filter: none; }
+  0% {
+    transform: scale(0.95);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: scale(1.03);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Responsive Mobile */
 @media (max-width: 720px) {
-  .stat-grid, .hero-stat-buttons {
+
+  .stat-grid,
+  .hero-stat-buttons {
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
   }
+
   .roulette-name {
     font-size: 1.2rem;
   }
 }
 
 @media (max-width: 480px) {
-  .stat-grid, .hero-stat-buttons {
+
+  .stat-grid,
+  .hero-stat-buttons {
     grid-template-columns: repeat(2, 1fr);
     gap: 6px;
   }

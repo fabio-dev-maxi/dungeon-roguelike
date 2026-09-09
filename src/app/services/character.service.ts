@@ -1,92 +1,113 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { CLASS_DATA, mod } from '../data/game.data';
-import { Armor, ClassKey, Player, Stats, Weapon } from '../models/game.models';
+import { Armor, ClassKey, Player, StatKey, Stats, Weapon } from '../models/game.models';
 import { DiceService } from './dice/dice.service';
 import { GameStateService } from './game-state.service';
 
-/**
- * SERVIZIO CREAZIONE E INIZIALIZZAZIONE DEL GIOCATORE
- * 
- * Gestisce il calcolo delle caratteristiche iniziali (4d6 drop lowest)
- * e la costruzione dell'entità Player secondo le regole di D&D 3.5.
- */
+const STAT_KEYS: StatKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+
 @Injectable({ providedIn: 'root' })
 export class CharacterService {
+  /** Registro privato e protetto per lo stato della bozza */
+  private readonly _draftStats = signal<Partial<Record<StatKey, number>>>({});
+  public readonly draftStats = this._draftStats.asReadonly();
+
   constructor(
     private readonly stateService: GameStateService,
     private readonly dice: DiceService
   ) { }
 
   /**
-   * Esegue il tiro di 4d6 scartando il valore più basso (Regola Standard D&D 3.5).
+   * Imposta lo schermo sulla fase di creazione personaggio e resetta la bozza.
    */
-  private rollStat(): number {
-    const rolls = [
-      this.dice.rollDie(6),
-      this.dice.rollDie(6),
-      this.dice.rollDie(6),
-      this.dice.rollDie(6)
-    ];
-    rolls.sort((a, b) => a - b);
-    rolls.shift(); // Scarta il valore minimo
-    return rolls.reduce((a, b) => a + b, 0);
-  }
-
-  /**
-   * Genera una scheda di 6 caratteristiche casuali.
-   */
-  public rollAllStats(): Stats {
-    return {
-      str: this.rollStat(),
-      dex: this.rollStat(),
-      con: this.rollStat(),
-      int: this.rollStat(),
-      wis: this.rollStat(),
-      cha: this.rollStat()
-    };
-  }
-
-  /**
-   * Calcola le caratteristiche temporanee e le salva nello stato per la creazione personaggio.
-   * @param name Nome dell'avventuriero
-   */
-  public rollStatsForCreate(name: string): void {
+  public startCreateScreen(): void {
     const s = this.stateService.state();
-    s.tempName = name;
-    s.tempStats = this.rollAllStats();
+    s.screen = 'create';
+    s.tempStats = null;
+    this.resetDraft();
     this.stateService.touch();
   }
 
   /**
-    * Costruisce l'oggetto Player applicando il casting numerico esplicito
-    * per evitare la concatenazione delle stringhe ("18" + 1 = "181").
-    */
-  public buildPlayer(name: string, classKey: ClassKey, stats: Stats): Player {
-    const cleanStats: Stats = {
-      str: Number(stats.str) || 10,
-      dex: Number(stats.dex) || 10,
-      con: Number(stats.con) || 10,
-      int: Number(stats.int) || 10,
-      wis: Number(stats.wis) || 10,
-      cha: Number(stats.cha) || 10,
+   * Registra il nome temporaneo nel GameState durante la creazione.
+   */
+  public rollStatsForCreate(name: string): void {
+    const s = this.stateService.state();
+    s.tempName = name;
+    this.stateService.touch();
+  }
+
+  /**
+   * Resetta lo stato interno della bozza all'avvio della fase 2.
+   */
+  public resetDraft(): void {
+    this._draftStats.set({});
+  }
+
+  /**
+   * Registra una caratteristica nello stato privato.
+   * Impedisce sovrascritture di chiavi già assegnate o valori non validi/out-of-bounds.
+   */
+  public recordDraftStat(key: StatKey, value: unknown): void {
+    const curr = this._draftStats();
+    if (curr[key] !== undefined) return;
+
+    const num = Number(value);
+    if (!Number.isFinite(num)) return;
+
+    const clampedVal = Math.min(18, Math.max(3, Math.floor(num)));
+    this._draftStats.update(s => ({ ...s, [key]: clampedVal }));
+  }
+
+  /**
+   * Sanitizza il nome dell'avventuriero contro attacchi XSS.
+   */
+  private sanitizeName(name: string): string {
+    return (name || '')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .trim() || this.stateService.t('ui.namePlaceholder');
+  }
+
+  /**
+   * Costruisce il personaggio attingendo ESCLUSIVAMENTE dal registro privato `_draftStats`.
+   * Se i dati risultano incompleti o manomessi, interrompe la pagina ed esegue un hard refresh.
+   */
+  public buildPlayerFromDraft(name: string, classKey: ClassKey): Player {
+    const draft = this._draftStats();
+    const isComplete = STAT_KEYS.every(k => typeof draft[k] === 'number');
+
+    // BLOCCO ANTI-HACK: Interruzione immediata e Hard Refresh della pagina
+    if (!isComplete) {
+      console.error('Violazione di sicurezza o bozza incompleta. Ricaricamento della sessione...');
+      window.location.reload();
+      throw new Error('Creazione personaggio interrotta per incoerenza dello stato.');
+    }
+
+    const finalStats: Stats = {
+      str: draft.str!,
+      dex: draft.dex!,
+      con: draft.con!,
+      int: draft.int!,
+      wis: draft.wis!,
+      cha: draft.cha!
     };
 
+    const safeName = this.sanitizeName(name);
     const c = CLASS_DATA[classKey];
-    const conMod = mod(cleanStats.con);
+    const conMod = mod(finalStats.con);
     const maxHp = c.hpBase + conMod;
-    const weapon: Weapon = { key: c.weaponKey, dice: c.weaponDice, bonus: 0 };
-    const armor: Armor = { key: c.armorKey, bonus: c.armor };
 
-    return {
-      name: name || this.stateService.t('ui.namePlaceholder'),
+    const player: Player = {
+      name: safeName,
       cls: classKey,
-      stats: cleanStats,
+      stats: finalStats,
       hp: maxHp,
       maxHp,
-      ac: 10 + mod(cleanStats.dex) + c.armor,
+      ac: 10 + mod(finalStats.dex) + c.armor,
       gold: this.dice.rollNdM(2, 6),
-      weapon,
-      armor,
+      weapon: { key: c.weaponKey, dice: c.weaponDice, bonus: 0 },
+      armor: { key: c.armorKey, bonus: c.armor },
       inventory: [
         { type: 'potion', heal: [2, 6] },
         { type: 'potion', heal: [2, 6] }
@@ -102,40 +123,9 @@ export class CharacterService {
       flatDmgBonus: 0,
       critMultiplier: 2
     };
-  }
 
-  /**
-   * Imposta lo schermo di creazione personaggio.
-   */
-  public startCreateScreen(): void {
-    const s = this.stateService.state();
-    s.screen = 'create';
-    s.tempStats = null;
-    this.stateService.touch();
-  }
-
-  /**
-   * Completa la creazione, imposta il giocatore e avvia il Piano 1 della Guglia.
-   */
-  public chooseClass(classKey: ClassKey, name: string, onFloorStart: () => void): void {
-    const s = this.stateService.state();
-    if (!s.tempStats) return;
-
-    s.player = this.buildPlayer(name, classKey, s.tempStats);
-    s.depth = 0; // Verrà incrementato a 1 da startFloor()
-    s.log = [];
-    s.screen = 'run';
-
-    this.stateService.touch();
-    this.stateService.log(
-      this.stateService.tf('log.gameStart', {
-        name: s.player.name,
-        cls: this.stateService.t('classes.' + classKey + '.name')
-      })
-    );
-
-    // Inizializza la Mappa del Piano 1
-    onFloorStart();
+    this.resetDraft();
+    return player;
   }
 
   public weaponName(w: Weapon): string {
