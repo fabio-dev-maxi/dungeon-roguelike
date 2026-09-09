@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { CharacterService } from './character.service';
-import { CombatService } from './combat.service';
-import { EncounterService } from './encounter.service';
+import { CombatService } from './encounter/combat.service';
+import { EncounterService } from './encounter/encounter.service';
 import { GameStateService } from './game-state.service';
-import { DiceService } from './dice.service';
-import { LevelUpService } from './level-up.service';
+import { DiceService } from './dice/dice.service';
+import { LevelUpService } from './encounter/level-up.service';
 import {
   ClassKey,
   MapNode,

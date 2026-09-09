@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { GameService } from '../../services/game.service';
 import { I18nService } from '../../services/i18n.service';
 import { IconComponent } from '../../shared/icon/icon.component';
+import { GameService } from '../../services/game.service';
 
 @Component({
   selector: 'app-title-screen',
@@ -12,5 +12,5 @@ import { IconComponent } from '../../shared/icon/icon.component';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TitleScreenComponent {
-  constructor(public game: GameService, public i18n: I18nService) {}
+  constructor(public game: GameService, public i18n: I18nService) { }
 }

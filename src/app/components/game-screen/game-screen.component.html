@@ -30,6 +30,7 @@
         <app-icon name="flask" [size]="15"></app-icon>
         <span class="num">{{ potionCount() }}</span>
 
+        <!-- POPOVER HEADER (RAGGRUPPATO) -->
         @if (showPotionPopover() && potionCount() > 0) {
         <div class="potion-popover" (click)="$event.stopPropagation()">
           <div class="popover-title">
@@ -37,17 +38,19 @@
             <span>Pozioni in Inventario</span>
           </div>
           <ul class="popover-potion-list">
-            @for (item of potionsList(); track item.index) {
+            @for (group of groupedPotions(); track group.key) {
             <li class="popover-potion-item">
               <div class="potion-info">
                 <span class="potion-name">{{ i18n.t('potionName') }}</span>
-                <span class="potion-heal num">{{ item.item.heal[0] }}d{{ item.item.heal[1] }}</span>
+                <span class="potion-heal num">{{ group.heal[0] }}d{{ group.heal[1] }}</span>
               </div>
+              <span class="potion-count-badge">x{{ group.count }}</span>
             </li>
             }
           </ul>
         </div>
         }
+
       </div>
 
       <!-- PILL RELIQUIE CON POPOVER -->
@@ -483,6 +486,7 @@
 <app-boss-reward-modal />
 }
 
+<!-- MODALE SELEZIONE POZIONE (RAGGRUPPATA) -->
 @if (showPotionModal()) {
 <div class="modal-backdrop" (click)="showPotionModal.set(false)">
   <div class="panel modal-box gothic-frame potion-modal-frame" (click)="$event.stopPropagation()">
@@ -496,11 +500,11 @@
     </p>
 
     <div class="potion-select-list">
-      @for (pItem of potionsList(); track pItem.index) {
+      @for (group of groupedPotions(); track group.key) {
       <div class="potion-select-card gothic-frame" [class.is-disabled]="acting() || p().hp >= p().maxHp"
-        [class.selected]="selectedPotionIndex() === pItem.index" (click)="
-              !(acting() || p().hp >= p().maxHp) && selectPotionRow(pItem.index)
-            ">
+        [class.selected]="selectedPotionKey() === group.key"
+        (click)="!(acting() || p().hp >= p().maxHp) && selectPotionKey(group.key)">
+
         <div class="potion-select-header">
           <app-icon name="flask" [size]="20" class="potion-icon"></app-icon>
           <div>
@@ -508,7 +512,7 @@
               {{ i18n.t('potionName') }}
             </div>
             <div class="potion-select-dice num">
-              Cura: {{ pItem.item.heal[0] }}d{{ pItem.item.heal[1] }}
+              Cura: {{ group.heal[0] }}d{{ group.heal[1] }}
               @if (p().potionHealBonus) {
               <span class="gain">+{{ p().potionHealBonus }}</span>
               }
@@ -516,10 +520,13 @@
           </div>
         </div>
 
-        <!-- Aggiungiamo una spunta se selezionato per un feedback visivo immediato -->
-        @if (selectedPotionIndex() === pItem.index) {
-        <app-icon name="check" [size]="20" class="potion-icon"></app-icon>
-        }
+        <!-- BADGE QUANTITA & SPUNTA SELEZIONE -->
+        <div class="potion-card-right">
+          <span class="potion-count-badge">x{{ group.count }}</span>
+          @if (selectedPotionKey() === group.key) {
+          <app-icon name="check" [size]="20" class="potion-icon"></app-icon>
+          }
+        </div>
       </div>
       }
     </div>
@@ -528,10 +535,8 @@
       <button type="button" class="btn btn--ghost" (click)="showPotionModal.set(false)">
         Annulla
       </button>
-      <!-- Pulsante Unico "Bevi" posizionato qui sotto -->
-      <button type="button" class="btn heal" [disabled]="
-            selectedPotionIndex() === null || acting() || p().hp >= p().maxHp
-          " (click)="confirmDrinkPotion()">
+      <button type="button" class="btn heal"
+        [disabled]="selectedPotionKey() === null || acting() || p().hp >= p().maxHp" (click)="confirmDrinkPotion()">
         <app-icon name="flask" [size]="16"></app-icon>
         <span>Bevi Pozione</span>
       </button>

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { GameService } from '../../services/game.service';
 import { I18nService } from '../../services/i18n.service';
-import { DiceService } from '../../services/dice.service';
+import { DiceService } from '../../services/dice/dice.service';
 import { IconComponent } from '../../shared/icon/icon.component';
 
 @Component({

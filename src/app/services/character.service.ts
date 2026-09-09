@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { CLASS_DATA, mod } from '../data/game.data';
 import { Armor, ClassKey, Player, Stats, Weapon } from '../models/game.models';
-import { DiceService } from './dice.service';
+import { DiceService } from './dice/dice.service';
 import { GameStateService } from './game-state.service';
 
 /**

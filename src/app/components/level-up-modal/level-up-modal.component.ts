@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
 import { GameService } from '../../services/game.service';
 import { I18nService } from '../../services/i18n.service';
-import { DiceService } from '../../services/dice.service';
+import { DiceService } from '../../services/dice/dice.service';
 import { CLASS_DATA } from '../../data/game.data';
 import { StatKey } from '../../models/game.models';
 import { IconComponent, IconName } from '../../shared/icon/icon.component';
@@ -40,10 +40,10 @@ export class LevelUpModalComponent {
   });
 
   constructor(
-    public game: GameService, 
+    public game: GameService,
     public i18n: I18nService,
     public dice: DiceService
-  ) {}
+  ) { }
 
   s() { return this.game.state(); }
   p() { return this.game.state().player!; }

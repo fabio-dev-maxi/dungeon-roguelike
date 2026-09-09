@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import { GameStateService } from './game-state.service';
-import { DiceService } from './dice.service';
-import { BOSS_IDS, BOSS_STATS, MONSTER_IDS_TIER, MONSTER_STATS, MonsterStat } from '../data/monster.data';
-import { Monster } from '../models/game.models';
-import { CustomDataService } from './custom-data.service';
+import { BOSS_IDS, BOSS_STATS, MONSTER_IDS_TIER, MonsterStat } from '../../data/monster.data';
+import { Monster } from '../../models/game.models';
+import { CustomDataService } from '../custom-data.service';
+import { DiceService } from '../dice/dice.service';
+import { GameStateService } from '../game-state.service';
 
 /**
  * SERVIZIO GENERAZIONE MOSTRI E BOSS CON SCALING D&D 3.5

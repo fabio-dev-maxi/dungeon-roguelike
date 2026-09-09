@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { FloorMap, MapNode, NodeStatus, NodeType } from '../models/game.models';
-import { DiceService, WeightedItem } from './dice.service';
+import { DiceService, WeightedItem } from './dice/dice.service';
 
 /**
  * SERVIZIO GENERATORE MAPPA DAG (ALTA DENSITÀ COMBATTIMENTI D&D 3.5)

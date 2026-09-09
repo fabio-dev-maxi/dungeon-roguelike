@@ -23,7 +23,7 @@ export class LangBarComponent {
   flags = LANG_FLAGS;
   isOpen = signal(false);
 
-  constructor(public game: GameService, private elementRef: ElementRef) {}
+  constructor(public game: GameService, private elementRef: ElementRef) { }
 
   toggleDropdown(): void {
     this.isOpen.update(v => !v);

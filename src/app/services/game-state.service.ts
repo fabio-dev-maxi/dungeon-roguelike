@@ -1,9 +1,9 @@
 import { Injectable, signal } from '@angular/core';
+import { DICE_SETTLE_MS } from '../components/dice-widget/dice-widget.component';
 import { LangCode } from '../data/i18n.data';
 import { GameState } from '../models/game.models';
-import { DiceService } from './dice.service';
+import { DiceService } from './dice/dice.service';
 import { I18nService } from './i18n.service';
-import { DICE_SETTLE_MS } from '../components/dice-widget/dice-widget.component';
 
 const SPIN_MS = 500;
 const READ_RESULT_MS = 950;

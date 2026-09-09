@@ -1,19 +1,19 @@
 import { Injectable } from '@angular/core';
-import { CLASS_DATA, mod } from '../data/game.data';
-import { BOSS_XP, MONSTER_XP, xpToNext } from '../data/monster.data';
-import { applyRelicEffect, RELIC_CLASS_POOLS } from '../data/relic.data';
 import {
   ARMOR_POOLS,
   equipArmor,
   equipWeapon,
   WEAPON_POOLS,
-} from '../data/equipment.data';
-import { DropInfo } from '../models/game.models';
-import { DiceService } from './dice.service';
-import { GameStateService } from './game-state.service';
-import { LevelUpService } from './level-up.service';
+} from '../../data/equipment.data';
+import { CLASS_DATA, mod } from '../../data/game.data';
+import { BOSS_XP, MONSTER_XP, xpToNext } from '../../data/monster.data';
+import { applyRelicEffect, RELIC_CLASS_POOLS } from '../../data/relic.data';
+import { DropInfo } from '../../models/game.models';
+import { DiceService } from '../dice/dice.service';
+import { GameStateService } from '.././game-state.service';
 import { MonsterService } from './monster.service';
-import { EncounterService } from './encounter.service';
+import { LevelUpService } from './level-up.service';
+import { PotionService } from './potion.service';
 
 /**
  * Gestisce la logica di combattimento, attacchi speciali, animazioni dadi 3D e ricompense dei Boss.
@@ -24,7 +24,7 @@ export class CombatService {
     private stateService: GameStateService,
     private monsterService: MonsterService,
     private levelUpService: LevelUpService,
-    private encounterService: EncounterService,
+    private potionService: PotionService,
     private dice: DiceService
   ) { }
 
@@ -47,19 +47,6 @@ export class CombatService {
     return confirmed;
   }
 
-  /**
-   * Helper per determinare la configurazione delle pozioni in base alla profondità del piano.
-   */
-  private getPotionConfigForDepth(depth: number): { dice: [number, number]; cost: number } {
-    let n = 2;
-    let d = 6;
-    let cost = 8 + Math.floor(depth / 5) * 5;
-    if (depth > 10) {
-      d = 8;
-      n = 2 + Math.floor((depth - 11) / 10);
-    }
-    return { dice: [n, d], cost };
-  }
 
   async playerAttack(): Promise<void> {
     const s = this.stateService.state();
@@ -437,49 +424,52 @@ export class CombatService {
     const p = s.player!;
     let targetIndex = -1;
 
+    // Trova l'indice della pozione
     if (
       inventoryIndex !== undefined &&
       inventoryIndex >= 0 &&
-      inventoryIndex < p.inventory.length
+      inventoryIndex < p.inventory.length &&
+      p.inventory[inventoryIndex].type === 'potion'
     ) {
-      if (p.inventory[inventoryIndex].type === 'potion') {
-        targetIndex = inventoryIndex;
-      }
-    }
-    if (targetIndex === -1) {
+      targetIndex = inventoryIndex;
+    } else {
       targetIndex = p.inventory.findIndex((i) => i.type === 'potion');
     }
+
     if (targetIndex === -1) return;
 
     s.combatFlags.acting = true;
 
-    const potion = p.inventory.splice(targetIndex, 1)[0];
-    const [n, d] = potion.heal;
+    // Tutta la logica di consumo, cura e modifica dello stato avviene qui dentro
+    const result = this.potionService.consumePotion(p, targetIndex);
 
-    const dmgRolls = Array.from({ length: n }, () => this.dice.rollDie(d));
-    const dmgMax = n * d;
+    // Se per qualche motivo ha fallito, usciamo
+    if (result) {
+      // Estraiamo i dati già calcolati da consumePotion
+      const { potion, rolls, dmgRoll, dmgMax, totalHeal } = result;
+      const d = potion.heal[1];
 
-    await this.stateService.animateRollAsync(dmgRolls, d, 'heal');
-    const dmgRoll = dmgRolls.reduce((a, b) => a + b, 0);
+      // UI: Gestione Animazione
+      await this.stateService.animateRollAsync(rolls, d, 'heal');
+      this.stateService.touch();
 
-    const heal = dmgRoll + (p.potionHealBonus || 0);
+      // UI: Gestione Log
+      this.stateService.log(
+        this.stateService.tf('log.drinkPotion', {
+          potion: this.stateService.t('potionName'),
+          dmgRoll,
+          dmgMax,
+          heal: totalHeal,
+        }),
+        'heal hero'
+      );
 
-    p.hp = this.dice.clamp(p.hp + heal, 0, p.maxHp);
-    this.stateService.touch();
-
-    this.stateService.log(
-      this.stateService.tf('log.drinkPotion', {
-        potion: this.stateService.t('potionName'),
-        dmgRoll,
-        dmgMax,
-        heal,
-      }),
-      'heal hero'
-    );
-
-    if (s.phase === 'combat') {
-      await this.monsterTurn();
+      // Flow del combattimento
+      if (s.phase === 'combat') {
+        await this.monsterTurn();
+      }
     }
+
     this.stateService.state().combatFlags.acting = false;
     this.stateService.touch();
   }
@@ -679,18 +669,19 @@ export class CombatService {
     // BOTTINO CUSTODE DEL PIANO (LAYER 7 BOSS)
     // =========================================================================
     if (wasBoss) {
-      const potionConfig = this.getPotionConfigForDepth(s.depth);
+      const potionItem = this.potionService.createPotionItem(s.depth);
+      const potionItem2 = this.potionService.createPotionItem(s.depth);
 
       // Drop garantito: 2 Pozioni
-      p.inventory.push({ type: 'potion', heal: potionConfig.dice });
-      p.inventory.push({ type: 'potion', heal: potionConfig.dice });
+      p.inventory.push(potionItem);
+      p.inventory.push(potionItem2);
       this.stateService.touch();
 
       drops.push({
         type: 'potion',
         id: 'boss_potions',
         name: 'Pozione di Cura x2',
-        effect: `Ripristina salute (${potionConfig.dice[0]}d${potionConfig.dice[1]})`,
+        effect: `Ripristina salute (${potionItem.heal[0]}d${potionItem.heal[1]})`,
       });
 
       // --- DROP DI CLASSE & EQUIPAGGIAMENTO RARO ---

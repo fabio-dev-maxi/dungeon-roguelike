@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { GameStateService } from './game-state.service';
-import { DiceService } from './dice.service';
-import { CLASS_DATA, CLASS_FEATS, mod } from '../data/game.data';
-import { Feat, StatKey } from '../models/game.models';
+import { GameStateService } from '../game-state.service';
+import { DiceService } from '../dice/dice.service';
+import { CLASS_DATA, CLASS_FEATS, mod } from '../../data/game.data';
+import { Feat, StatKey } from '../../models/game.models';
 import { EncounterService } from './encounter.service';
 
 /**

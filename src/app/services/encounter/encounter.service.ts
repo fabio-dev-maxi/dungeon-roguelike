@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
-import { ChoiceOption, MapNode, PendingChoice, StatKey } from '../models/game.models';
-import { DiceService } from './dice.service';
-import { GameStateService } from './game-state.service';
-import { MapGeneratorService } from './map-generator.service';
-import { MonsterService } from './monster.service';
+import { ChoiceOption, MapNode, PendingChoice, StatKey } from '../../models/game.models';
+import { DiceService } from '../dice/dice.service';
+import { GameStateService } from '../game-state.service';
+import { MapGeneratorService } from '../map-generator.service';
 import { EncounterDataService } from './encounter-data.service';
+import { MonsterService } from './monster.service';
+import { PotionService } from './potion.service';
 
 /**
  * SERVIZIO GESTORE INCONTRI E NAVIGAZIONE MAPPA
@@ -19,6 +20,7 @@ export class EncounterService {
     private readonly monsterService: MonsterService,
     private readonly mapGenerator: MapGeneratorService,
     private readonly encounterData: EncounterDataService,
+    private potionService: PotionService,
     private readonly dice: DiceService
   ) { }
 
@@ -156,17 +158,6 @@ export class EncounterService {
     );
   }
 
-  private getPotionConfigForDepth(depth: number): { dice: [number, number]; cost: number } {
-    let n = 2;
-    let d = 6;
-    let cost = 8 + Math.floor(depth / 5) * 5;
-    if (depth > 10) {
-      d = 8;
-      n = 2 + Math.floor((depth - 11) / 10);
-    }
-    return { dice: [n, d], cost };
-  }
-
   /**
    * Genera il bottino del forziere e apre il modale dedicato (invece di proseguire subito).
    */
@@ -179,10 +170,10 @@ export class EncounterService {
 
     // 40% di probabilità di trovare anche una pozione nel forziere
     if (Math.random() < 0.4) {
-      const potionConfig = this.getPotionConfigForDepth(s.depth);
-      s.player!.inventory.push({ type: 'potion', heal: potionConfig.dice });
-      potionDice = potionConfig.dice;
-
+      //creo l'oggetto pozione da inserire nell'inventario del giocatore
+      const potionItem = this.potionService.createPotionItem(s.depth);
+      s.player!.inventory.push(potionItem);
+      potionDice = potionItem.heal;
       this.stateService.log(
         this.stateService.tf('log.treasurePotion', { potion: this.stateService.t('potionName') }),
         'heal'
@@ -249,7 +240,7 @@ export class EncounterService {
 
   public makeMerchantChoice(): PendingChoice {
     const s = this.stateService.state();
-    const potionConfig = this.getPotionConfigForDepth(s.depth);
+    const potionConfig = this.potionService.getConfigForDepth(s.depth);
     const potionLabel = `${this.stateService.tf('choices.buyPotion', { cost: potionConfig.cost })} [${potionConfig.dice[0]}d${potionConfig.dice[1]}]`;
     const upgradeCost = 15 + s.depth * 2;
 
@@ -270,9 +261,8 @@ export class EncounterService {
         }
         if (opt.action === 'potion') {
           state.player!.gold -= opt.cost || 0;
-          state.player!.inventory.push({ type: 'potion', heal: potionConfig.dice });
+          state.player!.inventory.push(this.potionService.createPotionItem(state.depth));
           this.stateService.touch();
-          state.player!.inventory.push({ type: 'potion', heal: potionConfig.dice });
           this.stateService.log(
             this.stateService.tf('log.merchantBuyPotion', { potion: this.stateService.t('potionName') }),
             'heal'
@@ -334,6 +324,12 @@ export class EncounterService {
     };
   }
 
+  /**
+   * Risolve l'opzione di scelta selezionata dall'utente.
+   * @param opt 
+   * @param onGameOver 
+   * @returns 
+   */
   public async resolveChoiceOption(opt: ChoiceOption, onGameOver: () => void): Promise<void> {
     const s = this.stateService.state();
     const pc = s.pendingChoice;

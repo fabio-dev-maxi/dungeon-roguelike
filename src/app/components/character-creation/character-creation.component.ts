@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, signal, computed } from '@angular/c
 import { FormsModule } from '@angular/forms';
 import { GameService } from '../../services/game.service';
 import { I18nService } from '../../services/i18n.service';
-import { DiceService } from '../../services/dice.service';
+import { DiceService } from '../../services/dice/dice.service';
 import { CustomDataService } from '../../services/custom-data.service';
 import { CLASS_DATA, CLASS_KEYS } from '../../data/game.data';
 import { ClassKey, StatKey, Stats } from '../../models/game.models';
@@ -44,7 +44,7 @@ export class CharacterCreationComponent {
     public i18n: I18nService,
     public dice: DiceService,
     public customData: CustomDataService
-  ) {}
+  ) { }
 
   selectClass(key: ClassKey): void {
     this.selectedClass.set(key);
@@ -55,7 +55,7 @@ export class CharacterCreationComponent {
     this.step.set(2);
     this.assignedStats.set({});
     this.usedHeroIds.set([]);
-    
+
     // Imposta come icona iniziale quella della classe scelta
     this.displayHeroClass.set(this.selectedClass()!);
     setTimeout(() => this.spinRoulette(), 150);
@@ -89,7 +89,7 @@ export class CharacterCreationComponent {
     const interval = setInterval(() => {
       const randomIdx = Math.floor(Math.random() * availablePool.length);
       const randomHero = availablePool[randomIdx];
-      
+
       this.displayHeroName.set(randomHero.name);
       this.displayHeroClass.set(randomHero.heroClass);
       counter++;
@@ -97,7 +97,7 @@ export class CharacterCreationComponent {
       if (counter >= totalTicks) {
         clearInterval(interval);
         const finalHero = availablePool[this.dice.rnd(availablePool.length) - 1];
-        
+
         this.displayHeroName.set(finalHero.name);
         this.displayHeroClass.set(finalHero.heroClass);
         this.currentHero.set(finalHero);

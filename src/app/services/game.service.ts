@@ -13,11 +13,11 @@ import {
   Weapon,
 } from '../models/game.models';
 import { CharacterService } from './character.service';
-import { CombatService } from './combat.service';
-import { EncounterService } from './encounter.service';
+import { CombatService } from './encounter/combat.service';
+import { EncounterService } from './encounter/encounter.service';
 import { GameStateService } from './game-state.service';
-import { LevelUpService } from './level-up.service';
-import { MonsterService } from './monster.service';
+import { LevelUpService } from './encounter/level-up.service';
+import { MonsterService } from './encounter/monster.service';
 
 /**
  * Facade centralizzato che coordina i sotto-servizi

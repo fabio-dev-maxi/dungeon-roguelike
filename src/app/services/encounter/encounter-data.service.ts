@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { ChoiceOption, PendingChoice } from '../models/game.models';
-import { DiceService } from './dice.service';
-import { GameStateService } from './game-state.service';
+import { ChoiceOption, PendingChoice } from '../../models/game.models';
+import { DiceService } from '../dice/dice.service';
+import { GameStateService } from '../game-state.service';
 
 /**
  * SERVIZIO DATI INCONTRI E MECCANICHE D&D 3.5

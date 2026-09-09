@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { GameService } from '../../services/game.service';
 import { TitleScreenComponent } from '../title-screen/title-screen.component';
 import { CharacterCreationComponent } from '../character-creation/character-creation.component';
 import { GameScreenComponent } from '../game-screen/game-screen.component';
 import { GameOverComponent } from '../game-over/game-over.component';
+import { GameService } from '../../services/game.service';
 
 /** Instrada la vista corrente in base alla schermata di gioco attiva. */
 @Component({
@@ -19,5 +19,5 @@ import { GameOverComponent } from '../game-over/game-over.component';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MainGameComponent {
-  constructor(public game: GameService) {}
+  constructor(public game: GameService) { }
 }

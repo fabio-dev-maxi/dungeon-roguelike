@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { GameService } from '../../services/game.service';
 import { I18nService } from '../../services/i18n.service';
-import { DiceService } from '../../services/dice.service';
+import { DiceService } from '../../services/dice/dice.service';
 import { CLASS_DATA } from '../../data/game.data';
 import { StatKey, ChoiceOption, ClassKey } from '../../models/game.models';
 import { DiceWidgetComponent } from '../dice-widget/dice-widget.component';
@@ -22,6 +22,7 @@ import { IconComponent, IconName } from '../../shared/icon/icon.component';
 import { CLASS_ICONS, STAT_ICONS } from '../../shared/icon/icon-maps';
 import { DungeonMapComponent } from '../dungeon-map/dungeon-map.component';
 import { CharacterSheetModalComponent } from '../character-sheet-modal/character-sheet-modal.component';
+import { PotionGroup, PotionService } from '../../services/encounter/potion.service';
 
 const STAT_KEYS: StatKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 
@@ -102,10 +103,10 @@ export class GameScreenComponent implements AfterViewChecked {
   // Aggiungi questo segnale per controllare la visibilità della scheda
   public isCharacterSheetOpen = signal<boolean>(false);
 
-  // --- GESTIONE POZIONI ---
+  // --- GESTIONE POZIONI RAGGRUPPATE ---
   readonly showPotionPopover = signal(false);
   readonly showPotionModal = signal(false);
-  readonly selectedPotionIndex = signal<number | null>(null); // Traccia la riga selezionata
+  readonly selectedPotionKey = signal<string | null>(null); // Traccia la pozione selezionata per chiave (es. "2d6")
 
   showRelicPopover = signal(false);
 
@@ -118,7 +119,8 @@ export class GameScreenComponent implements AfterViewChecked {
   constructor(
     public game: GameService,
     public i18n: I18nService,
-    public dice: DiceService
+    public dice: DiceService,
+    public potionService: PotionService,
   ) {
     const roll = computed(() => this.game.state().rollingDie);
 
@@ -175,31 +177,36 @@ export class GameScreenComponent implements AfterViewChecked {
     this.showPotionPopover.set(false);
   }
 
-  usePotionAction(): void {
-    const list = this.potionsList();
-    if (list.length === 0) return;
+  readonly groupedPotions = computed<PotionGroup[]>(() => {
+    return this.potionService.groupPotions(this.p().inventory);
+  });
 
-    if (list.length === 1) {
-      // Se ha una sola pozione, la beve direttamente per non far perdere tempo
+  usePotionAction(): void {
+    const groups = this.potionService.groupPotions(this.p().inventory);
+    if (groups.length === 0) return;
+
+    if (this.potionCount() === 1) {
       this.showPotionPopover.set(false);
-      this.game.playerUsePotion(list[0].index);
+      this.game.playerUsePotion(groups[0].firstIndex);
     } else {
-      // Se ne ha più di una, apre la modale e preseleziona la prima
       this.showPotionPopover.set(false);
-      this.selectedPotionIndex.set(list[0].index);
+      this.selectedPotionKey.set(groups[0].key);
       this.showPotionModal.set(true);
     }
   }
 
-  selectPotionRow(index: number): void {
-    this.selectedPotionIndex.set(index);
+  selectPotionKey(key: string): void {
+    this.selectedPotionKey.set(key);
   }
 
   confirmDrinkPotion(): void {
-    const idx = this.selectedPotionIndex();
-    if (idx !== null) {
+    const key = this.selectedPotionKey();
+    if (!key) return;
+
+    const group = this.potionService.groupPotions(this.p().inventory).find((g) => g.key === key);
+    if (group) {
       this.showPotionModal.set(false);
-      this.game.playerUsePotion(idx);
+      this.game.playerUsePotion(group.firstIndex);
     }
   }
 

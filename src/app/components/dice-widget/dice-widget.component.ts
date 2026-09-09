@@ -10,8 +10,8 @@ import {
   input,
 } from "@angular/core";
 import * as THREE from "three";
-import { DicePhysicsService, PhysicalDieBody } from "../../services/dice-physics.service";
-import { Dice3dFactoryService, getShapeScaleMultiplier } from "../../services/dice-3d-factory.service";
+import { DicePhysicsService, PhysicalDieBody } from "../../services/dice/dice-physics.service";
+import { Dice3dFactoryService, getShapeScaleMultiplier } from "../../services/dice/dice-3d-factory.service";
 
 /** Durata della fase di interpolazione di assestamento finale (ms) */
 export const DICE_SETTLE_MS = 320;

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { mod } from '../data/game.data';
+import { mod } from '../../data/game.data';
 
 export interface WeightedItem<T> { v: T; w: number; }
 
@@ -41,6 +41,13 @@ export class DiceService {
     return (m >= 0 ? '+' + m : '' + m);
   }
 
+  /**
+   * Limita un valore nell'intervallo [a, b]
+   * @param v 
+   * @param a 
+   * @param b 
+   * @returns 
+   */
   clamp(v: number, a: number, b: number): number {
     return Math.max(a, Math.min(b, v));
   }
