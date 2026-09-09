@@ -204,4 +204,8 @@ export class GameService {
     s.mapViewActive = false;
     this.stateService.touch();
   }
+
+  public confirmTreasure(): void {
+    this.encounterService.confirmTreasure();
+  }
 }

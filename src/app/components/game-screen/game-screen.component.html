@@ -526,3 +526,49 @@
   </div>
 </div>
 }
+
+<!-- MODALE FORZIERE DEL TESORO -->
+@if (s().treasureModal; as treasure) {
+<div class="modal-backdrop">
+  <div class="panel modal-box gothic-frame" style="max-width: 380px; text-align: center; padding: 20px;">
+
+    <header style="border-bottom: 1px solid var(--stone-line); padding-bottom: 15px; margin-bottom: 15px;">
+      <div class="sigil sigil--gold" style="margin: 0 auto 10px;">
+        <app-icon name="chest" [size]="28"></app-icon>
+      </div>
+      <h2
+        style="color: var(--gold-bright); margin: 0; font-size: 1.15rem; text-transform: uppercase; letter-spacing: 0.05em;">
+        {{ i18n.t('ui.nodeTreasure') }}
+      </h2>
+    </header>
+
+    <div style="margin-bottom: 24px; color: var(--parchment-dim); font-size: 0.9rem; line-height: 1.4;">
+      <p>Hai perlustrato l'anfratto oscuro scovando un antico forziere nascosto!</p>
+
+      <!-- PILLOLE BOTTINO -->
+      <div style="display: flex; justify-content: center; gap: 12px; margin-top: 18px;">
+        <div
+          style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.4); border: 1px solid var(--gold); border-radius: var(--radius-sm); padding: 8px 12px; color: var(--gold-bright); font-family: var(--font-heading);">
+          <app-icon name="coin" [size]="16"></app-icon>
+          <span>+{{ treasure.gold }} {{ i18n.t('ui.goldLabel') }}</span>
+        </div>
+
+        @if (treasure.potion) {
+        <div
+          style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.4); border: 1px solid #991b1b; border-radius: var(--radius-sm); padding: 8px 12px; color: #fca5a5; font-family: var(--font-heading);">
+          <app-icon name="flask" [size]="16"></app-icon>
+          <span>+1 Pozione</span>
+        </div>
+        }
+      </div>
+    </div>
+
+    <footer style="border-top: 1px solid var(--stone-line-soft); padding-top: 15px;">
+      <button type="button" class="btn primary" (click)="confirmTreasure()">
+        {{ i18n.t('ui.continueButton') }}
+      </button>
+    </footer>
+
+  </div>
+</div>
+}

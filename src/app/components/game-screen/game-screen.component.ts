@@ -329,6 +329,10 @@ export class GameScreenComponent implements AfterViewChecked {
     }
   }
 
+  public confirmTreasure(): void {
+    this.game.confirmTreasure();
+  }
+
   ngAfterViewChecked(): void {
     const anchor = this.scrollAnchorRef?.nativeElement;
     if (!anchor) return;

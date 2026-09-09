@@ -181,4 +181,5 @@ export interface GameState {
   rollingDie: RollingDieState;
   tempStats: Stats | null;
   tempName: string;
+  treasureModal?: { gold: number; potion?: [number, number] } | null;
 }

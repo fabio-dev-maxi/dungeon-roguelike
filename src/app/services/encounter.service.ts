@@ -167,23 +167,44 @@ export class EncounterService {
     return { dice: [n, d], cost };
   }
 
+  /**
+   * Genera il bottino del forziere e apre il modale dedicato (invece di proseguire subito).
+   */
   public resolveTreasure(): void {
     const s = this.stateService.state();
     const gold = this.dice.rollNdM(2, 6) + s.depth * 2;
     s.player!.gold += gold;
-    this.stateService.touch();
-    this.stateService.log(this.stateService.tf('log.treasureFound', { gold }), 'flavor');
 
+    let potionDice: [number, number] | undefined = undefined;
+
+    // 40% di probabilità di trovare anche una pozione nel forziere
     if (Math.random() < 0.4) {
       const potionConfig = this.getPotionConfigForDepth(s.depth);
       s.player!.inventory.push({ type: 'potion', heal: potionConfig.dice });
-      this.stateService.touch();
+      potionDice = potionConfig.dice;
+
       this.stateService.log(
         this.stateService.tf('log.treasurePotion', { potion: this.stateService.t('potionName') }),
         'heal'
       );
     }
 
+    this.stateService.log(this.stateService.tf('log.treasureFound', { gold }), 'flavor');
+
+    // APRE IL MODALE (la mappa è già stata nascosta da selectMapNode)
+    s.treasureModal = { gold, potion: potionDice };
+    this.stateService.touch();
+  }
+
+  /**
+   * Viene chiamato quando l'utente preme "Continua" nel modale del tesoro.
+   */
+  public confirmTreasure(): void {
+    const s = this.stateService.state();
+    s.treasureModal = null;
+    this.stateService.touch();
+
+    // Sblocca i nodi successivi e riapre in automatico il modale della mappa!
     this.completeCurrentNode();
   }
 
