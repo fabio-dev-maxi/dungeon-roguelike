@@ -208,4 +208,5 @@ export class GameService {
   public confirmTreasure(): void {
     this.encounterService.confirmTreasure();
   }
+
 }

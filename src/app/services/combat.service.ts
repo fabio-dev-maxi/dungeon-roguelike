@@ -654,8 +654,8 @@ export class CombatService {
     const baseBossXp = BOSS_XP[s.monster!.id] || 80;
 
     const xp = wasBoss
-      ? Math.max(baseBossXp + s.depth * 5, Math.ceil(levelXpReq * 0.55))
-      : Math.max(baseMonsterXp + Math.floor(s.depth * 2), Math.ceil(levelXpReq * 0.25));
+      ? Math.max(baseBossXp + s.depth * 5, Math.ceil(levelXpReq * 0.25))
+      : Math.max(baseMonsterXp + Math.floor(s.depth * 2), Math.ceil(levelXpReq * 0.15));
 
     p.gold += gold;
     p.xp += xp;
@@ -678,7 +678,6 @@ export class CombatService {
     // =========================================================================
     // BOTTINO CUSTODE DEL PIANO (LAYER 7 BOSS)
     // =========================================================================
-    // All'interno del metodo monsterDefeated() in CombatService:
     if (wasBoss) {
       const potionConfig = this.getPotionConfigForDepth(s.depth);
 
@@ -693,8 +692,6 @@ export class CombatService {
         name: 'Pozione di Cura x2',
         effect: `Ripristina salute (${potionConfig.dice[0]}d${potionConfig.dice[1]})`,
       });
-
-      // ... resto del metodo inalterato
 
       // --- DROP DI CLASSE & EQUIPAGGIAMENTO RARO ---
       const tier = Math.min(5, Math.max(1, Math.ceil(s.depth / 10)));
@@ -782,7 +779,10 @@ export class CombatService {
       if (levelsToGain > 0) {
         this.levelUpService.startLevelUp();
       } else {
-        this.encounterService.completeCurrentNode();
+        // Transizione alla fase 'explore' per permettere l'uso delle pozioni prima di proseguire
+        final.phase = 'explore';
+        final.combatFlags.acting = false;
+        this.stateService.touch();
       }
     }
   }
@@ -795,8 +795,11 @@ export class CombatService {
     if (s.pendingLevelUps > 0) {
       this.levelUpService.startLevelUp();
     } else {
-      // Boss del piano sconfitto: Avanza al Piano Successivo (Floor successivo)
-      this.encounterService.startFloor();
+      // Dopo aver chiuso la modale del Boss, passa alla fase 'explore' 
+      // permettendo al giocatore di curarsi con le pozioni prima di proseguire
+      s.phase = 'explore';
+      s.combatFlags.acting = false;
+      this.stateService.touch();
     }
   }
 

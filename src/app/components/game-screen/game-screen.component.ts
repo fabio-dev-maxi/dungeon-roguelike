@@ -377,4 +377,11 @@ export class GameScreenComponent implements AfterViewChecked {
   public closeSheet(): void {
     this.isCharacterSheetOpen.set(false);
   }
+
+  /**
+   * Conferma il completamento dell'anfratto e apre la mappa per scegliere il nodo successivo.
+   */
+  public confirmContinueNode(): void {
+    this.game.completeCurrentNode();
+  }
 }

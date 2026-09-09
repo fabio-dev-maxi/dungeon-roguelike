@@ -307,9 +307,14 @@ export class LevelUpService {
     } else {
       cur.levelUp = null;
       if (cur.bossRewardModal) {
-        cur.phase = null;
+        // Se la modale del boss è ancora attiva, lascia la fase a null
+        s.phase = null;
       } else {
-        this.encounterService.completeCurrentNode();
+        // LIVELLI COMPLETATI: passa alla fase 'explore' invece di caricare subito il piano
+        s.levelUp = null;
+        s.phase = 'explore';
+        s.combatFlags.acting = false;
+        this.stateService.touch();
       }
       this.stateService.touch();
     }

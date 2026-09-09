@@ -308,16 +308,21 @@
           }
           }
           @if (s().phase === 'explore') {
+          @if (s().currentMap) {
+          <button type="button" class="btn primary btn-descent" (click)="confirmContinueNode()">
+            <app-icon name="arrow-right" [size]="18"></app-icon>
+            <span>{{ i18n.t('ui.descendButton') }}</span>
+          </button>
+          } @else {
           <button type="button" class="btn primary btn-descent" (click)="game.descendFloor()">
             <app-icon name="stairs" [size]="18"></app-icon>
             <span>{{ i18n.t('ui.descendButton') }}</span>
           </button>
+          }
           @if (hasPotion()) {
           <button type="button" class="btn heal" (click)="usePotionAction()">
             <app-icon name="flask" [size]="18"></app-icon>
-            <span>{{ i18n.t('ui.drinkPotionButton') }} ({{
-              potionCount()
-              }})</span>
+            <span>{{ i18n.t('ui.drinkPotionButton') }} ({{ potionCount() }})</span>
           </button>
           }
           }
