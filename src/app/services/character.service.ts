@@ -21,7 +21,7 @@ export class CharacterService {
    * Imposta lo schermo sulla fase di creazione personaggio e resetta la bozza.
    */
   public startCreateScreen(): void {
-    const s = this.stateService.rawState();
+    const s = this.stateService.state();
     s.screen = 'create';
     s.tempStats = null;
     this.resetDraft();
@@ -32,7 +32,7 @@ export class CharacterService {
    * Registra il nome temporaneo nel GameState durante la creazione.
    */
   public rollStatsForCreate(name: string): void {
-    const s = this.stateService.rawState();
+    const s = this.stateService.state();
     s.tempName = name;
     this.stateService.touch();
   }

@@ -28,15 +28,8 @@ export class GameStateService {
    * Restituisce uno snapshot immutabile dello stato di gioco.
    * La clonazione e il congelamento impediscono qualsiasi mutazione diretta da console.
    */
-  public state(): Readonly<GameState> {
+  public state(): GameState {
     this._version();
-    return Object.freeze(structuredClone(this._state));
-  }
-
-  /**
-   * Consente ai soli servizi interni di accedere al riferimento mutabile reale.
-   */
-  public rawState(): GameState {
     return this._state;
   }
 

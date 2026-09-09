@@ -489,7 +489,7 @@ export class CombatService {
       20,
       'flee'
     );
-    const cur = this.stateService.rawState();
+    const cur = this.stateService.state();
     const total = raw + statMod;
     const success = total >= dc;
 
@@ -513,7 +513,7 @@ export class CombatService {
       await this.monsterTurn();
     }
 
-    this.stateService.rawState().combatFlags.acting = false;
+    this.stateService.state().combatFlags.acting = false;
     this.stateService.touch();
   }
 
@@ -544,7 +544,7 @@ export class CombatService {
       criticalThreat ? 20 : 21
     );
 
-    const cur = this.stateService.rawState();
+    const cur = this.stateService.state();
     const isCrit =
       criticalThreat &&
       (await this.confirmCritical(
@@ -657,7 +657,7 @@ export class CombatService {
       'heal'
     );
 
-    const cur = this.stateService.rawState();
+    const cur = this.stateService.state();
     cur.monster = null;
     this.stateService.touch();
 
@@ -744,7 +744,7 @@ export class CombatService {
     }
 
     // CALCOLO AVANZAMENTO LIVELLI MULTIPLI
-    const final = this.stateService.rawState();
+    const final = this.stateService.state();
     let lvl = final.player!.level;
     let xpLeft = final.player!.xp;
     let levelsToGain = 0;
@@ -765,7 +765,7 @@ export class CombatService {
   }
 
   confirmBossReward(): void {
-    const s = this.stateService.rawState();
+    const s = this.stateService.state();
     s.bossRewardModal = null;
     this.stateService.touch();
 
@@ -781,7 +781,7 @@ export class CombatService {
   }
 
   gameOver(): void {
-    const s = this.stateService.rawState();
+    const s = this.stateService.state();
     s.screen = 'gameover';
     this.stateService.touch();
   }
