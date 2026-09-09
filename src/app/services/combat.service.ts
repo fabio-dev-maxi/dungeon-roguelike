@@ -769,22 +769,10 @@ export class CombatService {
     final.player!.xp = xpLeft;
     final.pendingLevelUps = levelsToGain;
 
-    if (wasBoss) {
-      final.phase = null;
-      final.rollingDie = { active: false, value: null, cls: '' };
-      final.bossRewardModal = { name, xp, gold, drops };
-      this.stateService.touch();
-    } else {
-      this.stateService.touch();
-      if (levelsToGain > 0) {
-        this.levelUpService.startLevelUp();
-      } else {
-        // Transizione alla fase 'explore' per permettere l'uso delle pozioni prima di proseguire
-        final.phase = 'explore';
-        final.combatFlags.acting = false;
-        this.stateService.touch();
-      }
-    }
+    final.phase = null;
+    final.rollingDie = { active: false, value: null, cls: '' };
+    final.bossRewardModal = { name, xp, gold, drops, isBoss: wasBoss };
+    this.stateService.touch();
   }
 
   confirmBossReward(): void {

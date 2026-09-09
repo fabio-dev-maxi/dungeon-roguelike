@@ -2,12 +2,18 @@
 <div class="modal-backdrop">
   <div class="panel modal-box gothic-frame reward-modal">
 
-    <!-- INTESTAZIONE MODALE -->
+    <!-- INTESTAZIONE MODALE ADATTIVA -->
     <header class="reward-header">
-      <div class="sigil sigil--gold">
-        <app-icon name="crown" [size]="24"></app-icon>
+      <div class="sigil" [class.sigil--gold]="modal.isBoss" [class.sigil--danger]="!modal.isBoss">
+        <app-icon [name]="modal.isBoss ? 'crown' : 'swords'" [size]="24"></app-icon>
       </div>
-      <h2>{{ i18n.tf('ui.bossDefeatedTitle', { name: modal.name }) }}</h2>
+      <h2>
+        @if (modal.isBoss) {
+        {{ i18n.tf('ui.bossDefeatedTitle', { name: modal.name }) }}
+        } @else {
+        {{ modal.name }} Sconfitto!
+        }
+      </h2>
     </header>
 
     <div class="reward-body">

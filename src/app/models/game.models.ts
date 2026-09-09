@@ -105,6 +105,7 @@ export interface BossRewardModalData {
   xp: number;
   gold: number;
   drops: DropInfo[];
+  isBoss?: boolean; // Distingue i mostri normali dai Boss per la grafica della modale
 }
 
 export interface LevelUpState {
