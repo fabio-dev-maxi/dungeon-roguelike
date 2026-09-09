@@ -2,8 +2,8 @@ import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { UpperCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router'; // 1. Importa RouterLink
-import { SimulationService, SimulationResult } from '../../services/simulation.service';
-import { ClassKey } from '../../models/game.models';
+import { SimulationService, SimulationResult } from '../../../services/simulation.service';
+import { ClassKey } from '../../../models/game.models';
 
 @Component({
   selector: 'app-admin',
@@ -19,7 +19,7 @@ export class AdminComponent {
   readonly isSimulating = signal(false);
   readonly results = signal<SimulationResult[]>([]);
 
-  constructor(private simService: SimulationService) {}
+  constructor(private simService: SimulationService) { }
 
   async startSimulation(): Promise<void> {
     this.isSimulating.set(true);

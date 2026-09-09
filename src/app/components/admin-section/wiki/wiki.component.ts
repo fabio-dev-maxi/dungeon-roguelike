@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { I18nService } from '../../services/i18n.service';
-import { CustomDataService } from '../../services/custom-data.service';
-import { CLASS_KEYS, CLASS_FEATS } from '../../data/game.data';
-import { MONSTER_IDS_TIER, MONSTER_XP, BOSS_XP } from '../../data/monster.data';
-import { ClassKey } from '../../models/game.models';
-import { RELICS } from '../../data/relic.data';
+import { I18nService } from '../../../services/i18n.service';
+import { CustomDataService } from '../../../services/custom-data.service';
+import { CLASS_KEYS, CLASS_FEATS } from '../../../data/game.data';
+import { MONSTER_IDS_TIER, MONSTER_XP, BOSS_XP } from '../../../data/monster.data';
+import { ClassKey } from '../../../models/game.models';
+import { RELICS } from '../../../data/relic.data';
 
 /**
  * Tipi di schede/tab selezionabili nel compendio della Wiki.
