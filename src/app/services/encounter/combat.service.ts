@@ -55,8 +55,12 @@ export class CombatService {
 
     const p = s.player!;
     const c = CLASS_DATA[p.cls];
+    const powerAttackOn = !!p.powerAttackActive;
+    const combatExpertiseOn = !!p.combatExpertiseActive;
+    const maneuverAtkPenalty = (powerAttackOn ? -2 : 0) + (combatExpertiseOn ? -2 : 0);
+
     const statMod =
-      mod(p.stats[c.atkStat]) + (p.tempAtkBonus || 0) + (p.flatAtkBonus || 0);
+      mod(p.stats[c.atkStat]) + (p.tempAtkBonus || 0) + (p.flatAtkBonus || 0) + maneuverAtkPenalty;
 
     const critThreshold = p.critThreshold || 20;
 
@@ -90,7 +94,8 @@ export class CombatService {
       const bonus =
         mod(cur.player!.stats[c.atkStat]) +
         (cur.player!.weapon.bonus || 0) +
-        (cur.player!.flatDmgBonus || 0);
+        (cur.player!.flatDmgBonus || 0) +
+        (cur.player!.powerAttackActive ? 4 : 0);
 
       const dmgMax = n * d;
       const dmgRolls = Array.from({ length: n }, () => this.dice.rollDie(d));
@@ -190,8 +195,11 @@ export class CombatService {
     if (cls === 'fighter') {
       p.mightyBlowActive = true;
       p.usedSpecial = true;
-      const statMod =
-        mod(p.stats.str) + (p.tempAtkBonus || 0) + (p.flatAtkBonus || 0);
+      const powerAttackOn = !!p.powerAttackActive;
+      const combatExpertiseOn = !!p.combatExpertiseActive;
+      const maneuverAtkPenalty = (powerAttackOn ? -2 : 0) + (combatExpertiseOn ? -2 : 0);
+
+      const statMod = mod(p.stats.str) + (p.tempAtkBonus || 0) + (p.flatAtkBonus || 0) + maneuverAtkPenalty;
 
       p.tempAtkBonus = 0;
       const critThreshold = p.critThreshold || 20;
@@ -220,7 +228,10 @@ export class CombatService {
       } else if (hit) {
         const [n, d] = p.weapon.dice;
         const bonus =
-          mod(p.stats.str) + (p.weapon.bonus || 0) + (p.flatDmgBonus || 0);
+          mod(p.stats.str) +
+          (p.weapon.bonus || 0) +
+          (p.flatDmgBonus || 0) +
+          (p.powerAttackActive ? 4 : 0);
 
         const dmgMax = n * d;
         const dmgRolls = Array.from({ length: n }, () => this.dice.rollDie(d));
@@ -528,7 +539,7 @@ export class CombatService {
 
     const acBonus = defending ? 4 : 0;
     const monsterAtkMod = s.monster.atk;
-    const targetAC = p.ac + acBonus + (p.tempAcBonus || 0);
+    const targetAC = p.ac + acBonus + (p.tempAcBonus || 0) + (p.combatExpertiseActive ? 2 : 0);
     this.stateService.touch();
 
     // 1. Tiro per Colpire del Nemico (d20) - Passa 20 come soglia critico per evidenziare il dado

@@ -200,4 +200,12 @@ export class GameService {
   confirmTreasure(): void {
     this.encounterService.confirmTreasure();
   }
+
+  togglePowerAttack(): void {
+    this.stateService.togglePowerAttack();
+  }
+
+  toggleCombatExpertise(): void {
+    this.stateService.toggleCombatExpertise();
+  }
 }

@@ -141,7 +141,7 @@
             </div>
             <div class="equip-effect">
               Danno: <strong>{{ player.weapon.dice[0] || 1 }}d{{ player.weapon.dice[1] || 4 }} + {{
-                (player.weapon.bonus || 0) + (player.flatDmgBonus || 0) }}</strong>
+                (player.weapon.bonus || 0) + (player.flatDmgBonus || 0) + (getMod( player.stats.str)) }}</strong>
             </div>
           </div>
         </div>

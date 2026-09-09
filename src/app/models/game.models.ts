@@ -63,6 +63,13 @@ export interface Player {
   specialBonusHeal?: number;
   potionHealBonus?: number;
   fleeBonus?: number;
+  // --- Abilità di Combattimento del Guerriero (D&D 3.5, valori fissi semplificati) ---
+  hasPowerAttack?: boolean;
+  hasWeaponSpecialization?: boolean;
+  hasCombatExpertise?: boolean;
+  hasImprovedCritical?: boolean;
+  powerAttackActive?: boolean;
+  combatExpertiseActive?: boolean;
 }
 
 export interface Monster {

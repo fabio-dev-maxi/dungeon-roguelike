@@ -93,7 +93,7 @@
     </div>
     }
 
-    <!-- COLONNA 1 (SINISTRA): SCHEDA EROE (PULITA SENZA CASSETTO INVENTARIO) -->
+    <!-- COLONNA 1 (SINISTRA): SCHEDA EROE -->
     <div class="combatant-card hero-card">
       <div class="card-top-content">
         <div class="combatant-header">
@@ -156,51 +156,39 @@
           <span>SCHEDA EROE</span>
         </button>
 
-        <!-- STRISCIA EQUIPAGGIAMENTO (ARMA & ARMATURA) -->
-        <div class="equipment-strip">
-          <!-- ARMA -->
-          <div class="equip-block">
-            <div class="equip-line">
-              <span class="equip-name">{{ game.weaponName(p().weapon) }}</span>
-              <span class="d20-threat-tag">{{ critThreatDisplay() }}</span>
-            </div>
-            <div class="equip-detail num">
-              {{ p().weapon.dice[0] }}d{{ p().weapon.dice[1] }} +
-              {{ i18n.t('statAbbr.' + classData[p().cls].atkStat) }}
-              @if (p().weapon.bonus) {
-              + {{ p().weapon.bonus }}
-              }
-            </div>
-          </div>
-
-          <!-- ARMATURA -->
-          <div class="equip-block armor-block">
-            <div class="equip-line">
-              <span class="equip-name">{{ game.armorName(p().armor) }}</span>
-              <span class="d20-threat-tag">+{{ p().armor.bonus }} CA</span>
-            </div>
-            <div class="equip-detail num">
-              @if (p().damageReduction) {
-              Riduzione Danno: RD {{ p().damageReduction }}
-              } @else {
-              Protezione Standard
-              }
-            </div>
-          </div>
-        </div>
-
-        <!-- NASTRO CARATTERISTICHE -->
-        <div class="stat-ribbon">
-          @for (k of statKeys; track k) {
-          <div class="ribbon-box" [title]="i18n.t('stats.' + k)">
-            <span class="ribbon-k">{{ i18n.t('statAbbr.' + k) }}</span>
-            <span class="ribbon-v num">{{ p().stats[k] }}</span>
-            <span class="ribbon-m">{{
-              dice.fmtMod(dice.mod(p().stats[k]))
-              }}</span>
+        <!-- ABILITÀ DI COMBATTIMENTO DEL GUERRIERO -->
+        @if (p().cls === 'fighter' && (p().hasPowerAttack || p().hasCombatExpertise || p().hasWeaponSpecialization ||
+        p().hasImprovedCritical)) {
+        <div class="maneuver-panel">
+          @if (p().hasPowerAttack) {
+          <button type="button" class="btn maneuver-btn" [class.active]="p().powerAttackActive" [disabled]="acting()"
+            (click)="game.togglePowerAttack()">
+            <app-icon name="axe" [size]="14"></app-icon>
+            <span class="maneuver-label">Attacco Poderoso</span>
+            <span class="maneuver-tag">-2 TxC / +4 Danni</span>
+          </button>
+          }
+          @if (p().hasCombatExpertise) {
+          <button type="button" class="btn maneuver-btn" [class.active]="p().combatExpertiseActive"
+            [disabled]="acting()" (click)="game.toggleCombatExpertise()">
+            <app-icon name="shield" [size]="14"></app-icon>
+            <span class="maneuver-label">Maestria in Combattimento</span>
+            <span class="maneuver-tag">-2 TxC / +2 CA</span>
+          </button>
+          }
+          @if (p().hasWeaponSpecialization || p().hasImprovedCritical) {
+          <div class="maneuver-passives">
+            @if (p().hasWeaponSpecialization) {
+            <span class="passive-chip"><app-icon name="sword" [size]="12"></app-icon> Specializzazione Armi</span>
+            }
+            @if (p().hasImprovedCritical) {
+            <span class="passive-chip"><app-icon name="star" [size]="12"></app-icon> Critico Migliorato</span>
+            }
           </div>
           }
         </div>
+        }
+
       </div>
     </div>
 

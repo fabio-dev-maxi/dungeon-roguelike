@@ -157,6 +157,20 @@ export class GameStateService {
     this.touch();
   }
 
+  public togglePowerAttack(): void {
+    const p = this._state.player;
+    if (!p?.hasPowerAttack) return;
+    p.powerAttackActive = !p.powerAttackActive;
+    this.touch();
+  }
+
+  public toggleCombatExpertise(): void {
+    const p = this._state.player;
+    if (!p?.hasCombatExpertise) return;
+    p.combatExpertiseActive = !p.combatExpertiseActive;
+    this.touch();
+  }
+
   public restartGame(): void {
     const lang = this._state.lang as LangCode;
     this._state = this.freshState(lang);

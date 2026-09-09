@@ -22,6 +22,7 @@ export class LevelUpService {
   public startLevelUp(): void {
     const s = this.stateService.state();
     s.player!.level++;
+    this.grantFighterManeuvers(s.player!.level);
     s.phase = 'levelup';
     s.mapViewActive = false;
     s.rollingDie = { active: false, value: null, cls: '' };
@@ -60,6 +61,39 @@ export class LevelUpService {
 
     if (initialStep === 'hp') {
       this.rollLevelUpHp();
+    }
+  }
+
+  /**
+ * Assegna automaticamente le Abilità di Combattimento del Guerriero ai livelli 2/4/6/8.
+ * Sono maneuvers on/off (Power Attack, Combat Expertise) o passive (Weapon Specialization,
+ * Improved Critical): non richiedono uno step di scelta, a differenza dei talenti generici.
+ */
+  private grantFighterManeuvers(level: number): void {
+    const s = this.stateService.state();
+    const p = s.player!;
+    if (p.cls !== 'fighter') return;
+
+    switch (level) {
+      case 2:
+        p.hasPowerAttack = true;
+        this.stateService.log('<b>Nuova abilità: Attacco Poderoso</b> (attivabile a scelta in combattimento).', 'heal');
+        break;
+      case 4:
+        p.hasWeaponSpecialization = true;
+        p.flatDmgBonus = (p.flatDmgBonus || 0) + 2;
+        this.stateService.log('<b>Specializzazione nelle Armi</b>: +2 ai danni base (permanente).', 'heal');
+        break;
+      case 6:
+        p.hasCombatExpertise = true;
+        this.stateService.log('<b>Nuova abilità: Maestria in Combattimento</b> (attivabile a scelta in combattimento).', 'heal');
+        break;
+      case 8:
+        p.hasImprovedCritical = true;
+        // Raddoppia il range di minaccia: range = 21 - soglia -> nuovoRange = range*2 -> nuovaSoglia = 2*soglia - 21
+        p.critThreshold = Math.max(2, 2 * p.critThreshold - 21);
+        this.stateService.log('<b>Critico Migliorato</b>: raddoppiato l\'intervallo di minaccia critico (permanente).', 'heal');
+        break;
     }
   }
 

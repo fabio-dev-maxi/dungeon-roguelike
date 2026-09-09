@@ -380,4 +380,5 @@ export class GameScreenComponent implements AfterViewChecked {
   public confirmContinueNode(): void {
     this.game.completeCurrentNode();
   }
+
 }
