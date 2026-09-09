@@ -24,8 +24,8 @@ export class MonsterService {
     if (depth <= 10) return this.dice.weightedPick([{ v: 3, w: 50 }, { v: 4, w: 50 }]);
     if (depth <= 12) return this.dice.weightedPick([{ v: 3, w: 30 }, { v: 4, w: 70 }]);
     if (depth <= 14) return this.dice.weightedPick([{ v: 4, w: 50 }, { v: 5, w: 50 }]);
-    if (depth <= 17) return this.dice.weightedPick([ { v: 4, w: 30 }, { v: 5, w: 70 }]);
-    if (depth <= 19) return this.dice.weightedPick([ { v: 5, w: 50 }, { v: 6, w: 50 }]);
+    if (depth <= 17) return this.dice.weightedPick([{ v: 4, w: 30 }, { v: 5, w: 70 }]);
+    if (depth <= 19) return this.dice.weightedPick([{ v: 5, w: 50 }, { v: 6, w: 50 }]);
     if (depth <= 22) return this.dice.weightedPick([{ v: 5, w: 30 }, { v: 6, w: 70 }]);
     return this.dice.weightedPick([{ v: 6, w: 100 }]);
   }
@@ -60,10 +60,10 @@ export class MonsterService {
     let effectiveHpBase = base.hpBase;
     let acVariance = 0;
 
-    if (isBoss) {
-      const factor = 1 + (Math.random() * 0.2 - 0.1);
+    if (isBoss) { 
+      const factor = 1 + (this.dice.random() * 0.2 - 0.1);
       effectiveHpBase = Math.round(base.hpBase * factor);
-      acVariance = Math.floor(Math.random() * 2);
+      acVariance = Math.floor(this.dice.random() * 2);
     }
 
     const hp = Math.round(effectiveHpBase * scale);

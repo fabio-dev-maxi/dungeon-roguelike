@@ -489,7 +489,7 @@ export class CombatService {
       20,
       'flee'
     );
-    const cur = this.stateService.state();
+    const cur = this.stateService.rawState();
     const total = raw + statMod;
     const success = total >= dc;
 
@@ -513,7 +513,7 @@ export class CombatService {
       await this.monsterTurn();
     }
 
-    this.stateService.state().combatFlags.acting = false;
+    this.stateService.rawState().combatFlags.acting = false;
     this.stateService.touch();
   }
 
@@ -544,7 +544,7 @@ export class CombatService {
       criticalThreat ? 20 : 21
     );
 
-    const cur = this.stateService.state();
+    const cur = this.stateService.rawState();
     const isCrit =
       criticalThreat &&
       (await this.confirmCritical(
@@ -657,7 +657,7 @@ export class CombatService {
       'heal'
     );
 
-    const cur = this.stateService.state();
+    const cur = this.stateService.rawState();
     cur.monster = null;
     this.stateService.touch();
 
@@ -684,7 +684,7 @@ export class CombatService {
 
       // --- DROP DI CLASSE & EQUIPAGGIAMENTO RARO ---
       const tier = Math.min(5, Math.max(1, Math.ceil(s.depth / 10)));
-      const rollLoot = Math.random();
+      const rollLoot = this.dice.random();
 
       if (rollLoot < 0.2) {
         const bonusGold = (this.dice.rollNdM(3, 6) + s.depth) * 5;
@@ -699,7 +699,7 @@ export class CombatService {
       } else if (rollLoot < 0.6) {
         const weapons = WEAPON_POOLS[p.cls]?.[tier];
         if (weapons && weapons.length > 0) {
-          const selectedWeapon = weapons[Math.min(Math.floor(Math.random() * weapons.length), weapons.length - 1)];
+          const selectedWeapon = weapons[Math.min(Math.floor(this.dice.random() * weapons.length), weapons.length - 1)];
           equipWeapon(p, selectedWeapon);
           this.stateService.touch();
           drops.push({
@@ -712,7 +712,7 @@ export class CombatService {
       } else {
         const armors = ARMOR_POOLS[p.cls]?.[tier];
         if (armors && armors.length > 0) {
-          const selectedArmor = armors[Math.min(Math.floor(Math.random() * armors.length), armors.length - 1)];
+          const selectedArmor = armors[Math.min(Math.floor(this.dice.random() * armors.length), armors.length - 1)];
           equipArmor(p, selectedArmor);
           this.stateService.touch();
           drops.push({
@@ -744,7 +744,7 @@ export class CombatService {
     }
 
     // CALCOLO AVANZAMENTO LIVELLI MULTIPLI
-    const final = this.stateService.state();
+    const final = this.stateService.rawState();
     let lvl = final.player!.level;
     let xpLeft = final.player!.xp;
     let levelsToGain = 0;
@@ -765,7 +765,7 @@ export class CombatService {
   }
 
   confirmBossReward(): void {
-    const s = this.stateService.state();
+    const s = this.stateService.rawState();
     s.bossRewardModal = null;
     this.stateService.touch();
 
@@ -781,7 +781,7 @@ export class CombatService {
   }
 
   gameOver(): void {
-    const s = this.stateService.state();
+    const s = this.stateService.rawState();
     s.screen = 'gameover';
     this.stateService.touch();
   }

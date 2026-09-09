@@ -9,13 +9,18 @@ export interface WeightedItem<T> { v: T; w: number; }
 @Injectable({ providedIn: 'root' })
 export class DiceService {
 
+  // Buffer riutilizzabile in memoria
+  private readonly uint32Buffer = new Uint32Array(1);
+
+  // Mantiene il riferimento nativo a getRandomValues disarmando eventuali override tardivi di `crypto`
+  private readonly getRandomValues = crypto.getRandomValues.bind(crypto);
+
   /**
    * Genera un numero decimale casuale nell'intervallo [0, 1) crittograficamente sicuro
    */
   private secureRandom(): number {
-    const array = new Uint32Array(1);
-    crypto.getRandomValues(array);
-    return array[0] / 4294967296; // Divisione per 2^32
+    this.getRandomValues(this.uint32Buffer);
+    return this.uint32Buffer[0] / 4294967296; // Divisione per 2^32
   }
 
   rnd(n: number): number {
@@ -25,6 +30,14 @@ export class DiceService {
 
   rollDie(d: number): number {
     return this.rnd(d);
+  }
+
+  /**
+   * Sostituto sicuro 1:1 di Math.random().
+   * Genera un float [0, 1) tramite Web Crypto API senza esporre dettagli interni.
+   */
+  public random(): number {
+    return this.secureRandom();
   }
 
   rollNdM(n: number, d: number): number {

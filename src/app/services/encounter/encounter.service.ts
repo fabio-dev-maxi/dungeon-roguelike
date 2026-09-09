@@ -28,7 +28,7 @@ export class EncounterService {
    * Genera il nuovo piano con mappa verticale e apre il modal overlay della Mappa.
    */
   public startFloor(): void {
-    const s = this.stateService.state();
+    const s = this.stateService.rawState();
     s.depth++;
 
     const completedFloors = Math.max(0, s.depth - 1);
@@ -49,7 +49,7 @@ export class EncounterService {
    * Seleziona un nodo sulla mappa, sposta il giocatore e chiude il modal overlay per avviare l'incontro.
    */
   public selectMapNode(node: MapNode): void {
-    const s = this.stateService.state();
+    const s = this.stateService.rawState();
     const map = s.currentMap;
     if (!map || node.status !== 'available') return;
 
@@ -114,7 +114,7 @@ export class EncounterService {
    * Se il nodo completato è il Boss (Layer 7), genera automaticamente il Piano Successivo.
    */
   public completeCurrentNode(): void {
-    const s = this.stateService.state();
+    const s = this.stateService.rawState();
     const map = s.currentMap;
     if (!map || !map.currentNodeId) return;
 
@@ -143,7 +143,7 @@ export class EncounterService {
   }
 
   private initCombatEncounter(floorNumber: number, isBossNode: boolean): void {
-    const s = this.stateService.state();
+    const s = this.stateService.rawState();
     const m = this.monsterService.makeMonster(floorNumber, isBossNode);
     s.monster = m;
     s.combatFlags = {};
@@ -162,14 +162,14 @@ export class EncounterService {
    * Genera il bottino del forziere e apre il modale dedicato (invece di proseguire subito).
    */
   public resolveTreasure(): void {
-    const s = this.stateService.state();
+    const s = this.stateService.rawState();
     const gold = this.dice.rollNdM(2, 6) + s.depth * 2;
     s.player!.gold += gold;
 
     let potionDice: [number, number] | undefined = undefined;
 
     // 40% di probabilità di trovare anche una pozione nel forziere
-    if (Math.random() < 0.4) {
+    if (this.dice.random() < 0.4) {
       //creo l'oggetto pozione da inserire nell'inventario del giocatore
       const potionItem = this.potionService.createPotionItem(s.depth);
       s.player!.inventory.push(potionItem);
@@ -191,7 +191,7 @@ export class EncounterService {
    * Viene chiamato quando l'utente preme "Continua" nel modale del tesoro.
    */
   public confirmTreasure(): void {
-    const s = this.stateService.state();
+    const s = this.stateService.rawState();
     s.treasureModal = null;
     this.stateService.touch();
 
@@ -331,7 +331,7 @@ export class EncounterService {
    * @returns 
    */
   public async resolveChoiceOption(opt: ChoiceOption, onGameOver: () => void): Promise<void> {
-    const s = this.stateService.state();
+    const s = this.stateService.rawState();
     const pc = s.pendingChoice;
     if (!pc) return;
 
@@ -352,7 +352,7 @@ export class EncounterService {
 
     const statMod = this.dice.mod(s.player!.stats[opt.stat as StatKey]);
     const raw = await this.stateService.animateRollAsync(this.dice.rnd(20), 20, 'check');
-    const cur = this.stateService.state();
+    const cur = this.stateService.rawState();
     const total = raw + statMod;
     const success = total >= pc.dc!;
 

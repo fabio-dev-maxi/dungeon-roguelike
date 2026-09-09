@@ -82,7 +82,7 @@ export class CharacterCreationComponent {
     let counter = 0;
     const totalTicks = 18;
     const interval = setInterval(() => {
-      const randomIdx = Math.floor(Math.random() * availablePool.length);
+      const randomIdx = Math.floor(this.dice.random() * availablePool.length);
       const randomHero = availablePool[randomIdx];
       this.displayHeroName.set(randomHero.name);
       this.displayHeroClass.set(randomHero.heroClass);

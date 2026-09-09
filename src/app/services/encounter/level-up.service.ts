@@ -20,7 +20,7 @@ export class LevelUpService {
   ) { }
 
   public startLevelUp(): void {
-    const s = this.stateService.state();
+    const s = this.stateService.rawState();
     s.player!.level++;
     s.phase = 'levelup';
     s.mapViewActive = false;
@@ -283,7 +283,7 @@ export class LevelUpService {
   }
 
   public confirmLevelUp(): void {
-    const s = this.stateService.state();
+    const s = this.stateService.rawState();
     const levelUp = s.levelUp;
     if (!levelUp || levelUp.hpRollTotal === null || levelUp.hpRollTotal === undefined) return;
 
@@ -297,7 +297,7 @@ export class LevelUpService {
       'heal'
     );
 
-    const cur = this.stateService.state();
+    const cur = this.stateService.rawState();
     cur.pendingLevelUps--;
     cur.rollingDie = { active: false, value: null, cls: '' };
     this.stateService.touch();

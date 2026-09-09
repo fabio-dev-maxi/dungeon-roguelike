@@ -57,7 +57,7 @@ export class MapGeneratorService {
           if (type === 'merchant') {
             isMystery = false; // Mercante sempre visibile
           } else if (type === 'combat') {
-            isMystery = Math.random() < 0.10; // Solo 10% mostri nascosti sotto '?'
+            isMystery = this.dice.random() < 0.10; // Solo 10% mostri nascosti sotto '?'
           } else {
             isMystery = true; // Trappole, Tesori, Altari, Taverne celati sotto '?'
           }
@@ -148,8 +148,8 @@ export class MapGeneratorService {
       nodes[currId].nextNodes.push(primaryTargetId);
       connectedNextIndices.add(targetBaseIdx);
 
-      if (nextLayerIds.length > 1 && Math.random() < 0.65) {
-        const extraOffset = Math.random() < 0.5 ? 1 : -1;
+      if (nextLayerIds.length > 1 && this.dice.random() < 0.65) {
+        const extraOffset = this.dice.random() < 0.5 ? 1 : -1;
         const extraIdx = targetBaseIdx + extraOffset;
         if (extraIdx >= 0 && extraIdx < nextLayerIds.length) {
           const extraTargetId = nextLayerIds[extraIdx];

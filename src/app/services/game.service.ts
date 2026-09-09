@@ -74,7 +74,7 @@ export class GameService {
    * Non accetta più oggetti Stats dall'esterno.
    */
   buildPlayerFromDraft(name: string, classKey: ClassKey): void {
-    const s = this.stateService.state();
+    const s = this.stateService.rawState();
     s.player = this.characterService.buildPlayerFromDraft(name, classKey);
     s.depth = 0;
     s.log = [];
@@ -184,7 +184,7 @@ export class GameService {
   }
 
   openMapReadOnly(): void {
-    const s = this.stateService.state();
+    const s = this.stateService.rawState();
     if (s.currentMap) {
       s.mapViewActive = true;
       this.stateService.touch();
@@ -192,7 +192,7 @@ export class GameService {
   }
 
   closeMapReadOnly(): void {
-    const s = this.stateService.state();
+    const s = this.stateService.rawState();
     s.mapViewActive = false;
     this.stateService.touch();
   }

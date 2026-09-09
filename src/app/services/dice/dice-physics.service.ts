@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import * as THREE from 'three';
+import { DiceService } from './dice.service';
 
 /** Interfaccia per il corpo rigido simulato nel motore fisico */
 export interface PhysicalDieBody {
@@ -28,6 +29,8 @@ export interface PhysicalDieBody {
 @Injectable({ providedIn: 'root' })
 export class DicePhysicsService {
 
+  constructor(private readonly dice: DiceService) { }
+
   /**
    * Inizializza i dadi con posizioni distanziate lungo l'asse X e impulsi di lancio casuali.
    * @param dice Array dei corpi rigidi dei dadi
@@ -39,18 +42,18 @@ export class DicePhysicsService {
       const spreadStep = count > 3 ? 1.25 : count === 3 ? 1.50 : 1.80;
       const spreadX = (idx - (count - 1) / 2) * spreadStep;
 
-      b.pos.set(spreadX, 1.0 + Math.random() * 0.2, -0.15);
+      b.pos.set(spreadX, 1.0 + this.dice.random() * 0.2, -0.15);
 
       b.vel.set(
-        (Math.random() - 0.5) * 3.2,
-        -3.8 - Math.random() * 1.8,
-        (Math.random() - 0.5) * 2.2
+        (this.dice.random() - 0.5) * 3.2,
+        -3.8 - this.dice.random() * 1.8,
+        (this.dice.random() - 0.5) * 2.2
       );
 
       b.angVel.set(
-        (Math.random() - 0.5) * 16,
-        (Math.random() - 0.5) * 16,
-        (Math.random() - 0.5) * 16
+        (this.dice.random() - 0.5) * 16,
+        (this.dice.random() - 0.5) * 16,
+        (this.dice.random() - 0.5) * 16
       );
     });
   }
@@ -97,8 +100,8 @@ export class DicePhysicsService {
           if (Math.abs(b.vel.y) > 0.3) {
             b.vel.y = -b.vel.y * 0.3; // Coefficiente di restituzione verticale
             if (rollProgress < 0.35) {
-              b.angVel.x += (Math.random() - 0.5) * Math.abs(b.vel.y) * 2;
-              b.angVel.z += (Math.random() - 0.5) * Math.abs(b.vel.y) * 2;
+              b.angVel.x += (this.dice.random() - 0.5) * Math.abs(b.vel.y) * 2;
+              b.angVel.z += (this.dice.random() - 0.5) * Math.abs(b.vel.y) * 2;
             }
           } else {
             b.vel.y = 0; // Stasi verticale

@@ -7,7 +7,6 @@ import { I18nService } from './i18n.service';
 
 const SPIN_MS = 500;
 const READ_RESULT_MS = 950;
-
 /**
  * GESTORE DELLO STATO REATTIVO CENTRALE (ANGULAR 20 SIGNALS)
  * 
@@ -25,24 +24,35 @@ export class GameStateService {
     private dice: DiceService
   ) { }
 
-  state(): GameState {
+  /**
+   * Restituisce uno snapshot immutabile dello stato di gioco.
+   * La clonazione e il congelamento impediscono qualsiasi mutazione diretta da console.
+   */
+  public state(): Readonly<GameState> {
     this._version();
+    return Object.freeze(structuredClone(this._state));
+  }
+
+  /**
+   * Consente ai soli servizi interni di accedere al riferimento mutabile reale.
+   */
+  public rawState(): GameState {
     return this._state;
   }
 
-  touch(): void {
+  public touch(): void {
     this._version.update((v) => v + 1);
   }
 
-  t(path: string): any {
+  public t(path: string): any {
     return this.i18n.t(path);
   }
 
-  tf(path: string, vars: Record<string, any> = {}): string {
+  public tf(path: string, vars: Record<string, any> = {}): string {
     return this.i18n.tf(path, vars);
   }
 
-  equipmentName(key: string, kind: 'weapons' | 'armors'): string {
+  public equipmentName(key: string, kind: 'weapons' | 'armors'): string {
     return this.i18n.equipmentName(key, kind);
   }
 
@@ -50,7 +60,7 @@ export class GameStateService {
    * Crea uno stato di gioco completamente pulito.
    * Resetta la mappa, i nodi visitati e disattiva la vista mappa.
    */
-  freshState(prevLang: LangCode): GameState {
+  public freshState(prevLang: LangCode): GameState {
     return {
       screen: 'title',
       lang: prevLang || 'it',
@@ -58,8 +68,8 @@ export class GameStateService {
       depth: 0,
       monster: null,
       phase: null,
-      currentMap: null,       // Mappa non ancora generata
-      mapViewActive: false,   // Vista mappa inattiva di default
+      currentMap: null,
+      mapViewActive: false,
       combatFlags: {},
       log: [],
       pendingChoice: null,
@@ -82,22 +92,18 @@ export class GameStateService {
     };
   }
 
-  setLang(lang: LangCode): void {
-    const s = this.state();
-
-    s.lang = lang;
+  public setLang(lang: LangCode): void {
+    this._state.lang = lang;
     this.i18n.setLang(lang);
     this.touch();
   }
 
-  log(html: string, cls = ''): void {
-    const s = this.state();
-
-    s.log.push({ html, cls });
+  public log(html: string, cls = ''): void {
+    this._state.log.push({ html, cls });
     this.touch();
   }
 
-  async animateRollAsync(
+  public async animateRollAsync(
     finalValue: number | number[],
     sides: number,
     tag = '',
@@ -108,8 +114,7 @@ export class GameStateService {
     const count = values.length;
     const isEnemy = tag.startsWith('monster');
 
-    const s = this.state();
-    s.rollingDie = {
+    this._state.rollingDie = {
       active: true,
       value: totalSum,
       values,
@@ -120,7 +125,6 @@ export class GameStateService {
       isEnemy,
     };
     this.touch();
-
     await this.wait(SPIN_MS + 250);
 
     let cls = '';
@@ -129,7 +133,7 @@ export class GameStateService {
       else if (totalSum === 1) cls = 'fail';
     }
 
-    s.rollingDie = {
+    this._state.rollingDie = {
       active: false,
       value: totalSum,
       values,
@@ -140,36 +144,28 @@ export class GameStateService {
       isEnemy,
     };
     this.touch();
-
     await this.wait(DICE_SETTLE_MS + READ_RESULT_MS);
     return totalSum;
   }
 
-  wait(ms: number): Promise<void> {
+  public wait(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  toggleStats(): void {
-    const s = this.state();
-
-    s.statsExpanded = !s.statsExpanded;
-    s.inventoryExpanded = false;
+  public toggleStats(): void {
+    this._state.statsExpanded = !this._state.statsExpanded;
+    this._state.inventoryExpanded = false;
     this.touch();
   }
 
-  toggleInventory(): void {
-    const s = this.state();
-
-    s.inventoryExpanded = !s.inventoryExpanded;
-    s.statsExpanded = false;
+  public toggleInventory(): void {
+    this._state.inventoryExpanded = !this._state.inventoryExpanded;
+    this._state.statsExpanded = false;
     this.touch();
   }
 
-  /**
-   * Resetta completamente la sessione corrente per iniziare un nuovo tentativo.
-   */
   public restartGame(): void {
-    const lang = this.state().lang as LangCode;
+    const lang = this._state.lang as LangCode;
     this._state = this.freshState(lang);
     this.touch();
   }
