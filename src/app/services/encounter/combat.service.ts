@@ -643,9 +643,7 @@ export class CombatService {
     const baseMonsterXp = MONSTER_XP[s.monster!.id] || 15;
     const baseBossXp = BOSS_XP[s.monster!.id] || 80;
 
-    const xp = wasBoss
-      ? Math.max(baseBossXp + s.depth * 5, Math.ceil(levelXpReq * 0.25))
-      : Math.max(baseMonsterXp + Math.floor(s.depth * 2), Math.ceil(levelXpReq * 0.15));
+    const xp = wasBoss ? baseBossXp : baseMonsterXp;
 
     p.gold += gold;
     p.xp += xp;

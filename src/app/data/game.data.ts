@@ -14,10 +14,10 @@ export interface ClassData {
 }
 
 export const CLASS_DATA: Record<ClassKey, ClassData> = {
-  fighter: { primary: 'str', atkStat: 'str', hpBase: 10, armor: 3, armorKey: 'plate',     weaponKey: 'greatsword', weaponDice: [1, 10], hitDie: 10 },
-  rogue:   { primary: 'dex', atkStat: 'dex', hpBase: 8, armor: 3, armorKey: 'leather',   weaponKey: 'daggers',    weaponDice: [2, 4],  hitDie: 8 },
-  wizard:  { primary: 'int', atkStat: 'dex', hpBase: 6, armor: 2, armorKey: 'robes',     weaponKey: 'staff',      weaponDice: [1, 8],  hitDie: 6 },
-  cleric:  { primary: 'wis', atkStat: 'str', hpBase: 8, armor: 3, armorKey: 'chainmail', weaponKey: 'mace',       weaponDice: [1, 8],  hitDie: 8 }
+  fighter: { primary: 'str', atkStat: 'str', hpBase: 10, armor: 3, armorKey: 'plate', weaponKey: 'greatsword', weaponDice: [1, 10], hitDie: 10 },
+  rogue: { primary: 'dex', atkStat: 'dex', hpBase: 8, armor: 3, armorKey: 'leather', weaponKey: 'daggers', weaponDice: [2, 4], hitDie: 8 },
+  wizard: { primary: 'int', atkStat: 'dex', hpBase: 6, armor: 2, armorKey: 'robes', weaponKey: 'staff', weaponDice: [1, 8], hitDie: 6 },
+  cleric: { primary: 'wis', atkStat: 'str', hpBase: 8, armor: 3, armorKey: 'chainmail', weaponKey: 'mace', weaponDice: [1, 8], hitDie: 8 }
 };
 
 export function mod(stat: number): number {
