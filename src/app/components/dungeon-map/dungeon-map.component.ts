@@ -113,7 +113,7 @@ export class DungeonMapComponent implements AfterViewInit {
       case 'shrine':
         return 'sun';    // Altare sacro e radioso
       case 'merchant':
-        return 'bag';    // Sacco di monete del mercante
+        return 'scale';    // Sacco di monete del mercante
       case 'tavern':
         return 'cup';    // Boccale di idromele
       default:

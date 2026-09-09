@@ -47,6 +47,7 @@
           <div class="layer-nodes-row">
             @for (nodeId of layerData.nodeIds; track nodeId) {
             @if (currentMap()?.nodes?.[nodeId]; as node) {
+            <!-- all'interno del ciclo dei nodi -->
             <button type="button" class="map-node-card" [attr.data-node-id]="node.id"
               [class.locked]="node.status === 'locked'" [class.available]="node.status === 'available' && !isReadOnly()"
               [class.visited]="node.status === 'visited'" [class.current]="node.status === 'current'"

@@ -547,15 +547,17 @@
 
       <!-- PILLOLE BOTTINO -->
       <div style="display: flex; justify-content: center; gap: 12px; margin-top: 18px;">
+        <!-- ORO -->
         <div
           style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.4); border: 1px solid var(--gold); border-radius: var(--radius-sm); padding: 8px 12px; color: var(--gold-bright); font-family: var(--font-heading);">
           <app-icon name="coin" [size]="16"></app-icon>
           <span>+{{ treasure.gold }} {{ i18n.t('ui.goldLabel') }}</span>
         </div>
 
+        <!-- POZIONE IN VERDE SMERALDO -->
         @if (treasure.potion) {
         <div
-          style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.4); border: 1px solid #991b1b; border-radius: var(--radius-sm); padding: 8px 12px; color: #fca5a5; font-family: var(--font-heading);">
+          style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.4); border: 1px solid #16a34a; border-radius: var(--radius-sm); padding: 8px 12px; color: #86efac; font-family: var(--font-heading);">
           <app-icon name="flask" [size]="16"></app-icon>
           <span>+1 Pozione</span>
         </div>

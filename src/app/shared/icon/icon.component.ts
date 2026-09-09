@@ -12,7 +12,7 @@ export type IconName =
   | 'star'        // Esperienza (XP) / Carisma
   | 'coin'        // Oro
   | 'chest'       // Forziere
-  | 'bag'         // Mercante
+  | 'scale'         // Mercante
   | 'flask'       // Pozione
   | 'stairs'      // Mappa / Discesa
   | 'scroll'      // Pergamena / Evento
