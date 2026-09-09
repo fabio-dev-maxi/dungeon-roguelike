@@ -2,7 +2,7 @@
 <div class="modal-backdrop" (click)="isReadOnly() && closeMapReadOnly()">
   <div class="panel modal-box gothic-frame map-modal-box" (click)="$event.stopPropagation()">
 
-    <!-- HEADER MAPPA CON BOTTONE DI CHIUSURA QUANDO IN SOLA LETTURA -->
+    <!-- HEADER MAPPA -->
     <header class="map-header">
       <div class="header-left">
         <div class="sigil sigil--sm">
@@ -12,15 +12,15 @@
           <h2>{{ i18n.tf('ui.floorHeader', { depth: game.state().depth }) }}</h2>
           <span class="eyebrow">
             @if (isReadOnly()) {
-            Mappa della Guglia &bull; Consulta Sola Lettura
+            Mappa della Guglia &bull; Consulta Discesa (Nord &rarr; Sud)
             } @else {
-            Mappa della Guglia &bull; Scegli il Percorso
+            Mappa della Guglia &bull; Discesa negli Abissi
             }
           </span>
         </div>
       </div>
 
-      <!-- BOTTONE CHIUDI MAPPA IN SOLA LETTURA -->
+      <!-- BOTTONE CHIUDI QUANDO IN SOLA LETTURA -->
       @if (isReadOnly()) {
       <button type="button" class="btn btn--icon close-btn" (click)="closeMapReadOnly()" title="Chiudi Mappa">
         <app-icon name="x" [size]="18"></app-icon>
@@ -38,9 +38,9 @@
         }
       </svg>
 
-      <!-- STACK DEI LAYER VERTICALI (DAL LAYER 7 IN ALTO AL LAYER 1 IN BASSO) -->
+      <!-- STACK DEI LAYER VERTICALI: DISCESA DA LAYER 1 (NORD) A LAYER 7 (SUD) -->
       <div class="map-vertical-stack">
-        @for (layerData of reversedLayers(); track layerData.layerNum) {
+        @for (layerData of orderedLayers(); track layerData.layerNum) {
         <div class="map-layer-row" [attr.data-layer]="layerData.layerNum">
           <div class="layer-badge">L{{ layerData.layerNum }}</div>
 
@@ -68,7 +68,7 @@
                   @case ('current') { Posizione attuale }
                   @case ('visited') { Anfratto perlustrato }
                   @case ('available') {
-                  @if (isReadOnly()) { Sbloccato } @else { Clicca per avanzare }
+                  @if (isReadOnly()) { Sbloccato } @else { Clicca per scendere }
                   }
                   @default { Percorso non raggiungibile }
                   }

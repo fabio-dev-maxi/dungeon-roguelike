@@ -23,10 +23,12 @@ export interface MapConnectionLine {
 }
 
 /**
- * COMPONENTE MAPPA GOTICA VERTICALE
+ * COMPONENTE MAPPA GOTICA VERTICALE (DISCESA NORD -> SUD)
  * 
- * Gestisce il rendering del grafico, l'ispezione in sola lettura e la rivelazione
- * progressiva delle icone reali solo dopo la visita o per i nodi espliciti.
+ * Renderizza i 7 layer del piano con progressione dall'alto verso il basso (Nord -> Sud):
+ * - Layer 1 (Ingresso): In cima al modal.
+ * - Layer 2..6 (Ramificazioni): Nel cuore della discesa.
+ * - Layer 7 (Soglia del Boss): Negli abissi in fondo alla modale.
  */
 @Component({
   selector: 'app-dungeon-map',
@@ -42,16 +44,17 @@ export class DungeonMapComponent implements AfterViewInit {
   readonly currentMap = computed(() => this.game.state().currentMap);
   readonly isReadOnly = computed(() => this.game.state().phase !== 'map');
 
-  /** Inverte la visualizzazione dei layer: Layer 7 (Boss) in alto, Layer 1 in basso */
-  readonly reversedLayers = computed(() => {
+  /**
+   * Ordina i layer da Nord a Sud (dall'alto verso il basso) per accentuare l'effetto discesa:
+   * Layer 1 (Ingresso) in alto, Layer 7 (Boss) in fondo.
+   */
+  readonly orderedLayers = computed(() => {
     const map = this.currentMap();
     if (!map) return [];
-    return map.layers
-      .map((nodeIds, idx) => ({
-        layerNum: idx + 1,
-        nodeIds,
-      }))
-      .reverse();
+    return map.layers.map((nodeIds, idx) => ({
+      layerNum: idx + 1,
+      nodeIds,
+    }));
   });
 
   readonly connections = signal<MapConnectionLine[]>([]);
@@ -81,42 +84,40 @@ export class DungeonMapComponent implements AfterViewInit {
 
   /**
    * Determina se il nodo deve mostrare il punto interrogativo '?'.
-   * Se il nodo è già stato visitato o si trova al suo interno, rivela l'icona reale.
-   * Altrimenti si affida al flag `isMystery` impostato dal generatore.
+   * Se il nodo è già stato visitato o l'eroe vi si trova sopra, rivela l'icona reale.
    */
   public isHiddenMysteryNode(node: MapNode): boolean {
     if (node.status === 'visited' || node.status === 'current') {
-      return false; // Rivela la vera natura del nodo appena esplorato
+      return false; // Rivela la vera natura del nodo esplorato
     }
     return !!node.isMystery;
   }
 
   /**
-   * Restituisce l'icona specifica per il nodo.
-   * Ritorna `null` per i nodi misteriosi in modo da renderizzare '?' nel template.
-   */
+    * Mappa ciascun tipo di incontro all'icona SVG tematica corrispondente.
+    */
   public getNodeIcon(node: MapNode): IconName | null {
     if (this.isHiddenMysteryNode(node)) {
-      return null;
+      return null; // Mostra il punto interrogativo '?' per i nodi celati
     }
 
     switch (node.type) {
       case 'combat':
-        return 'swords'; // Icona spade incrociate per gli scontri con mostri visibili
+        return 'swords'; // Spade incrociate
       case 'boss':
-        return 'crown';
+        return 'crown';  // Corona del Custode
       case 'trap':
-        return 'skull';
+        return 'skull';  // Teschio delle trappole
       case 'treasure':
-        return 'coin';
+        return 'chest';  // Forziere del tesoro in ferro e legno
       case 'shrine':
-        return 'sun';
+        return 'sun';    // Altare sacro e radioso
       case 'merchant':
-        return 'scroll';
+        return 'bag';    // Sacco di monete del mercante
       case 'tavern':
-        return 'cup';
+        return 'cup';    // Boccale di idromele
       default:
-        return 'scroll';
+        return 'chest';
     }
   }
 
@@ -148,6 +149,9 @@ export class DungeonMapComponent implements AfterViewInit {
     }
   }
 
+  /**
+   * Traccia e aggiorna i collegamenti vettoriali SVG dall'alto verso il basso.
+   */
   private recalculateConnections(): void {
     const map = this.currentMap();
     const viewport = this.mapViewportRef?.nativeElement;
