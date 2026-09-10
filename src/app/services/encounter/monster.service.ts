@@ -22,14 +22,14 @@ export class MonsterService {
    */
   private getTierOptions(depth: number): WeightedItem<number>[] {
     if (depth === 1) return [{ v: 1, w: 100 }];
-    if (depth === 2) return [{ v: 1, w: 30 }, { v: 2, w: 70 }];
-    if (depth === 3) return [{ v: 2, w: 30 }, { v: 3, w: 70 }];
-    if (depth === 4) return [{ v: 3, w: 30 }, { v: 4, w: 70 }];
-    if (depth === 5) return [{ v: 4, w: 30 }, { v: 5, w: 70 }];
-    if (depth === 6) return [{ v: 5, w: 30 }, { v: 6, w: 70 }];
-    if (depth === 7) return [{ v: 6, w: 30 }, { v: 7, w: 70 }];
-    if (depth === 8) return [{ v: 7, w: 30 }, { v: 8, w: 70 }];
-    if (depth === 9) return [{ v: 8, w: 30 }, { v: 9, w: 70 }];
+    if (depth === 2) return [{ v: 1, w: 40 }, { v: 2, w: 60 }];
+    if (depth === 3) return [{ v: 2, w: 40 }, { v: 3, w: 60 }];
+    if (depth === 4) return [{ v: 3, w: 40 }, { v: 4, w: 60 }];
+    if (depth === 5) return [{ v: 4, w: 40 }, { v: 5, w: 60 }];
+    if (depth === 6) return [{ v: 5, w: 40 }, { v: 6, w: 60 }];
+    if (depth === 7) return [{ v: 6, w: 40 }, { v: 7, w: 60 }];
+    if (depth === 8) return [{ v: 7, w: 40 }, { v: 8, w: 60 }];
+    if (depth === 9) return [{ v: 8, w: 40 }, { v: 9, w: 60 }];
     if (depth <= 11) return [{ v: 8, w: 20 }, { v: 9, w: 80 }];
     if (depth <= 13) return [{ v: 9, w: 20 }, { v: 10, w: 80 }];
     return [{ v: 10, w: 90 }]; // Piani 14 e 15
