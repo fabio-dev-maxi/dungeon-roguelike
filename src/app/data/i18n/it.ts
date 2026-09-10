@@ -119,17 +119,57 @@ export const IT = {
 
     // Tier 5
     wyvern: 'Viverna',
-    vampire: 'Vampiro Antico',
-    demon: 'Demone dell\'Abisso',
-    beholder: 'Beholder',
+    mummy: 'Mummia Reale',
+    chimera_minor: 'Chimera Minore',
+    shadow: 'Ombra Inquietante',
 
     // Tier 6
+    vampire: 'Vampiro Antico',
+    beholder: 'Beholder',
+    young_dragon: 'Giovane Drago',
+    medusa: 'Medusa',
+
+    // Tier 7
+    demon: "Demone dell'Abisso",
     archmage: 'Arcimago Decaduto',
     death_knight: 'Cavaliere della Morte',
+    frost_giant: 'Gigante dei Ghiacci',
+
+    // Tier 8
     storm_giant: 'Gigante delle Tempeste',
-    iron_golem: 'Golem di Ferro'
+    iron_golem: 'Golem di Ferro',
+    lich_apprentice: 'Apprendista Lich',
+    marilith: 'Marilith',
+
+    // Tier 9
+    pit_fiend: 'Diavolo della Fossa',
+    solar: 'Solare Caduto',
+    ancient_dragon: 'Drago Antico',
+    balor: 'Balor',
+
+    // Tier 10
+    titan: 'Titano Ancestrale',
+    void_dragon: 'Drago del Vuoto',
+    empyrean: 'Empireo',
+    primordial: 'Primordiale'
   },
-  bosses: { boss1: 'Il Necroforgiato', boss2: "La Sposa dell'Abisso", boss3: 'Il Divoratore di Corone', chimera: 'La Chimera Infuocata', archdemon: "L'Arcidemone", lich: 'Il Lich', hydra: "L'Idra dai Sette Capi", dragon_red: 'Il Drago Rosso', kraken: 'Il Kraken degli Abissi', tarrasque: 'Il Tarrasque' },
+  bosses: { 
+  boss1: 'Il Necroforgiato', 
+  boss2: "La Sposa dell'Abisso", 
+  boss3: 'Il Divoratore di Corone', 
+  boss4: 'La Chimera Infuocata', 
+  boss5: "L'Arcidemone", 
+  boss6: 'Il Lich', 
+  boss7: "L'Idra dai Sette Capi", 
+  boss8: 'Il Drago Verde Adulto', 
+  boss9: 'Il Drago Rosso', 
+  boss10: 'Il Kraken degli Abissi', 
+  boss11: 'Il Balor delle Fiamme', 
+  boss12: 'Il Drago Blu Antico', 
+  boss13: 'Il Drago Supremo', 
+  boss14: 'Il Signore dei Pit Fiend', 
+  boss15: 'Il Tarrasque' 
+},
   prefixes: ['', '', 'Grande ', 'Antico ', 'Immane '],
   epitaphs: [
     "Il buio della Guglia Cava non restituisce cio che prende.",

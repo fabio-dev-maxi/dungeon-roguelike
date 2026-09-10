@@ -643,18 +643,28 @@ export class CombatService {
     const name = this.monsterService.monsterDisplayName(s.monster);
     const p = s.player!;
 
-    // Calcola l'XP richiesta per il livello attuale (20 * livello)
-    const levelXpReq = xpToNext(p.level);
-
     // BOTTINO ORO BASE
     const gold = this.dice.rollNdM(1, 6) + Math.floor(s.depth * 1.5);
 
-    // BOTTINO XP (Mostro: >= 25% XP livello, Boss: >= 55% XP livello)
     const wasBoss = s.monster!.isBoss;
-    const baseMonsterXp = MONSTER_XP[s.monster!.id] || 15;
-    const baseBossXp = BOSS_XP[s.monster!.id] || 80;
+    const baseMonsterXp = MONSTER_XP[s.monster!.id];
+    const baseBossXp = BOSS_XP[s.monster!.id];
 
-    const xp = wasBoss ? baseBossXp : baseMonsterXp;
+    const baseXp = wasBoss ? baseBossXp : baseMonsterXp;
+
+    // Moltiplicatori XP per bracket: 0 -> 100%, 1 -> 105%, 2 -> 110%, 3 -> 115%, 4 -> 120% (o 115%)
+    const bracketXpMultiplier: Record<number, number> = {
+      0: 0.95, // -5%
+      1: 1.00, // +0%
+      2: 1.10, // +10%
+      3: 1.15, // +15%
+      4: 1.20  // +20% (se presente)
+    };
+
+    const bracket = s.monster?.bracket ?? 1;
+    const multiplier = bracketXpMultiplier[bracket] ?? 1;
+
+    const xp = Math.round(baseXp * multiplier);
 
     p.gold += gold;
     p.xp += xp;

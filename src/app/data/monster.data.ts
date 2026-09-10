@@ -55,46 +55,66 @@ export const MONSTER_STATS: Record<string, MonsterStat> = {
 export interface BossStat extends MonsterStat { atDepth: number; }
 
 export const BOSS_STATS: Record<string, BossStat> = {
-  boss1: { hpBase: 20, dmg: [1, 6], ac: 14, atk: 2, atDepth: 5 },
-  boss2: { hpBase: 35, dmg: [2, 8], ac: 15, atk: 3, atDepth: 10 },
-  boss3: { hpBase: 50, dmg: [2, 10], ac: 16, atk: 4, atDepth: 15 },
-  chimera: { hpBase: 65, dmg: [3, 6], ac: 17, atk: 6, atDepth: 20 },
-  archdemon: { hpBase: 80, dmg: [3, 8], ac: 18, atk: 7, atDepth: 25 },
-  lich: { hpBase: 110, dmg: [3, 8], ac: 18, atk: 8, atDepth: 30 },
-  hydra: { hpBase: 140, dmg: [3, 10], ac: 19, atk: 10, atDepth: 35 },
-  dragon_red: { hpBase: 190, dmg: [4, 8], ac: 20, atk: 12, atDepth: 40 },
-  kraken: { hpBase: 230, dmg: [4, 10], ac: 21, atk: 13, atDepth: 45 },
-  tarrasque: { hpBase: 300, dmg: [5, 10], ac: 22, atk: 15, atDepth: 50 }
+  boss1: { hpBase: 25, dmg: [1, 6], ac: 13, atk: 2, atDepth: 1 },       // Il Necroforgiato
+  boss2: { hpBase: 40, dmg: [2, 4], ac: 14, atk: 3, atDepth: 2 },       // La Sposa dell'Abisso
+  boss3: { hpBase: 60, dmg: [2, 6], ac: 14, atk: 4, atDepth: 3 },       // Il Divoratore di Corone
+  boss4: { hpBase: 85, dmg: [2, 8], ac: 15, atk: 5, atDepth: 4 },       // La Chimera Infuocata
+  boss5: { hpBase: 110, dmg: [3, 6], ac: 15, atk: 6, atDepth: 5 },      // L'Arcidemone
+  boss6: { hpBase: 140, dmg: [3, 8], ac: 16, atk: 7, atDepth: 6 },      // Il Lich
+  boss7: { hpBase: 175, dmg: [3, 10], ac: 17, atk: 8, atDepth: 7 },     // L'Idra dai Sette Capi
+  boss8: { hpBase: 215, dmg: [4, 6], ac: 17, atk: 9, atDepth: 8 },      // Il Drago Verde Adulto
+  boss9: { hpBase: 260, dmg: [4, 8], ac: 18, atk: 10, atDepth: 9 },     // Il Drago Rosso
+  boss10: { hpBase: 310, dmg: [4, 10], ac: 19, atk: 11, atDepth: 10 },  // Il Kraken degli Abissi
+  boss11: { hpBase: 365, dmg: [5, 6], ac: 19, atk: 12, atDepth: 11 },   // Il Balor delle Fiamme
+  boss12: { hpBase: 425, dmg: [5, 8], ac: 20, atk: 13, atDepth: 12 },   // Il Drago Blu Antico
+  boss13: { hpBase: 490, dmg: [5, 10], ac: 21, atk: 14, atDepth: 13 },  // Il Drago Supremo
+  boss14: { hpBase: 560, dmg: [6, 8], ac: 22, atk: 15, atDepth: 14 },   // Il Signore dei Pit Fiend
+  boss15: { hpBase: 650, dmg: [6, 10], ac: 23, atk: 16, atDepth: 15 }   // Il Tarrasque
 };
 
 export const BOSS_IDS = Object.keys(BOSS_STATS);
 
 export const MONSTER_XP: Record<string, number> = {
-  // Tier 1
-  rat: 8, goblin: 10, skeleton: 12, raven: 9,
-  // Tier 2
-  orc: 18, wolf: 16, ghoul: 17, knight: 20,
-  // Tier 3
-  ogre: 30, wraith: 28, troll: 35, basilisk: 32,
-  // Tier 4
-  manticore: 45, minotaur: 50, gargoyle: 42, vampire_spawn: 55,
-  // Tier 5
-  wyvern: 70, vampire: 85, demon: 100, beholder: 120,
-  // Tier 6
-  archmage: 140, death_knight: 165, storm_giant: 220, iron_golem: 250
+  // Tier 1 (Piano 1)
+  rat: 120, goblin: 150, skeleton: 180, raven: 150,
+  // Tier 2 (Piano 2)
+  orc: 280, wolf: 300, ghoul: 320, knight: 300,
+  // Tier 3 (Piano 3)
+  ogre: 420, wraith: 450, troll: 480, basilisk: 450,
+  // Tier 4 (Piano 4)
+  manticore: 580, minotaur: 600, gargoyle: 620, vampire_spawn: 600,
+  // Tier 5 (Piano 5-6)
+  wyvern: 800, mummy: 850, chimera_minor: 900, shadow: 850,
+  // Tier 6 (Piano 6-7)
+  vampire: 1100, beholder: 1200, young_dragon: 1300, medusa: 1200,
+  // Tier 7 (Piano 8-9)
+  demon: 1800, archmage: 2000, death_knight: 2200, frost_giant: 2000,
+  // Tier 8 (Piano 10-11)
+  storm_giant: 3200, iron_golem: 3500, lich_apprentice: 3800, marilith: 3500,
+  // Tier 9 (Piano 12-13)
+  pit_fiend: 4200, solar: 4500, ancient_dragon: 4800, balor: 4500,
+  // Tier 10 (Piano 14-15)
+  titan: 4700, void_dragon: 4800, empyrean: 4750, primordial: 4750
 };
 
 export const BOSS_XP: Record<string, number> = { 
-  boss1: 80, 
-  boss2: 150, 
-  boss3: 250,
-  chimera: 300,
-  archdemon: 350,
-  lich: 400,
-  hydra: 550,
-  dragon_red: 800,
-  kraken: 1100,
-  tarrasque: 1600
+  boss1: 400,         // Piano 1 (Goblin Chief / Boss Tier 1)
+  boss2: 800,        // Piano 2 (Ogre Chieftain)
+  boss3: 1200,        // Piano 3 (Hill Giant)
+  boss4: 1600,        // Piano 4 (Chimera)
+  boss5: 2000,        // Piano 5 (Archdemon / Young Dragon)
+  boss6: 3000,       // Piano 6 (Lich)
+  boss7: 4000,       // Piano 7 (Hydra)
+  boss8: 6000,       // Piano 8 (Adult Green Dragon)
+  boss9: 8000,       // Piano 9 (Red Dragon)
+  boss10: 10000,      // Piano 10 (Kraken)
+  boss11: 12000,      // Piano 11 (Balor)
+  boss12: 15000,      // Piano 12 (Ancient Blue Dragon)
+  boss13: 18000,      // Piano 13 (Great Wyrm)
+  boss14: 20000,      // Piano 14 (Pit Fiend)
+  boss15: 30000     // Piano 15 (Tarrasque - Boss Finale)
 };
 
-export function xpToNext(level: number): number { return 20 * level; }
+export function xpToNext(level: number): number {
+  return 1000 * level;
+}
