@@ -97,6 +97,11 @@ export class GameService {
     return this.monsterService.monsterDisplayName(m);
   }
 
+  /** Cambia il bersaglio dei prossimi attacchi del giocatore fra i mostri in campo. */
+  selectTargetMonster(index: number): void {
+    this.combatService.selectTargetMonster(index);
+  }
+
   // --- ENCOUNTERS & EXPLORATION ---
   startFloor(): void {
     this.encounterService.startFloor();

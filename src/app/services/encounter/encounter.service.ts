@@ -142,20 +142,28 @@ export class EncounterService {
     this.stateService.touch();
   }
 
+  /**
+   * Avvia l'incontro di combattimento. Nei nodi 'combat' può generare 1 o 2 mostri
+   * (vedi MonsterService.makeMonsters); i nodi 'boss' generano sempre un solo Custode.
+   * Il bersaglio di default è sempre monsters[0] (il primo, in cima alla colonna destra).
+   */
   private initCombatEncounter(floorNumber: number, isBossNode: boolean): void {
     const s = this.stateService.state();
-    const m = this.monsterService.makeMonster(floorNumber, isBossNode);
-    s.monster = m;
+    const monsters = this.monsterService.makeMonsters(floorNumber, isBossNode);
+    s.monsters = monsters;
+    s.targetMonsterIndex = 0;
     s.combatFlags = {};
     s.phase = 'combat';
     this.stateService.touch();
 
-    const name = this.monsterService.monsterDisplayName(m);
-    this.stateService.log(
-      m.isBoss
-        ? this.stateService.tf('log.bossAppear', { name })
-        : this.stateService.tf('log.monsterAppear', { name })
-    );
+    monsters.forEach((m) => {
+      const name = this.monsterService.monsterDisplayName(m);
+      this.stateService.log(
+        m.isBoss
+          ? this.stateService.tf('log.bossAppear', { name })
+          : this.stateService.tf('log.monsterAppear', { name })
+      );
+    });
   }
 
   /**

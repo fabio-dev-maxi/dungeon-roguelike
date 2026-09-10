@@ -135,50 +135,49 @@
   <!-- ==========================================================================
        TAB 3: CUSTODI DEI PIANI (BOSS DI LAYER 7)
        ========================================================================== -->
-  @if (activeTab() === 'bosses') {
-  <div class="section-container">
-    <div class="wiki-card gothic-frame">
-      <h3>I Custodi dei Piani</h3>
-      <table class="wiki-table">
-        <thead>
-          <tr>
-            <th>Piano</th>
-            <th>Boss</th>
-            <th>PF Base</th>
-            <th>Dado Danno</th>
-            <th>CA</th>
-            <th>TxC Base</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (id of Object.keys(customData.bosses()); track id) {
-          @if (customData.bosses()[id]; as b) {
-          <tr>
-            <td class="num">Piano {{ b.atDepth }}</td>
-            <td><b class="highlight">{{ i18n.t('bosses.' + id) }}</b></td>
-            <td>
-              <input type="text" inputmode="numeric" [(ngModel)]="b.hpBase" (input)="customData.saveChanges()">
-            </td>
-            <td>
-              <input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="b.dmg[0]"
-                (input)="customData.saveChanges()"> d
-              <input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="b.dmg[1]"
-                (input)="customData.saveChanges()">
-            </td>
-            <td>
-              <input type="text" inputmode="numeric" [(ngModel)]="b.ac" (input)="customData.saveChanges()">
-            </td>
-            <td>
-              <input type="text" inputmode="numeric" [(ngModel)]="b.atk" (input)="customData.saveChanges()">
-            </td>
-          </tr>
-          }
-          }
-        </tbody>
-      </table>
-    </div>
+  <!-- TAB 3: CUSTODI DEI PIANI (BOSS DI FINE PIANO) -->
+@if (activeTab() === 'bosses') {
+<div class="section-container">
+  <div class="wiki-card gothic-frame">
+    <h3>I Custodi dei Piani (1 per ogni Piano)</h3>
+    <table class="wiki-table">
+      <thead>
+        <tr>
+          <th>Piano</th>
+          <th>Boss</th>
+          <th>PF Base</th>
+          <th>Dado Danno</th>
+          <th>CA</th>
+          <th>TxC Base</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (id of sortedBossIds; track id) {
+        @if (customData.bosses()[id]; as b) {
+        <tr>
+          <td class="num">Piano {{ b.atDepth }}</td>
+          <td><b class="highlight">{{ i18n.t('bosses.' + id) }}</b></td>
+          <td>
+            <input type="text" inputmode="numeric" [(ngModel)]="b.hpBase" (input)="customData.saveChanges()">
+          </td>
+          <td>
+            <input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="b.dmg[0]" (input)="customData.saveChanges()"> d
+            <input style="width: 38px;" type="text" inputmode="numeric" [(ngModel)]="b.dmg[1]" (input)="customData.saveChanges()">
+          </td>
+          <td>
+            <input type="text" inputmode="numeric" [(ngModel)]="b.ac" (input)="customData.saveChanges()">
+          </td>
+          <td>
+            <input type="text" inputmode="numeric" [(ngModel)]="b.atk" (input)="customData.saveChanges()">
+          </td>
+        </tr>
+        }
+        }
+      </tbody>
+    </table>
   </div>
-  }
+</div>
+}
 
   <!-- ==========================================================================
        TAB 4: EQUIPAGGIAMENTO (ARMI ED ARMATURE DI CLASSE)

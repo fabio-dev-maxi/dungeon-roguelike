@@ -787,9 +787,41 @@
   text-transform: uppercase;
 }
 
-/* SCHEDA MOSTRO DESTRA */
-.enemy-card {
-  border-color: var(--stone-line);
+/* COLONNA MOSTRI (DESTRA): contiene 1 o 2 combatant-card */
+.enemy-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.enemy-column .enemy-card {
+  height: 442px;
+}
+
+.enemy-column.multi .enemy-card {
+  height: 216px;
+}
+
+.enemy-card.clickable {
+  cursor: pointer;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.15s ease, opacity 0.18s ease;
+}
+
+.enemy-card.clickable:hover {
+  border-color: var(--gold-dim);
+  transform: translateY(-1px);
+}
+
+.enemy-card.targeted {
+  border-color: var(--blood-bright);
+  box-shadow: 0 0 18px rgba(193, 68, 59, 0.35);
+}
+
+.enemy-card.defeated {
+  opacity: 0.35;
+  filter: grayscale(0.6);
+  cursor: default;
+  pointer-events: none;
 }
 
 .enemy-card.boss-card {
@@ -798,6 +830,10 @@
 }
 
 .enemy-tag-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
   margin-bottom: 2px;
 }
 
@@ -814,6 +850,20 @@
   color: var(--blood-bright);
   font-weight: 700;
   text-transform: uppercase;
+}
+
+.target-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.6rem;
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: rgba(193, 68, 59, 0.18);
+  border: 1px solid var(--blood-bright);
+  color: #ffb3a7;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .enemy-traits-box {
@@ -873,6 +923,56 @@
   display: none;
 }
 
+.hud-enemies {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.hud-fighter.enemy {
+  cursor: pointer;
+}
+
+.hud-fighter.enemy.targeted .hud-name {
+  color: var(--blood-bright);
+}
+
+.hud-fighter.enemy.defeated {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Annulla lo "space-between" per compattare i mostri dall'alto */
+.combatant-card.multi-panel {
+  justify-content: flex-start !important;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+/* Stile box dedicato per ciascun mostro dentro la scheda unica */
+.multi-panel .card-top-content {
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--stone-line-soft);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.15s ease;
+}
+
+/* Evidenzia il mostro bersagliato */
+.multi-panel .card-top-content.targeted {
+  border-color: var(--blood-bright);
+  box-shadow: 0 0 14px rgba(193, 68, 59, 0.35);
+  background: rgba(139, 0, 0, 0.15);
+}
+
+/* Effetto al passaggio del mouse sui mostri selezionabili */
+.multi-panel .card-top-content.clickable:hover:not(.defeated) {
+  border-color: var(--gold-dim);
+  transform: translateY(-1px);
+}
+
 /* ==========================================================================
    ADATTAMENTO MOBILE (< 768px)
    ========================================================================== */
@@ -883,6 +983,12 @@
   }
 
   .combatant-card {
+    height: auto !important;
+  }
+
+  .enemy-column,
+  .enemy-column .enemy-card,
+  .enemy-column.multi .enemy-card {
     height: auto !important;
   }
 
@@ -974,7 +1080,7 @@
     order: 3;
   }
 
-  .combatant-card.enemy-card {
+  .enemy-column {
     order: 4;
   }
 

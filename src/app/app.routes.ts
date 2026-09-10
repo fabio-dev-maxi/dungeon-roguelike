@@ -10,7 +10,7 @@ export const routes: Routes = [
   },
   {
     path: 'wiki',
-    loadChildren: () => import('./components/admin-section/wiki/wiki.component').then(m => m.WikiComponent)
+    loadComponent: () => import('./components/admin-section/wiki/wiki.component').then(m => m.WikiComponent)
   },
   { path: '404', component: NotFoundComponent },
   { path: '**', redirectTo: '404' }

@@ -1,10 +1,19 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  signal,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '../../../services/i18n.service';
 import { CustomDataService } from '../../../services/custom-data.service';
 import { CLASS_KEYS, CLASS_FEATS } from '../../../data/game.data';
-import { MONSTER_IDS_TIER, MONSTER_XP, BOSS_XP } from '../../../data/monster.data';
+import {
+  MONSTER_IDS_TIER,
+  MONSTER_XP,
+  BOSS_XP,
+} from '../../../data/monster.data';
 import { ClassKey } from '../../../models/game.models';
 import { RELICS } from '../../../data/relic.data';
 
@@ -12,11 +21,17 @@ import { RELICS } from '../../../data/relic.data';
  * Tipi di schede/tab selezionabili nel compendio della Wiki.
  * Include il nuovo sistema di mappe a nodi DAG e le schede storiche.
  */
-export type WikiTab = 'map_system' | 'monsters' | 'bosses' | 'equipment' | 'relics_feats' | 'heroes';
+export type WikiTab =
+  | 'map_system'
+  | 'monsters'
+  | 'bosses'
+  | 'equipment'
+  | 'relics_feats'
+  | 'heroes';
 
 /**
  * COMPONENTE WIKI & EDITOR STATISTICHE
- * 
+ *
  * Permette la consultazione del compendio di D&D 3.5, della struttura del dungeon a 7 layer
  * e la modifica in tempo reale delle statistiche di mostri, armi, armature ed eroi.
  * Sviluppato con architettura Angular 20 Standalone e ChangeDetection OnPush.
@@ -27,7 +42,7 @@ export type WikiTab = 'map_system' | 'monsters' | 'bosses' | 'equipment' | 'reli
   imports: [RouterLink, FormsModule],
   templateUrl: './wiki.component.html',
   styleUrl: './wiki.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WikiComponent {
   /** Espone l'oggetto globale JavaScript Object al template HTML per metodi come Object.keys() */
@@ -89,7 +104,7 @@ export class WikiComponent {
   constructor(
     public i18n: I18nService,
     public customData: CustomDataService
-  ) { }
+  ) {}
 
   /**
    * Cambia la scheda/tab attiva nella vista Wiki.
@@ -112,5 +127,13 @@ export class WikiComponent {
    */
   resetDefaults(): void {
     this.customData.resetToDefaults();
+  }
+
+  // Aggiungi questo metodo nella classe WikiComponent in app/components/admin-section/wiki/wiki.component.ts
+  get sortedBossIds(): string[] {
+    const bosses = this.customData.bosses();
+    return Object.keys(bosses).sort(
+      (a, b) => bosses[a].atDepth - bosses[b].atDepth
+    );
   }
 }

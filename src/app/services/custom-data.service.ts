@@ -6,6 +6,12 @@ import { PREMADE_HEROES, PremadeHero } from '../data/premade-heroes.data';
 import { ClassKey } from '../models/game.models';
 
 const STORAGE_KEY = 'guglia_cava_custom_data';
+// Aggiungi una chiave per la versione dei dati
+const STORAGE_VERSION_KEY = 'guglia_cava_data_version'; 
+
+// Incrementa questo numero ogni volta che modifichi i file .data.ts
+// L'app cancellerà automaticamente i vecchi salvataggi e caricherà i nuovi.
+const CURRENT_DATA_VERSION = 1; 
 
 @Injectable({ providedIn: 'root' })
 export class CustomDataService {
@@ -17,9 +23,25 @@ export class CustomDataService {
   heroes = signal<Record<ClassKey, PremadeHero[]>>(this.loadInitial('heroes', PREMADE_HEROES));
 
   constructor() {
+    this.checkVersion();
+
     effect(() => {
       this.saveChanges();
     });
+  }
+
+  /**
+   * Controlla la versione dei dati nel LocalStorage rispetto a quella hardcoded.
+   * Se c'è una nuova versione nel codice, spiana il LocalStorage e forza il reload dei default.
+   */
+  private checkVersion(): void {
+    const savedVersion = localStorage.getItem(STORAGE_VERSION_KEY);
+    
+    if (!savedVersion || Number(savedVersion) !== CURRENT_DATA_VERSION) {
+      console.log(`Versione Dati aggiornata (V${CURRENT_DATA_VERSION}). Ricaricamento default in corso...`);
+      this.resetToDefaults();
+      localStorage.setItem(STORAGE_VERSION_KEY, String(CURRENT_DATA_VERSION));
+    }
   }
 
   saveChanges(): void {
@@ -36,6 +58,8 @@ export class CustomDataService {
 
   resetToDefaults(): void {
     localStorage.removeItem(STORAGE_KEY);
+    
+    // Riassegna i valori predefiniti freschi clonandoli
     this.monsters.set(JSON.parse(JSON.stringify(MONSTER_STATS)));
     this.bosses.set(JSON.parse(JSON.stringify(BOSS_STATS)));
     this.weapons.set(JSON.parse(JSON.stringify(WEAPON_POOLS)));

@@ -8,15 +8,24 @@ import {
 import { CLASS_DATA, mod } from '../../data/game.data';
 import { BOSS_XP, MONSTER_XP, xpToNext } from '../../data/monster.data';
 import { applyRelicEffect, RELIC_CLASS_POOLS } from '../../data/relic.data';
-import { DropInfo } from '../../models/game.models';
+import { DropInfo, Monster } from '../../models/game.models';
 import { DiceService } from '../dice/dice.service';
 import { GameStateService } from '.././game-state.service';
 import { MonsterService } from './monster.service';
 import { LevelUpService } from './level-up.service';
 import { PotionService } from './potion.service';
 
+interface MonsterReward {
+  name: string;
+  gold: number;
+  xp: number;
+}
+
 /**
  * Gestisce la logica di combattimento, attacchi speciali, animazioni dadi 3D e ricompense dei Boss.
+ * Supporta scontri contro 1 o 2 mostri simultanei (vedi MonsterService.makeMonsters):
+ * il giocatore attacca sempre il mostro "bersagliato" (state.targetMonsterIndex, default 0),
+ * mentre nel turno nemico TUTTI i mostri vivi attaccano in sequenza.
  */
 @Injectable({ providedIn: 'root' })
 export class CombatService {
@@ -47,10 +56,43 @@ export class CombatService {
     return confirmed;
   }
 
+  // --- SELEZIONE BERSAGLIO ---
+
+  /**
+   * Restituisce il mostro attualmente bersagliato (se vivo), o il primo mostro vivo disponibile
+   * (e aggiorna l'indice di conseguenza). Restituisce null se nessun mostro è in vita.
+   */
+  private getTargetMonster(): Monster | null {
+    const s = this.stateService.state();
+    if (!s.monsters || s.monsters.length === 0) return null;
+
+    const current = s.monsters[s.targetMonsterIndex];
+    if (current && current.hp > 0) return current;
+
+    const aliveIdx = s.monsters.findIndex((m) => m.hp > 0);
+    if (aliveIdx === -1) return null;
+
+    s.targetMonsterIndex = aliveIdx;
+    this.stateService.touch();
+    return s.monsters[aliveIdx];
+  }
+
+  /** Chiamato dall'UI quando il giocatore clicca su un mostro per cambiare bersaglio. */
+  public selectTargetMonster(index: number): void {
+    const s = this.stateService.state();
+    if (s.combatFlags.acting) return;
+    const m = s.monsters[index];
+    if (!m || m.hp <= 0) return;
+    s.targetMonsterIndex = index;
+    this.stateService.touch();
+  }
 
   async playerAttack(): Promise<void> {
     const s = this.stateService.state();
     if (s.combatFlags.acting) return;
+    const target = this.getTargetMonster();
+    if (!target) return;
+
     s.combatFlags.acting = true;
 
     const p = s.player!;
@@ -70,7 +112,7 @@ export class CombatService {
     // 1. Tiro per Colpire (d20)
     const attackRoll = this.dice.rnd(20);
     const total = attackRoll + statMod;
-    const hit = attackRoll === 20 || total >= s.monster!.ac;
+    const hit = attackRoll === 20 || total >= target.ac;
     const criticalThreat = hit && attackRoll >= critThreshold;
 
     const raw = await this.stateService.animateRollAsync(
@@ -80,9 +122,8 @@ export class CombatService {
       criticalThreat ? critThreshold : 21
     );
 
-    const cur = this.stateService.state();
     const isCrit =
-      criticalThreat && (await this.confirmCritical(cur.monster!.ac, statMod));
+      criticalThreat && (await this.confirmCritical(target.ac, statMod));
 
     if (raw === 1) {
       this.stateService.log(
@@ -90,6 +131,7 @@ export class CombatService {
         'dmg hero'
       );
     } else if (hit) {
+      const cur = this.stateService.state();
       const [n, d] = cur.player!.weapon.dice;
       const bonus =
         mod(cur.player!.stats[c.atkStat]) +
@@ -120,11 +162,7 @@ export class CombatService {
         critTxt += ' <b>[COLPO PODEROSO!]</b>';
       }
 
-      cur.monster!.hp = this.dice.clamp(
-        cur.monster!.hp - dmg,
-        0,
-        cur.monster!.maxHp
-      );
+      target.hp = this.dice.clamp(target.hp - dmg, 0, target.maxHp);
 
       this.stateService.touch();
       this.stateService.log(
@@ -132,7 +170,7 @@ export class CombatService {
           roll: raw,
           mod: this.dice.fmtMod(statMod),
           total,
-          ac: cur.monster!.ac,
+          ac: target.ac,
           dmgRoll,
           dmgMax,
           dmg,
@@ -146,16 +184,19 @@ export class CombatService {
           roll: raw,
           mod: this.dice.fmtMod(statMod),
           total,
-          ac: cur.monster!.ac,
+          ac: target.ac,
         }),
         'hero'
       );
     }
 
-    if (cur.monster && cur.monster.hp <= 0) {
-      cur.combatFlags.acting = false;
-      this.monsterDefeated();
-      return;
+    if (target.hp <= 0) {
+      const ended = this.handleMonsterDefeat(target);
+      if (ended) {
+        this.stateService.state().combatFlags.acting = false;
+        this.stateService.touch();
+        return;
+      }
     }
 
     await this.monsterTurn();
@@ -193,6 +234,13 @@ export class CombatService {
     this.stateService.touch();
 
     if (cls === 'fighter') {
+      const target = this.getTargetMonster();
+      if (!target) {
+        this.stateService.state().combatFlags.acting = false;
+        this.stateService.touch();
+        return;
+      }
+
       p.mightyBlowActive = true;
       p.usedSpecial = true;
       const powerAttackOn = !!p.powerAttackActive;
@@ -207,7 +255,7 @@ export class CombatService {
       // 1. Tiro per Colpire speciale (d20)
       const attackRoll = this.dice.rnd(20);
       const total = attackRoll + statMod;
-      const hit = attackRoll === 20 || total >= s.monster!.ac;
+      const hit = attackRoll === 20 || total >= target.ac;
       const criticalThreat = hit && attackRoll >= critThreshold;
 
       const raw = await this.stateService.animateRollAsync(
@@ -218,7 +266,7 @@ export class CombatService {
       );
 
       const isCrit =
-        criticalThreat && (await this.confirmCritical(s.monster!.ac, statMod));
+        criticalThreat && (await this.confirmCritical(target.ac, statMod));
 
       if (raw === 1) {
         this.stateService.log(
@@ -251,11 +299,7 @@ export class CombatService {
 
         p.mightyBlowActive = false;
 
-        s.monster!.hp = this.dice.clamp(
-          s.monster!.hp - dmg,
-          0,
-          s.monster!.maxHp
-        );
+        target.hp = this.dice.clamp(target.hp - dmg, 0, target.maxHp);
 
         this.stateService.touch();
 
@@ -264,7 +308,7 @@ export class CombatService {
             roll: raw,
             mod: this.dice.fmtMod(statMod),
             total,
-            ac: s.monster!.ac,
+            ac: target.ac,
             dmgRoll,
             dmgMax,
             dmg,
@@ -278,19 +322,29 @@ export class CombatService {
             roll: raw,
             mod: this.dice.fmtMod(statMod),
             total,
-            ac: s.monster!.ac,
+            ac: target.ac,
           }),
           'hero'
         );
       }
 
-      if (s.monster!.hp <= 0) {
-        s.combatFlags.acting = false;
-        this.monsterDefeated();
-        return;
+      if (target.hp <= 0) {
+        const ended = this.handleMonsterDefeat(target);
+        if (ended) {
+          this.stateService.state().combatFlags.acting = false;
+          this.stateService.touch();
+          return;
+        }
       }
       await this.monsterTurn();
     } else if (cls === 'rogue') {
+      const target = this.getTargetMonster();
+      if (!target) {
+        this.stateService.state().combatFlags.acting = false;
+        this.stateService.touch();
+        return;
+      }
+
       const statMod =
         mod(p.stats.dex) + (p.tempAtkBonus || 0) + (p.flatAtkBonus || 0) + 3;
 
@@ -305,7 +359,7 @@ export class CombatService {
       );
 
       const total = raw + statMod;
-      const hit = raw === 20 || total >= s.monster!.ac;
+      const hit = raw === 20 || total >= target.ac;
 
       if (hit) {
         const bonus =
@@ -324,11 +378,7 @@ export class CombatService {
         const mult = p.critMultiplier || 2;
         const dmg = Math.floor((dmgRoll + bonus) * mult);
 
-        s.monster!.hp = this.dice.clamp(
-          s.monster!.hp - dmg,
-          0,
-          s.monster!.maxHp
-        );
+        target.hp = this.dice.clamp(target.hp - dmg, 0, target.maxHp);
 
         this.stateService.touch();
         this.stateService.log(
@@ -349,13 +399,23 @@ export class CombatService {
         );
       }
       p.usedSpecial = true;
-      if (s.monster!.hp <= 0) {
-        s.combatFlags.acting = false;
-        this.monsterDefeated();
-        return;
+      if (target.hp <= 0) {
+        const ended = this.handleMonsterDefeat(target);
+        if (ended) {
+          this.stateService.state().combatFlags.acting = false;
+          this.stateService.touch();
+          return;
+        }
       }
       await this.monsterTurn();
     } else if (cls === 'wizard') {
+      const target = this.getTargetMonster();
+      if (!target) {
+        this.stateService.state().combatFlags.acting = false;
+        this.stateService.touch();
+        return;
+      }
+
       const bonus =
         mod(p.stats.int) + (p.specialBonusDmg || 0) + (p.flatDmgBonus || 0);
 
@@ -367,7 +427,7 @@ export class CombatService {
       const dmgMax = 8;
       const dmg = dmgRoll + bonus;
 
-      s.monster!.hp = this.dice.clamp(s.monster!.hp - dmg, 0, s.monster!.maxHp);
+      target.hp = this.dice.clamp(target.hp - dmg, 0, target.maxHp);
       p.tempAcBonus = (p.tempAcBonus || 0) + 2;
 
       this.stateService.touch();
@@ -383,10 +443,13 @@ export class CombatService {
       );
       p.usedSpecial = true;
 
-      if (s.monster!.hp <= 0) {
-        s.combatFlags.acting = false;
-        this.monsterDefeated();
-        return;
+      if (target.hp <= 0) {
+        const ended = this.handleMonsterDefeat(target);
+        if (ended) {
+          this.stateService.state().combatFlags.acting = false;
+          this.stateService.touch();
+          return;
+        }
       }
       await this.monsterTurn();
     } else if (cls === 'cleric') {
@@ -518,7 +581,8 @@ export class CombatService {
     );
 
     if (success) {
-      cur.monster = null;
+      cur.monsters = [];
+      cur.targetMonsterIndex = 0;
       cur.phase = 'explore';
     } else {
       await this.monsterTurn();
@@ -528,21 +592,41 @@ export class CombatService {
     this.stateService.touch();
   }
 
+  /**
+   * Turno nemico: TUTTI i mostri vivi (snapshot ad inizio turno) attaccano in sequenza.
+   * Si interrompe immediatamente se il giocatore va a 0 PF (gameOver già innescato).
+   */
   async monsterTurn(): Promise<void> {
     const s = this.stateService.state();
-    if (!s.monster || s.monster.hp <= 0) return;
+    const aliveMonsters = s.monsters.filter((m) => m.hp > 0);
+    if (aliveMonsters.length === 0) return;
 
-    const p = s.player!;
-    const name = this.monsterService.monsterDisplayName(s.monster);
     const defending = !!s.combatFlags.defending;
     s.combatFlags.defending = false;
+    this.stateService.touch();
+
+    for (const monster of aliveMonsters) {
+      const cur = this.stateService.state();
+      if (!cur.player || cur.player.hp <= 0) break;
+
+      await this.singleMonsterAttack(monster, defending);
+
+      const after = this.stateService.state();
+      if (!after.player || after.player.hp <= 0) break;
+    }
+  }
+
+  private async singleMonsterAttack(monster: Monster, defending: boolean): Promise<void> {
+    const s = this.stateService.state();
+    const p = s.player!;
+    const name = this.monsterService.monsterDisplayName(monster);
 
     const acBonus = defending ? 4 : 0;
-    const monsterAtkMod = s.monster.atk;
+    const monsterAtkMod = monster.atk;
     const targetAC = p.ac + acBonus + (p.tempAcBonus || 0) + (p.combatExpertiseActive ? 2 : 0);
     this.stateService.touch();
 
-    // 1. Tiro per Colpire del Nemico (d20) - Passa 20 come soglia critico per evidenziare il dado
+    // 1. Tiro per Colpire del Nemico (d20)
     const attackRoll = this.dice.rnd(20);
     const total = attackRoll + monsterAtkMod;
     const hit = attackRoll === 20 || total >= targetAC;
@@ -570,7 +654,7 @@ export class CombatService {
         'flavor enemy'
       );
     } else if (hit) {
-      const [n, d] = cur.monster!.dmg;
+      const [n, d] = monster.dmg;
 
       const dmgRolls = Array.from({ length: n }, () => this.dice.rollDie(d));
       const dmgMax = n * d;
@@ -633,77 +717,100 @@ export class CombatService {
     }
   }
 
-  /**
-   * Risoluzione della vittoria in combattimento:
-   * Calcola XP dinamica scalata sul costo del livello attuale dell'eroe, 
-   * garantendo almeno 1 passaggio di livello per piano completato.
-   */
-  monsterDefeated(): void {
-    const s = this.stateService.state();
-    const name = this.monsterService.monsterDisplayName(s.monster);
-    const p = s.player!;
+  // --- RISOLUZIONE VITTORIA ---
 
-    // BOTTINO ORO BASE
+  private computeMonsterReward(monster: Monster): MonsterReward {
+    const s = this.stateService.state();
+    const name = this.monsterService.monsterDisplayName(monster);
     const gold = this.dice.rollNdM(1, 6) + Math.floor(s.depth * 1.5);
 
-    const wasBoss = s.monster!.isBoss;
-    const baseMonsterXp = MONSTER_XP[s.monster!.id];
-    const baseBossXp = BOSS_XP[s.monster!.id];
-
-    const baseXp = wasBoss ? baseBossXp : baseMonsterXp;
-
-    // Moltiplicatori XP per bracket: 0 -> 100%, 1 -> 105%, 2 -> 110%, 3 -> 115%, 4 -> 120% (o 115%)
+    const baseXp = monster.isBoss ? BOSS_XP[monster.id] : MONSTER_XP[monster.id];
     const bracketXpMultiplier: Record<number, number> = {
-      0: 0.95, // -5%
-      1: 1.00, // +0%
-      2: 1.10, // +10%
-      3: 1.15, // +15%
-      4: 1.20  // +20% (se presente)
+      0: 0.95,
+      1: 1.00,
+      2: 1.10,
+      3: 1.15,
+      4: 1.20
     };
-
-    const bracket = s.monster?.bracket ?? 1;
-    const multiplier = bracketXpMultiplier[bracket] ?? 1;
-
+    const multiplier = bracketXpMultiplier[monster.bracket] ?? 1;
     const xp = Math.round(baseXp * multiplier);
 
-    p.gold += gold;
-    p.xp += xp;
+    return { name, gold, xp };
+  }
+
+  /**
+   * Chiamato quando un mostro va a 0 PF. Assegna subito oro/XP per quel mostro.
+   * Se restano altri mostri vivi nello scontro, logga la sconfitta e ricalcola il bersaglio,
+   * lasciando proseguire il combattimento. Se era l'ultimo mostro, chiude lo scontro.
+   * Restituisce true se il combattimento è terminato.
+   */
+  private handleMonsterDefeat(monster: Monster): boolean {
+    const s = this.stateService.state();
+    const reward = this.computeMonsterReward(monster);
+    const p = s.player!;
+    p.gold += reward.gold;
+    p.xp += reward.xp;
+    this.stateService.touch();
+
+    const wasMultiFight = s.monsters.length > 1;
+    const stillAlive = s.monsters.some((m) => m.hp > 0);
+
+    if (stillAlive) {
+      this.stateService.log(
+        this.stateService.tf('log.monsterDefeated', reward),
+        'heal'
+      );
+      const nextIdx = s.monsters.findIndex((m) => m.hp > 0);
+      if (nextIdx >= 0) s.targetMonsterIndex = nextIdx;
+      this.stateService.touch();
+      return false;
+    }
+
+    this.finalizeVictory(monster, reward, wasMultiFight);
+    return true;
+  }
+
+  /**
+   * Chiude definitivamente lo scontro (ultimo mostro abbattuto).
+   * Per scontri solitari (boss compreso) mostra la reward modal classica con eventuale bottino
+   * da Custode del Piano. Per scontri multipli mundani, evita di mostrare una seconda modale
+   * (i kill precedenti sono già stati loggati singolarmente) e passa direttamente alla fase
+   * successiva (esplorazione o level-up).
+   */
+  private finalizeVictory(
+    lastMonster: Monster,
+    lastReward: MonsterReward,
+    wasMultiFight: boolean
+  ): void {
+    const s = this.stateService.state();
+    const p = s.player!;
+    const wasBoss = lastMonster.isBoss;
+
     p.usedSpecial = false;
     p.tempAcBonus = 0;
     p.mightyBlowActive = false;
-    this.stateService.touch();
-
-    this.stateService.log(
-      this.stateService.tf('log.monsterDefeated', { name, gold, xp }),
-      'heal'
-    );
-
-    const cur = this.stateService.state();
-    cur.monster = null;
+    s.monsters = [];
+    s.targetMonsterIndex = 0;
     this.stateService.touch();
 
     const drops: DropInfo[] = [];
 
     // =========================================================================
-    // BOTTINO CUSTODE DEL PIANO (LAYER 7 BOSS)
+    // BOTTINO CUSTODE DEL PIANO (LAYER 7 BOSS) - i boss sono sempre scontri solitari
     // =========================================================================
     if (wasBoss) {
-      // Probabilità base di droppare almeno 1 pozione (40% - 60%)
       const dropChance = 0.40 + (this.dice.random() * 0.20);
 
       if (this.dice.random() < dropChance) {
-        // Aggiunge la prima pozione
         const firstPotion = this.potionService.createPotionItem(s.depth);
         p.inventory.push(firstPotion);
 
-        // Probabilità casuale (8% - 12%) di droppare una seconda pozione
         const doubleDropChance = 0.08 + (this.dice.random() * 0.04);
-
         if (this.dice.random() < doubleDropChance) {
           const secondPotion = this.potionService.createPotionItem(s.depth);
           p.inventory.push(secondPotion);
         }
-        
+
         drops.push({
           type: 'potion',
           id: 'boss_potions',
@@ -712,7 +819,6 @@ export class CombatService {
         });
       }
 
-      // --- DROP DI CLASSE & EQUIPAGGIAMENTO RARO ---
       const tier = Math.min(5, Math.max(1, Math.ceil(s.depth / 10)));
       const rollLoot = this.dice.random();
 
@@ -754,14 +860,13 @@ export class CombatService {
         }
       }
 
-      // --- RELIQUIA MAGICA ---
-      const pool = RELIC_CLASS_POOLS[cur.player!.cls];
+      const pool = RELIC_CLASS_POOLS[p.cls];
       if (pool) {
-        const available = pool.filter((id) => !cur.player!.relics.includes(id));
+        const available = pool.filter((id) => !p.relics.includes(id));
         if (available.length > 0) {
           const relicId = this.dice.pick(available);
-          applyRelicEffect(cur.player!, relicId);
-          cur.player!.relics.push(relicId);
+          applyRelicEffect(p, relicId);
+          p.relics.push(relicId);
           this.stateService.touch();
           drops.push({
             type: 'relic',
@@ -771,6 +876,14 @@ export class CombatService {
           });
         }
       }
+    }
+
+    if (wasMultiFight) {
+      // Ultimo dei 2 mostri: i precedenti sono già stati loggati da handleMonsterDefeat.
+      this.stateService.log(
+        this.stateService.tf('log.monsterDefeated', lastReward),
+        'heal'
+      );
     }
 
     // CALCOLO AVANZAMENTO LIVELLI MULTIPLI
@@ -787,11 +900,30 @@ export class CombatService {
 
     final.player!.xp = xpLeft;
     final.pendingLevelUps = levelsToGain;
-
-    final.phase = null;
     final.rollingDie = { active: false, value: null, cls: '' };
-    final.bossRewardModal = { name, xp, gold, drops, isBoss: wasBoss };
-    this.stateService.touch();
+
+    if (wasMultiFight && !wasBoss) {
+      // Niente reward modal per scontri multipli mundani: già tutto loggato in chat.
+      final.phase = null;
+      this.stateService.touch();
+      if (final.pendingLevelUps > 0) {
+        this.levelUpService.startLevelUp();
+      } else {
+        final.phase = 'explore';
+        final.combatFlags.acting = false;
+        this.stateService.touch();
+      }
+    } else {
+      final.phase = null;
+      final.bossRewardModal = {
+        name: lastReward.name,
+        xp: lastReward.xp,
+        gold: lastReward.gold,
+        drops,
+        isBoss: wasBoss,
+      };
+      this.stateService.touch();
+    }
   }
 
   confirmBossReward(): void {

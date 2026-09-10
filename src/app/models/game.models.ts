@@ -170,7 +170,13 @@ export interface GameState {
   lang: LangCode;
   player: Player | null;
   depth: number;       // Ora rappresenta il Numero del Piano Globale (Piano 1, Piano 2, ecc.)
-  monster: Monster | null;
+  /**
+   * Mostri attualmente in combattimento (1 per scontri normali/boss, 2 quando viene
+   * estratta la tier più bassa fra le due possibili per il piano corrente).
+   */
+  monsters: Monster[];
+  /** Indice del mostro attualmente bersagliato dagli attacchi del giocatore. Default 0 = il primo/in alto. */
+  targetMonsterIndex: number;
   phase: 'map' | 'explore' | 'combat' | 'choice' | 'levelup' | null; // Aggiunto 'map'
   currentMap: FloorMap | null; // Mappa attiva del piano corrente
   mapViewActive: boolean;     // Controllo di visibilità: true = mostra mappa, false = mostra incontro

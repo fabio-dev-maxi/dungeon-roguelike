@@ -31,10 +31,7 @@ export interface SimulationResult {
   avgDeathDepth: number | null;
   deathsByDepth: Record<number, number>;
   deathsByBoss: Record<string, number>;
-  bossReach: Record<
-    string,
-    { reach: number; survive: number; levels: number[] }
-  >;
+  bossReach: Record<string, { reach: number; survive: number; levels: number[] }>;
   dropsSummary: DropsSummary;
 }
 
@@ -237,16 +234,21 @@ export class SimulationService {
 
         this.encounterService.selectMapNode(node);
 
-        if (s.phase === 'combat' && s.monster) {
-          const mId = s.monster.id;
-          const isBoss = s.monster.isBoss;
+        if (s.phase === 'combat' && s.monsters.length > 0) {
+          const primary = s.monsters[0];
+          const mId = primary.id;
+          const isBoss = primary.isBoss;
           if (isBoss) {
             bossEncounters[mId].reached = true;
             bossEncounters[mId].level = s.player!.level;
           }
 
           let rounds = 0;
-          while (s.player!.hp > 0 && s.monster && s.monster.hp > 0 && rounds < 100) {
+          while (
+            s.player!.hp > 0 &&
+            s.monsters.some((m) => m.hp > 0) &&
+            rounds < 100
+          ) {
             rounds++;
             if (!s.player!.usedSpecial) {
               await this.combatService.playerUseSpecial();

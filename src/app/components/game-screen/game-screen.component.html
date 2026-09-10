@@ -65,7 +65,7 @@
   <!-- ARENA DI COMBATTIMENTO -->
   <section class="duel-arena">
     <!-- HUD COMPATTO MOBILE -->
-    @if (s().phase === 'combat' && s().monster; as m) {
+    @if (s().phase === 'combat' && s().monsters.length > 0) {
     <div class="mobile-vs-hud">
       <div class="hud-fighter player">
         <div class="hud-meta">
@@ -81,14 +81,19 @@
 
       <div class="hud-vs-badge">VS</div>
 
-      <div class="hud-fighter enemy">
-        <div class="hud-meta">
-          <span class="hud-name">{{ game.monsterDisplayName(m) }}</span>
-          <span class="hud-hp-num num">{{ m.hp }}/{{ m.maxHp }}</span>
+      <div class="hud-enemies" [class.multi]="s().monsters.length > 1">
+        @for (m of s().monsters; track $index; let i = $index) {
+        <div class="hud-fighter enemy" [class.targeted]="i === s().targetMonsterIndex && s().monsters.length > 1"
+          [class.defeated]="m.hp <= 0" (click)="selectMonster(i)">
+          <div class="hud-meta">
+            <span class="hud-name">{{ game.monsterDisplayName(m) }}</span>
+            <span class="hud-hp-num num">{{ m.hp }}/{{ m.maxHp }}</span>
+          </div>
+          <div class="hpbar-outer slim">
+            <div class="hpbar-inner enemybar-inner" [style.width.%]="pct(m.hp, m.maxHp)"></div>
+          </div>
         </div>
-        <div class="hpbar-outer slim">
-          <div class="hpbar-inner enemybar-inner" [style.width.%]="pct(m.hp, m.maxHp)"></div>
-        </div>
+        }
       </div>
     </div>
     }
@@ -228,7 +233,7 @@
             </div>
 
             <div class="dice-slot right">
-              @if (s().monster; as m) {
+              @if (targetMonster(); as m) {
               <div class="dice-fighter">
                 <app-dice-widget [themeColor]="'#2d6a4f'" [labelColor]="'#34d399'" [value]="monsterDieValue()"
                   [values]="monsterDieValues()" [isActive]="monsterDieActive()" [sides]="monsterDieSides()" />
@@ -348,79 +353,96 @@
       </div>
     </div>
 
-    <!-- COLONNA 3 (DESTRA): SCHEDA MOSTRO -->
-    <div class="combatant-card enemy-card" [class.boss-card]="s().monster?.isBoss">
-      @if (s().monster; as m) {
-      <div class="card-top-content">
-        <div class="combatant-header">
-          <div class="sigil" [class.sigil--danger]="m.isBoss">
-            <app-icon [name]="m.isBoss ? 'crown' : 'skull'" [size]="24"></app-icon>
-          </div>
-          <div class="combatant-meta">
-            <div class="enemy-tag-row">
-              @if (m.isBoss) {
-              <span class="boss-badge">GUARDIANO DEL PIANO</span>
-              } @else {
-              <span class="tier-badge">NEMICO DELLA GUGLIA</span>
-              }
+    <!-- COLONNA 3 (DESTRA): SCHEDA/E MOSTRO/I -->
+    <div class="enemy-column" [class.multi]="s().monsters.length > 1">
+      @if (s().monsters.length > 0) {
+        <div class="combatant-card enemy-card multi-panel">
+        @for (m of s().monsters; track $index; let i = $index) {
+        <div class="card-top-content" [class.boss-card]="m.isBoss"
+        [class.targeted]="s().monsters.length > 1 && i === s().targetMonsterIndex" [class.defeated]="m.hp <= 0"
+        [class.clickable]="m.hp > 0 && s().monsters.length > 1" (click)="selectMonster(i)">
+          <div class="combatant-header">
+            <div class="sigil" [class.sigil--danger]="m.isBoss">
+              <app-icon [name]="m.isBoss ? 'crown' : 'skull'" [size]="s().monsters.length > 1 ? 20 : 24"></app-icon>
             </div>
-            <h3 class="enemy-name" [title]="game.monsterDisplayName(m)">
-              {{ game.monsterDisplayName(m) }}
-            </h3>
+            <div class="combatant-meta">
+              <div class="enemy-tag-row">
+                @if (m.isBoss) {
+                <span class="boss-badge">GUARDIANO DEL PIANO</span>
+                } @else {
+                <span class="tier-badge">NEMICO DELLA GUGLIA</span>
+                }
+                @if (s().monsters.length > 1 && i === s().targetMonsterIndex && m.hp > 0) {
+                <span class="target-badge">
+                  <app-icon name="swords" [size]="11"></app-icon>
+                  Bersaglio
+                </span>
+                }
+              </div>
+              <h3 class="enemy-name" [title]="game.monsterDisplayName(m)">
+                {{ game.monsterDisplayName(m) }}
+              </h3>
+            </div>
           </div>
+
+          <div class="bar-block">
+            <div class="bar-header">
+              <span class="bar-label"><app-icon name="heart" [size]="12"></app-icon>
+                {{ i18n.t('ui.hpLabel') }}</span>
+              <span class="num bar-val">{{ m.hp }} / {{ m.maxHp }}</span>
+            </div>
+            <div class="hpbar-outer">
+              <div class="hpbar-inner enemybar-inner" [style.width.%]="pct(m.hp, m.maxHp)"></div>
+            </div>
+          </div>
+
+          <div class="combat-metrics-grid">
+            <div class="metric-badge">
+              <app-icon name="shield" [size]="13"></app-icon>
+              <span>CA <strong>{{ m.ac }}</strong></span>
+            </div>
+            <div class="metric-badge">
+              <app-icon name="sword" [size]="13"></app-icon>
+              <span>TxC <strong>{{ dice.fmtMod(m.atk) }}</strong></span>
+            </div>
+          </div>
+
+          @if (s().monsters.length === 1) {
+          <div class="equipment-strip">
+            <div class="equip-line">
+              <span class="equip-name">Potenza Danno</span>
+              <span class="d20-threat-tag">Dado Danno</span>
+            </div>
+            <div class="equip-damage num">{{ m.dmg[0] }}d{{ m.dmg[1] }}</div>
+          </div>
+          }
         </div>
 
-        <div class="bar-block">
-          <div class="bar-header">
-            <span class="bar-label"><app-icon name="heart" [size]="12"></app-icon>
-              {{ i18n.t('ui.hpLabel') }}</span>
-            <span class="num bar-val">{{ m.hp }} / {{ m.maxHp }}</span>
-          </div>
-          <div class="hpbar-outer">
-            <div class="hpbar-inner enemybar-inner" [style.width.%]="pct(m.hp, m.maxHp)"></div>
-          </div>
-        </div>
-
-        <div class="combat-metrics-grid">
-          <div class="metric-badge">
-            <app-icon name="shield" [size]="13"></app-icon>
-            <span>CA <strong>{{ m.ac }}</strong></span>
-          </div>
-          <div class="metric-badge">
-            <app-icon name="sword" [size]="13"></app-icon>
-            <span>TxC <strong>{{ dice.fmtMod(m.atk) }}</strong></span>
+        @if (s().monsters.length === 1) {
+        <div class="card-bottom-content">
+          <div class="enemy-traits-box">
+            <div class="small trait-label">Note Tattiche</div>
+            <p class="small trait-desc">
+              @if (m.isBoss) {
+              Resistenza eccelsa e attacchi critici micidiali.
+              } @else {
+              Creatura d'attacco diretto. Usa le pozioni se i tuoi PF scendono troppo.
+              }
+            </p>
           </div>
         </div>
-
-        <div class="equipment-strip">
-          <div class="equip-line">
-            <span class="equip-name">Potenza Danno</span>
-            <span class="d20-threat-tag">Dado Danno</span>
-          </div>
-          <div class="equip-damage num">{{ m.dmg[0] }}d{{ m.dmg[1] }}</div>
-        </div>
-      </div>
-
-      <div class="card-bottom-content">
-        <div class="enemy-traits-box">
-          <div class="small trait-label">Note Tattiche</div>
-          <p class="small trait-desc">
-            @if (m.isBoss) {
-            Resistenza eccelsa e attacchi critici micidiali.
-            } @else {
-            Creatura d'attacco diretto. Usa le pozioni se i tuoi PF scendono
-            troppo.
-            }
-          </p>
-        </div>
+        }
+      }
       </div>
       } @else {
-      <div class="enemy-empty-state">
-        <div class="sigil sigil--empty">
-          <app-icon name="eye" [size]="24"></app-icon>
+      <div class="combatant-card enemy-card">
+        <div class="enemy-empty-state">
+          <div class="sigil sigil--empty">
+            <app-icon name="eye" [size]="24"></app-icon>
+          </div>
+          <h4>{{ i18n.t('ui.enemyLabel') }}</h4>
+          <p class="small">L'area è sgombra da pericoli immediati.</p>
         </div>
-        <h4>{{ i18n.t('ui.enemyLabel') }}</h4>
-        <p class="small">L'area è sgombra da pericoli immediati.</p>
       </div>
       }
     </div>

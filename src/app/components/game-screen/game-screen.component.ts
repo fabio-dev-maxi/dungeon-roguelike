@@ -13,7 +13,7 @@ import { GameService } from '../../services/game.service';
 import { I18nService } from '../../services/i18n.service';
 import { DiceService } from '../../services/dice/dice.service';
 import { CLASS_DATA } from '../../data/game.data';
-import { StatKey, ChoiceOption, ClassKey } from '../../models/game.models';
+import { StatKey, ChoiceOption, ClassKey, Monster } from '../../models/game.models';
 import { DiceWidgetComponent } from '../dice-widget/dice-widget.component';
 import { LevelUpModalComponent } from '../level-up-modal/level-up-modal.component';
 import { BossRewardModalComponent } from '../boss-reward-modal/boss-reward-modal.component';
@@ -215,6 +215,22 @@ export class GameScreenComponent implements AfterViewChecked {
 
   p() {
     return this.game.state().player!;
+  }
+
+  /** Mostro attualmente bersagliato dagli attacchi del giocatore (o null se nessuno in campo). */
+  targetMonster(): Monster | null {
+    const state = this.s();
+    return state.monsters[state.targetMonsterIndex] ?? null;
+  }
+
+  /** Cambia bersaglio quando l'utente clicca su un mostro nella colonna destra (o nell'HUD mobile). */
+  selectMonster(index: number): void {
+    if (this.acting()) return;
+    const state = this.s();
+    if (state.monsters.length <= 1) return;
+    const m = state.monsters[index];
+    if (!m || m.hp <= 0) return;
+    this.game.selectTargetMonster(index);
   }
 
   pct(current: number, max: number): number {
