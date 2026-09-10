@@ -107,21 +107,21 @@ export const MONSTER_XP: Record<string, number> = {
 };
 
 export const BOSS_XP: Record<string, number> = { 
-  boss1: 400,         // Piano 1 (Goblin Chief / Boss Tier 1)
-  boss2: 800,        // Piano 2 (Ogre Chieftain)
-  boss3: 1200,        // Piano 3 (Hill Giant)
-  boss4: 1600,        // Piano 4 (Chimera)
-  boss5: 2000,        // Piano 5 (Archdemon / Young Dragon)
-  boss6: 3000,       // Piano 6 (Lich)
-  boss7: 4000,       // Piano 7 (Hydra)
-  boss8: 6000,       // Piano 8 (Adult Green Dragon)
-  boss9: 8000,       // Piano 9 (Red Dragon)
-  boss10: 9000,      // Piano 10 (Kraken)
-  boss11: 10000,      // Piano 11 (Balor)
-  boss12: 11000,      // Piano 12 (Ancient Blue Dragon)
-  boss13: 13000,      // Piano 13 (Great Wyrm)
-  boss14: 15000,      // Piano 14 (Pit Fiend)
-  boss15: 20000     // Piano 15 (Tarrasque - Boss Finale)
+  boss1: 500,      // 'Il Necroforgiato', 
+  boss2: 900,      // "La Sposa dell'Abisso", 
+  boss3: 1200,     // 'Il Divoratore di Corone', 
+  boss4: 1600,     // 'La Chimera Infuocata', 
+  boss5: 2000,     // "L'Arcidemone", 
+  boss6: 3000,     // 'Il Lich', 
+  boss7: 4000,     // "L'Idra dai Sette Capi", 
+  boss8: 6000,     // 'Il Drago Verde Adulto', 
+  boss9: 8000,     // 'Il Drago Rosso', 
+  boss10: 9000,    // 'Il Kraken degli Abissi', 
+  boss11: 10000,   // 'Il Balor delle Fiamme', 
+  boss12: 11000,   // 'Il Drago Blu Antico', 
+  boss13: 13000,   // 'Il Drago Supremo', 
+  boss14: 15000,   // 'Il Signore dei Pit Fiend', 
+  boss15: 20000    //'Il Tarrasque' 
 };
 
 export function xpToNext(level: number): number {
