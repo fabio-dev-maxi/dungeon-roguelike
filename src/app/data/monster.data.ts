@@ -77,24 +77,33 @@ export const BOSS_IDS = Object.keys(BOSS_STATS);
 export const MONSTER_XP: Record<string, number> = {
   // Tier 1 (Piano 1)
   rat: 120, goblin: 150, skeleton: 180, raven: 150,
+  
   // Tier 2 (Piano 2)
   orc: 280, wolf: 300, ghoul: 320, knight: 300,
+  
   // Tier 3 (Piano 3)
   ogre: 420, wraith: 450, troll: 480, basilisk: 450,
+  
   // Tier 4 (Piano 4)
   manticore: 580, minotaur: 600, gargoyle: 620, vampire_spawn: 600,
+  
   // Tier 5 (Piano 5-6)
   wyvern: 800, mummy: 850, chimera_minor: 900, shadow: 850,
+  
   // Tier 6 (Piano 6-7)
   vampire: 1100, beholder: 1200, young_dragon: 1300, medusa: 1200,
-  // Tier 7 (Piano 8-9)
-  demon: 1800, archmage: 2000, death_knight: 2200, frost_giant: 2000,
-  // Tier 8 (Piano 10-11)
-  storm_giant: 3200, iron_golem: 3500, lich_apprentice: 3800, marilith: 3500,
-  // Tier 9 (Piano 12-13)
-  pit_fiend: 4200, solar: 4500, ancient_dragon: 4800, balor: 4500,
-  // Tier 10 (Piano 14-15)
-  titan: 4700, void_dragon: 4800, empyrean: 4750, primordial: 4750
+  
+  // Tier 7 (Piano 8-9) — Ribilanciato (Media 1.800 XP)
+  demon: 1600, archmage: 1800, death_knight: 2000, frost_giant: 1800,
+  
+  // Tier 8 (Piano 10-11) — Ribilanciato (Media 2.500 XP)
+  storm_giant: 2300, iron_golem: 2500, lich_apprentice: 2700, marilith: 2500,
+  
+  // Tier 9 (Piano 12-13) — Ribilanciato (Media 3.325 XP)
+  pit_fiend: 3100, solar: 3300, ancient_dragon: 3600, balor: 3300,
+  
+  // Tier 10 (Piano 14-15) — Ribilanciato (Media 4.050 XP)
+  titan: 3900, void_dragon: 4200, empyrean: 4100, primordial: 4000
 };
 
 export const BOSS_XP: Record<string, number> = { 
@@ -107,12 +116,12 @@ export const BOSS_XP: Record<string, number> = {
   boss7: 4000,       // Piano 7 (Hydra)
   boss8: 6000,       // Piano 8 (Adult Green Dragon)
   boss9: 8000,       // Piano 9 (Red Dragon)
-  boss10: 10000,      // Piano 10 (Kraken)
-  boss11: 12000,      // Piano 11 (Balor)
-  boss12: 15000,      // Piano 12 (Ancient Blue Dragon)
-  boss13: 18000,      // Piano 13 (Great Wyrm)
-  boss14: 20000,      // Piano 14 (Pit Fiend)
-  boss15: 30000     // Piano 15 (Tarrasque - Boss Finale)
+  boss10: 9000,      // Piano 10 (Kraken)
+  boss11: 10000,      // Piano 11 (Balor)
+  boss12: 11000,      // Piano 12 (Ancient Blue Dragon)
+  boss13: 13000,      // Piano 13 (Great Wyrm)
+  boss14: 15000,      // Piano 14 (Pit Fiend)
+  boss15: 20000     // Piano 15 (Tarrasque - Boss Finale)
 };
 
 export function xpToNext(level: number): number {
