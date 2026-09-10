@@ -16,7 +16,7 @@ export interface PotionGroup {
 
 @Injectable({ providedIn: 'root' })
 export class PotionService {
-  constructor(private readonly dice: DiceService) { }
+  constructor(private readonly dice: DiceService) {}
 
   /**
    * Calcola potenza (dadi) e costo della pozione in base alla profondità del piano.
@@ -24,12 +24,35 @@ export class PotionService {
   public getConfigForDepth(depth: number): PotionConfig {
     let n = 2;
     let d = 6;
-    let cost = 8 + Math.floor(depth / 5) * 5;
 
-    if (depth > 10) {
+    if (depth <= 3) {
+      // Piani 1-3: Pozione Minore (2d6 -> media 7 HP)
+      n = 2;
+      d = 6;
+    } else if (depth <= 6) {
+      // Piani 4-6: Pozione Media (2d8 -> media 9 HP)
+      n = 2;
       d = 8;
-      n = 2 + Math.floor((depth - 11) / 10);
+    } else if (depth <= 10) {
+      // Piani 7-10: Pozione Standard (3d6 -> media 10.5 HP)
+      n = 3;
+      d = 6;
+    } else if (depth <= 13) {
+      // Piani 11-13: Pozione Maggiore (3d8 -> media 13.5 HP)
+      n = 3;
+      d = 8;
+    } else if (depth <= 16) {
+      // Piani 14-16: Pozione Superiore (4d8 -> media 18 HP)
+      n = 4;
+      d = 8;
+    } else {
+      // Piani 17-20: Pozione Suprema (5d8 -> media 22.5 HP)
+      n = 5;
+      d = 8;
     }
+
+    // Costo scalato progressivamente con la profondità
+    const cost = 10 + (depth - 1) * 8;
 
     return { dice: [n, d], cost };
   }

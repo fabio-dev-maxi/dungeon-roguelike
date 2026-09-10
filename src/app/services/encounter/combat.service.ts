@@ -688,20 +688,29 @@ export class CombatService {
     // BOTTINO CUSTODE DEL PIANO (LAYER 7 BOSS)
     // =========================================================================
     if (wasBoss) {
-      const potionItem = this.potionService.createPotionItem(s.depth);
-      const potionItem2 = this.potionService.createPotionItem(s.depth);
+      // Probabilità base di droppare almeno 1 pozione (40% - 60%)
+      const dropChance = 0.40 + (this.dice.random() * 0.20);
 
-      // Drop garantito: 2 Pozioni
-      p.inventory.push(potionItem);
-      p.inventory.push(potionItem2);
-      this.stateService.touch();
+      if (this.dice.random() < dropChance) {
+        // Aggiunge la prima pozione
+        const firstPotion = this.potionService.createPotionItem(s.depth);
+        p.inventory.push(firstPotion);
 
-      drops.push({
-        type: 'potion',
-        id: 'boss_potions',
-        name: 'Pozione di Cura x2',
-        effect: `Ripristina salute (${potionItem.heal[0]}d${potionItem.heal[1]})`,
-      });
+        // Probabilità casuale (8% - 12%) di droppare una seconda pozione
+        const doubleDropChance = 0.08 + (this.dice.random() * 0.04);
+
+        if (this.dice.random() < doubleDropChance) {
+          const secondPotion = this.potionService.createPotionItem(s.depth);
+          p.inventory.push(secondPotion);
+        }
+        
+        drops.push({
+          type: 'potion',
+          id: 'boss_potions',
+          name: 'Pozione di Cura x2',
+          effect: `Ripristina salute (${firstPotion.heal[0]}d${firstPotion.heal[1]})`,
+        });
+      }
 
       // --- DROP DI CLASSE & EQUIPAGGIAMENTO RARO ---
       const tier = Math.min(5, Math.max(1, Math.ceil(s.depth / 10)));
