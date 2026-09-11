@@ -1,42 +1,722 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="it" data-beasties-container>
 
 <head><base href="/dungeon-roguelike/">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <meta charset="utf-8">
-  <title>Endless Pitfall — Discesa Infinita</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>D&D 3.5e Dungeon - Textured Crates & Combat</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
 
-  <script>
-    (function () {
-      var internalNg = {};
-      var safeProxy = new Proxy(internalNg, {
-        get: function (target, prop) {
-          // Disarma esclusivamente le utility di ispezione del DOM
-          if (['getComponent', 'getInjector', 'getOwningComponent', 'getContext', 'getDirectiveMetadata'].includes(prop)) {
-            return undefined;
-          }
-          return target[prop];
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #1e293b;
+      font-family: 'Georgia', serif;
+      touch-action: none;
+    }
+
+    #hud {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .dnd-card {
+      background: rgba(30, 41, 59, 0.95);
+      border: 2px solid #f59e0b;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      color: #f8fafc;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      max-width: 65%;
+    }
+
+    .dnd-title {
+      font-weight: bold;
+      color: #fbbf24;
+      font-size: 15px;
+      border-bottom: 1px solid #f59e0b;
+      padding-bottom: 4px;
+      margin-bottom: 6px;
+      letter-spacing: 1px;
+    }
+
+    .stat-line {
+      display: flex;
+      gap: 12px;
+      font-family: sans-serif;
+      font-size: 12px;
+    }
+
+    .stat-label {
+      color: #94a3b8;
+    }
+
+    .stat-val {
+      color: #ffffff;
+      font-weight: bold;
+    }
+
+    #orientation-warning {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #0f172a;
+      color: #fbbf24;
+      z-index: 999;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 24px;
+    }
+
+    #orientation-warning svg {
+      width: 64px;
+      height: 64px;
+      fill: #fbbf24;
+      margin-bottom: 16px;
+    }
+
+    @media (orientation: portrait) and (max-width: 900px) {
+      #orientation-warning {
+        display: flex;
+      }
+    }
+  </style>
+  <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
         }
-      });
-
-      Object.defineProperty(window, 'ng', {
-        get: function () { return safeProxy; },
-        set: function (val) {
-          if (val && typeof val === 'object') {
-            Object.assign(internalNg, val);
-          }
-        },
-        configurable: false
-      });
-    })();
-  </script>
-<style>@font-face{font-family:Cinzel;font-style:normal;font-weight:500;font-display:swap;src:url(https://fonts.gstatic.com/s/cinzel/v26/8vIJ7ww63mVu7gt7-GT7LEc.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:Cinzel;font-style:normal;font-weight:500;font-display:swap;src:url(https://fonts.gstatic.com/s/cinzel/v26/8vIJ7ww63mVu7gt79mT7.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:Cinzel;font-style:normal;font-weight:600;font-display:swap;src:url(https://fonts.gstatic.com/s/cinzel/v26/8vIJ7ww63mVu7gt7-GT7LEc.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:Cinzel;font-style:normal;font-weight:600;font-display:swap;src:url(https://fonts.gstatic.com/s/cinzel/v26/8vIJ7ww63mVu7gt79mT7.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:Cinzel;font-style:normal;font-weight:700;font-display:swap;src:url(https://fonts.gstatic.com/s/cinzel/v26/8vIJ7ww63mVu7gt7-GT7LEc.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:Cinzel;font-style:normal;font-weight:700;font-display:swap;src:url(https://fonts.gstatic.com/s/cinzel/v26/8vIJ7ww63mVu7gt79mT7.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:EB Garamond;font-style:italic;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGFmQSNjdsmc35JDF1K5GRwUjcdlttVFm-rI7e8QL9wU6ingQ.woff2) format("woff2");unicode-range:U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F}@font-face{font-family:EB Garamond;font-style:italic;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGFmQSNjdsmc35JDF1K5GRwUjcdlttVFm-rI7e8QL95U6ingQ.woff2) format("woff2");unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}@font-face{font-family:EB Garamond;font-style:italic;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGFmQSNjdsmc35JDF1K5GRwUjcdlttVFm-rI7e8QL9xU6ingQ.woff2) format("woff2");unicode-range:U+1F00-1FFF}@font-face{font-family:EB Garamond;font-style:italic;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGFmQSNjdsmc35JDF1K5GRwUjcdlttVFm-rI7e8QL9-U6ingQ.woff2) format("woff2");unicode-range:U+0370-0377,U+037A-037F,U+0384-038A,U+038C,U+038E-03A1,U+03A3-03FF}@font-face{font-family:EB Garamond;font-style:italic;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGFmQSNjdsmc35JDF1K5GRwUjcdlttVFm-rI7e8QL9yU6ingQ.woff2) format("woff2");unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB}@font-face{font-family:EB Garamond;font-style:italic;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGFmQSNjdsmc35JDF1K5GRwUjcdlttVFm-rI7e8QL9zU6ingQ.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:EB Garamond;font-style:italic;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGFmQSNjdsmc35JDF1K5GRwUjcdlttVFm-rI7e8QL99U6g.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:EB Garamond;font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GR4SDktYw.woff2) format("woff2");unicode-range:U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F}@font-face{font-family:EB Garamond;font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GRxSDktYw.woff2) format("woff2");unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}@font-face{font-family:EB Garamond;font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GR5SDktYw.woff2) format("woff2");unicode-range:U+1F00-1FFF}@font-face{font-family:EB Garamond;font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GR2SDktYw.woff2) format("woff2");unicode-range:U+0370-0377,U+037A-037F,U+0384-038A,U+038C,U+038E-03A1,U+03A3-03FF}@font-face{font-family:EB Garamond;font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GR6SDktYw.woff2) format("woff2");unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB}@font-face{font-family:EB Garamond;font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GR7SDktYw.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:EB Garamond;font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GR1SDk.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:EB Garamond;font-style:normal;font-weight:600;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GR4SDktYw.woff2) format("woff2");unicode-range:U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F}@font-face{font-family:EB Garamond;font-style:normal;font-weight:600;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GRxSDktYw.woff2) format("woff2");unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}@font-face{font-family:EB Garamond;font-style:normal;font-weight:600;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GR5SDktYw.woff2) format("woff2");unicode-range:U+1F00-1FFF}@font-face{font-family:EB Garamond;font-style:normal;font-weight:600;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GR2SDktYw.woff2) format("woff2");unicode-range:U+0370-0377,U+037A-037F,U+0384-038A,U+038C,U+038E-03A1,U+03A3-03FF}@font-face{font-family:EB Garamond;font-style:normal;font-weight:600;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GR6SDktYw.woff2) format("woff2");unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB}@font-face{font-family:EB Garamond;font-style:normal;font-weight:600;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GR7SDktYw.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:EB Garamond;font-style:normal;font-weight:600;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GR1SDk.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:Pirata One;font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/pirataone/v23/I_urMpiDvgLdLh0fAtofhiGOrq_B.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:Pirata One;font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/pirataone/v23/I_urMpiDvgLdLh0fAtofhi-Org.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:Space Mono;font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/spacemono/v17/i7dPIFZifjKcF5UAWdDRYE58RWq7.woff2) format("woff2");unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB}@font-face{font-family:Space Mono;font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/spacemono/v17/i7dPIFZifjKcF5UAWdDRYE98RWq7.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:Space Mono;font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/spacemono/v17/i7dPIFZifjKcF5UAWdDRYEF8RQ.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:Space Mono;font-style:normal;font-weight:700;font-display:swap;src:url(https://fonts.gstatic.com/s/spacemono/v17/i7dMIFZifjKcF5UAWdDRaPpZUFqaHjyV.woff2) format("woff2");unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB}@font-face{font-family:Space Mono;font-style:normal;font-weight:700;font-display:swap;src:url(https://fonts.gstatic.com/s/spacemono/v17/i7dMIFZifjKcF5UAWdDRaPpZUFuaHjyV.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:Space Mono;font-style:normal;font-weight:700;font-display:swap;src:url(https://fonts.gstatic.com/s/spacemono/v17/i7dMIFZifjKcF5UAWdDRaPpZUFWaHg.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}:root{--void:#0a0705;--stone-900:#150f0a;--stone-800:#1e150d;--stone-700:#2a1d12;--stone-600:#38271a;--stone-line:#4a3520;--stone-line-soft:rgba(212, 175, 55, .14);--parchment:#efe1c2;--parchment-dim:#b7a172;--parchment-faint:#8a795b;--parchment-dark:#2a2015;--gold:#d4af37;--gold-dim:#8a6b25;--gold-bright:#f9e27c;--gold-glow:rgba(212, 175, 55, .35);--blood:#8b0000;--blood-bright:#c1443b;--blood-glow:rgba(193, 68, 59, .4);--emerald:#34d399;--emerald-dim:#1f7a58;--emerald-glow:rgba(52, 211, 153, .35);--iron-plate:#17120e;--iron-rim:#3b2c1d;--leather-base:#21160e;--leather-felt:#180f0a;--ruby-gradient:linear-gradient(180deg, #ff6b6b 0%, #c1272d 35%, #800f13 70%, #460507 100%);--emerald-gradient:linear-gradient(180deg, #6ee7b7 0%, #10b981 35%, #047857 70%, #064e3b 100%);--gold-gradient:linear-gradient(180deg, #fef08a 0%, #eab308 35%, #a16207 70%, #713f12 100%);--shadow-lg:0 20px 46px rgba(0, 0, 0, .65);--shadow-md:0 10px 26px rgba(0, 0, 0, .55);--shadow-inset:inset 0 0 40px rgba(0, 0, 0, .45);--shadow-gothic:0 16px 36px rgba(0, 0, 0, .75), 0 0 22px rgba(212, 175, 55, .1);--radius-sm:5px;--radius-md:10px;--radius-lg:16px;--font-display:"Pirata One", serif;--font-heading:"Cinzel", serif;--font-body:"EB Garamond", serif;--font-mono:"Space Mono", monospace;--ease-out:cubic-bezier(.16, 1, .3, 1)}*{box-sizing:border-box}html,body{height:100%}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -10%,rgba(212,175,55,.14),transparent 55%),radial-gradient(ellipse at 50% 115%,rgba(0,0,0,.75),transparent 60%),repeating-linear-gradient(0deg,var(--void) 0px,var(--stone-900) 2px,var(--void) 4px),var(--void);color:var(--parchment);font-family:var(--font-body);font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}@media(max-width:720px){body{font-size:16px}}</style><link rel="stylesheet" href="styles-RN4PHYIL.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="styles-RN4PHYIL.css"></noscript></head>
+    </script>
+<style>@font-face{font-family:Cinzel;font-style:normal;font-weight:500;font-display:swap;src:url(https://fonts.gstatic.com/s/cinzel/v26/8vIJ7ww63mVu7gt7-GT7LEc.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:Cinzel;font-style:normal;font-weight:500;font-display:swap;src:url(https://fonts.gstatic.com/s/cinzel/v26/8vIJ7ww63mVu7gt79mT7.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:Cinzel;font-style:normal;font-weight:600;font-display:swap;src:url(https://fonts.gstatic.com/s/cinzel/v26/8vIJ7ww63mVu7gt7-GT7LEc.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:Cinzel;font-style:normal;font-weight:600;font-display:swap;src:url(https://fonts.gstatic.com/s/cinzel/v26/8vIJ7ww63mVu7gt79mT7.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:Cinzel;font-style:normal;font-weight:700;font-display:swap;src:url(https://fonts.gstatic.com/s/cinzel/v26/8vIJ7ww63mVu7gt7-GT7LEc.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:Cinzel;font-style:normal;font-weight:700;font-display:swap;src:url(https://fonts.gstatic.com/s/cinzel/v26/8vIJ7ww63mVu7gt79mT7.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:EB Garamond;font-style:italic;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGFmQSNjdsmc35JDF1K5GRwUjcdlttVFm-rI7e8QL9wU6ingQ.woff2) format("woff2");unicode-range:U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F}@font-face{font-family:EB Garamond;font-style:italic;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGFmQSNjdsmc35JDF1K5GRwUjcdlttVFm-rI7e8QL95U6ingQ.woff2) format("woff2");unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}@font-face{font-family:EB Garamond;font-style:italic;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGFmQSNjdsmc35JDF1K5GRwUjcdlttVFm-rI7e8QL9xU6ingQ.woff2) format("woff2");unicode-range:U+1F00-1FFF}@font-face{font-family:EB Garamond;font-style:italic;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGFmQSNjdsmc35JDF1K5GRwUjcdlttVFm-rI7e8QL9-U6ingQ.woff2) format("woff2");unicode-range:U+0370-0377,U+037A-037F,U+0384-038A,U+038C,U+038E-03A1,U+03A3-03FF}@font-face{font-family:EB Garamond;font-style:italic;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGFmQSNjdsmc35JDF1K5GRwUjcdlttVFm-rI7e8QL9yU6ingQ.woff2) format("woff2");unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB}@font-face{font-family:EB Garamond;font-style:italic;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGFmQSNjdsmc35JDF1K5GRwUjcdlttVFm-rI7e8QL9zU6ingQ.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:EB Garamond;font-style:italic;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGFmQSNjdsmc35JDF1K5GRwUjcdlttVFm-rI7e8QL99U6g.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:EB Garamond;font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GR4SDktYw.woff2) format("woff2");unicode-range:U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F}@font-face{font-family:EB Garamond;font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GRxSDktYw.woff2) format("woff2");unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}@font-face{font-family:EB Garamond;font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GR5SDktYw.woff2) format("woff2");unicode-range:U+1F00-1FFF}@font-face{font-family:EB Garamond;font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GR2SDktYw.woff2) format("woff2");unicode-range:U+0370-0377,U+037A-037F,U+0384-038A,U+038C,U+038E-03A1,U+03A3-03FF}@font-face{font-family:EB Garamond;font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GR6SDktYw.woff2) format("woff2");unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB}@font-face{font-family:EB Garamond;font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GR7SDktYw.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:EB Garamond;font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GR1SDk.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:EB Garamond;font-style:normal;font-weight:600;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GR4SDktYw.woff2) format("woff2");unicode-range:U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F}@font-face{font-family:EB Garamond;font-style:normal;font-weight:600;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GRxSDktYw.woff2) format("woff2");unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}@font-face{font-family:EB Garamond;font-style:normal;font-weight:600;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GR5SDktYw.woff2) format("woff2");unicode-range:U+1F00-1FFF}@font-face{font-family:EB Garamond;font-style:normal;font-weight:600;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GR2SDktYw.woff2) format("woff2");unicode-range:U+0370-0377,U+037A-037F,U+0384-038A,U+038C,U+038E-03A1,U+03A3-03FF}@font-face{font-family:EB Garamond;font-style:normal;font-weight:600;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GR6SDktYw.woff2) format("woff2");unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB}@font-face{font-family:EB Garamond;font-style:normal;font-weight:600;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GR7SDktYw.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:EB Garamond;font-style:normal;font-weight:600;font-display:swap;src:url(https://fonts.gstatic.com/s/ebgaramond/v33/SlGUmQSNjdsmc35JDF1K5GR1SDk.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:Pirata One;font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/pirataone/v23/I_urMpiDvgLdLh0fAtofhiGOrq_B.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:Pirata One;font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/pirataone/v23/I_urMpiDvgLdLh0fAtofhi-Org.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:Space Mono;font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/spacemono/v17/i7dPIFZifjKcF5UAWdDRYE58RWq7.woff2) format("woff2");unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB}@font-face{font-family:Space Mono;font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/spacemono/v17/i7dPIFZifjKcF5UAWdDRYE98RWq7.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:Space Mono;font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/spacemono/v17/i7dPIFZifjKcF5UAWdDRYEF8RQ.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:Space Mono;font-style:normal;font-weight:700;font-display:swap;src:url(https://fonts.gstatic.com/s/spacemono/v17/i7dMIFZifjKcF5UAWdDRaPpZUFqaHjyV.woff2) format("woff2");unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB}@font-face{font-family:Space Mono;font-style:normal;font-weight:700;font-display:swap;src:url(https://fonts.gstatic.com/s/spacemono/v17/i7dMIFZifjKcF5UAWdDRaPpZUFuaHjyV.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:Space Mono;font-style:normal;font-weight:700;font-display:swap;src:url(https://fonts.gstatic.com/s/spacemono/v17/i7dMIFZifjKcF5UAWdDRaPpZUFWaHg.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}:root{--void:#0a0705;--stone-900:#150f0a;--stone-800:#1e150d;--stone-700:#2a1d12;--stone-600:#38271a;--stone-line:#4a3520;--stone-line-soft:rgba(212, 175, 55, .14);--parchment:#efe1c2;--parchment-dim:#b7a172;--parchment-faint:#8a795b;--parchment-dark:#2a2015;--gold:#d4af37;--gold-dim:#8a6b25;--gold-bright:#f9e27c;--gold-glow:rgba(212, 175, 55, .35);--blood:#8b0000;--blood-bright:#c1443b;--blood-glow:rgba(193, 68, 59, .4);--emerald:#34d399;--emerald-dim:#1f7a58;--emerald-glow:rgba(52, 211, 153, .35);--iron-plate:#17120e;--iron-rim:#3b2c1d;--leather-base:#21160e;--leather-felt:#180f0a;--ruby-gradient:linear-gradient(180deg, #ff6b6b 0%, #c1272d 35%, #800f13 70%, #460507 100%);--emerald-gradient:linear-gradient(180deg, #6ee7b7 0%, #10b981 35%, #047857 70%, #064e3b 100%);--gold-gradient:linear-gradient(180deg, #fef08a 0%, #eab308 35%, #a16207 70%, #713f12 100%);--shadow-lg:0 20px 46px rgba(0, 0, 0, .65);--shadow-md:0 10px 26px rgba(0, 0, 0, .55);--shadow-inset:inset 0 0 40px rgba(0, 0, 0, .45);--shadow-gothic:0 16px 36px rgba(0, 0, 0, .75), 0 0 22px rgba(212, 175, 55, .1);--radius-sm:5px;--radius-md:10px;--radius-lg:16px;--font-display:"Pirata One", serif;--font-heading:"Cinzel", serif;--font-body:"EB Garamond", serif;--font-mono:"Space Mono", monospace;--ease-out:cubic-bezier(.16, 1, .3, 1)}*{box-sizing:border-box}html,body{height:100%}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -10%,rgba(212,175,55,.14),transparent 55%),radial-gradient(ellipse at 50% 115%,rgba(0,0,0,.75),transparent 60%),repeating-linear-gradient(0deg,var(--void) 0px,var(--stone-900) 2px,var(--void) 4px),var(--void);color:var(--parchment);font-family:var(--font-body);font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased}h2{font-family:var(--font-heading);letter-spacing:.03em;margin:0 0 8px;color:var(--gold);text-transform:uppercase;font-weight:600}h2{font-size:1.2rem;display:flex;align-items:center;gap:10px;justify-content:center}p{margin:0 0 10px}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}@media(max-width:720px){body{font-size:16px}}</style><link rel="stylesheet" href="styles-RN4PHYIL.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="styles-RN4PHYIL.css"></noscript></head>
 
 <body>
-  <app-root></app-root>
+
+  <div id="orientation-warning">
+    <svg viewBox="0 0 24 24">
+      <path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/>
+    </svg>
+    <h2>Incontro nel Dungeon</h2>
+    <p>Ruota lo schermo in orizzontale per giocare sulla griglia tattica.</p>
+  </div>
+
+  <div id="hud">
+    <div class="dnd-card">
+      <div class="dnd-title">⚔️ D&D 3.5e - Dungeon con Casse Texturizzate</div>
+      <div id="status-text">Tocca un alleato per muoverti (max 3 q) o attacca un nemico!</div>
+    </div>
+    <div class="dnd-card" id="unit-stats" style="display: none;">
+      <div class="dnd-title" id="unit-name">Guerriero Umano</div>
+      <div class="stat-line">
+        <span><span class="stat-label">CA:</span> <span class="stat-val" id="unit-ac">18</span></span>
+        <span><span class="stat-label">PF:</span> <span class="stat-val" id="unit-hp">32/32</span></span>
+        <span><span class="stat-label">Atk:</span> <span class="stat-val" id="unit-atk">+6</span></span>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    // 1. SETUP SCENA E CAMERA
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x334155);
+
+    const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 9.5, 11.5);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    document.body.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.maxPolarAngle = Math.PI / 2 - 0.05;
+    controls.minDistance = 5;
+    controls.maxDistance = 24;
+
+    // 2. ILLUMINAZIONE
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
+    scene.add(ambientLight);
+
+    const mainSun = new THREE.DirectionalLight(0xfff7ed, 1.3);
+    mainSun.position.set(6, 12, 8);
+    mainSun.castShadow = true;
+    mainSun.shadow.mapSize.width = 1024;
+    mainSun.shadow.mapSize.height = 1024;
+    scene.add(mainSun);
+
+    const fillLight = new THREE.DirectionalLight(0x93c5fd, 0.6);
+    fillLight.position.set(-6, 8, -6);
+    scene.add(fillLight);
+
+    // 3. GENERATORI DI TEXTURE PROCEDURALI
+    function createBrightStoneTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512; canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = '#64748b';
+      ctx.fillRect(0, 0, 512, 512);
+
+      for (let i = 0; i < 6000; i++) {
+        const x = Math.random() * 512;
+        const y = Math.random() * 512;
+        const r = Math.random() * 2;
+        const val = Math.floor(Math.random() * 40);
+        ctx.fillStyle = `rgb(${90 + val}, ${105 + val}, ${125 + val})`;
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+      }
+
+      ctx.strokeStyle = 'rgba(15, 23, 42, 0.5)';
+      ctx.lineWidth = 10;
+      ctx.strokeRect(0, 0, 512, 512);
+
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    function createWoodCrateTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512; canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+
+      // Legno base
+      ctx.fillStyle = '#8b5a2b';
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Venature
+      for (let i = 0; i < 600; i++) {
+        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(50, 25, 10, 0.07)' : 'rgba(160, 100, 40, 0.07)';
+        const y = Math.random() * 512;
+        ctx.fillRect(0, y, 512, Math.random() * 3 + 1);
+      }
+
+      // Separazione assi
+      ctx.strokeStyle = '#2d180a';
+      ctx.lineWidth = 6;
+      for (let y = 128; y < 512; y += 128) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(512, y); ctx.stroke();
+      }
+
+      // Telaio esterno
+      const bw = 40;
+      ctx.fillStyle = '#6b3e1b';
+      ctx.fillRect(0, 0, 512, bw);
+      ctx.fillRect(0, 512 - bw, 512, bw);
+      ctx.fillRect(0, 0, bw, 512);
+      ctx.fillRect(512 - bw, 0, bw, 512);
+
+      // Diagonali a X
+      ctx.strokeStyle = '#6b3e1b';
+      ctx.lineWidth = 36;
+      ctx.beginPath();
+      ctx.moveTo(bw, bw); ctx.lineTo(512 - bw, 512 - bw);
+      ctx.moveTo(512 - bw, bw); ctx.lineTo(bw, 512 - bw);
+      ctx.stroke();
+
+      // Scanalature
+      ctx.strokeStyle = '#2d180a';
+      ctx.lineWidth = 5;
+      ctx.strokeRect(0, 0, 512, 512);
+      ctx.strokeRect(bw, bw, 512 - 2 * bw, 512 - 2 * bw);
+
+      // Angolari in metallo e rivetti
+      const kw = 70;
+      ctx.fillStyle = '#334155';
+      const corners = [[0, 0], [512 - kw, 0], [0, 512 - kw], [512 - kw, 512 - kw]];
+      corners.forEach(([cx, cy]) => {
+        ctx.fillRect(cx, cy, kw, kw);
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(cx + 2, cy + 2, kw - 4, kw - 4);
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.beginPath();
+        ctx.arc(cx + kw / 2, cy + kw / 2, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#334155';
+      });
+
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    // 4. STANZA E MURA PERIMETRALI
+    const boardSize = 8;
+    const tileSize = 1.2;
+    const offset = (boardSize / 2) * tileSize - (tileSize / 2);
+    const tilesMap = new THREE.Group();
+    scene.add(tilesMap);
+
+    const tileGeo = new THREE.BoxGeometry(tileSize, 0.15, tileSize);
+    const stoneMat = new THREE.MeshStandardMaterial({
+      map: createBrightStoneTexture(),
+      roughness: 0.6,
+      metalness: 0.1
+    });
+
+    for (let x = 0; x < boardSize; x++) {
+      for (let z = 0; z < boardSize; z++) {
+        const tile = new THREE.Mesh(tileGeo, stoneMat);
+        tile.position.set(x * tileSize - offset, 0, z * tileSize - offset);
+        tile.receiveShadow = true;
+        tile.userData = { isTile: true, gridX: x, gridZ: z };
+        tilesMap.add(tile);
+      }
+    }
+
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.7 });
+    const wallHeight = 2.2;
+    const wallThickness = 0.35;
+    const roomWidth = boardSize * tileSize;
+
+    function createWall(x, z, width, depth) {
+      const wall = new THREE.Mesh(new THREE.BoxGeometry(width, wallHeight, depth), wallMat);
+      wall.position.set(x, wallHeight / 2, z);
+      wall.castShadow = true;
+      wall.receiveShadow = true;
+      scene.add(wall);
+    }
+
+    createWall(0, -offset - tileSize / 2 - wallThickness / 2, roomWidth + wallThickness * 2, wallThickness);
+    createWall(-offset - tileSize / 2 - wallThickness / 2, 0, wallThickness, roomWidth);
+    createWall(offset + tileSize / 2 + wallThickness / 2, 0, wallThickness, roomWidth);
+
+    function get3DPosition(gridX, gridZ) {
+      return { x: gridX * tileSize - offset, z: gridZ * tileSize - offset };
+    }
+
+    // 5. OGGETTI E CASSE CON TEXTURE
+    const obstacles = new THREE.Group();
+    scene.add(obstacles);
+
+    const crateTexture = createWoodCrateTexture();
+    const crateMaterial = new THREE.MeshStandardMaterial({ map: crateTexture, roughness: 0.7, metalness: 0.1 });
+
+    function createCrate() {
+      const group = new THREE.Group();
+      const box = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.72, 0.72), crateMaterial);
+      box.position.y = 0.36;
+      box.castShadow = true;
+      box.receiveShadow = true;
+      group.add(box);
+      return group;
+    }
+
+    function createRock() {
+      const group = new THREE.Group();
+      const rockGeo = new THREE.DodecahedronGeometry(0.42, 1);
+      const rockMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.9, flatShading: true });
+      const rock = new THREE.Mesh(rockGeo, rockMat);
+      rock.scale.set(1.1, 0.85, 0.95);
+      rock.position.y = 0.3;
+      rock.castShadow = true;
+      group.add(rock);
+      return group;
+    }
+
+    function createBarrel() {
+      const group = new THREE.Group();
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.8, 12), new THREE.MeshStandardMaterial({ color: 0xa16207, roughness: 0.6 }));
+      body.position.y = 0.4; body.castShadow = true;
+      group.add(body);
+      return group;
+    }
+
+    function createPillar() {
+      const group = new THREE.Group();
+      const pillarMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.5 });
+      const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.38, 2.0, 16), pillarMat);
+      pillar.position.y = 1.0; pillar.castShadow = true; pillar.receiveShadow = true;
+      group.add(pillar);
+      return group;
+    }
+
+    function createChest() {
+      const group = new THREE.Group();
+      const chest = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.5, 0.5), new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.5 }));
+      const band = new THREE.Mesh(new THREE.BoxGeometry(0.77, 0.1, 0.52), new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.8 }));
+      chest.position.y = 0.25; band.position.y = 0.25;
+      chest.castShadow = true;
+      group.add(chest, band);
+      return group;
+    }
+
+    function spawnObstacle(gridX, gridZ, type) {
+      let item;
+      if (type === 'crate') item = createCrate();
+      else if (type === 'rock') item = createRock();
+      else if (type === 'barrel') item = createBarrel();
+      else if (type === 'pillar') item = createPillar();
+      else if (type === 'chest') item = createChest();
+
+      const pos = get3DPosition(gridX, gridZ);
+      item.position.set(pos.x, 0, pos.z);
+      item.userData = { isObstacle: true, gridX, gridZ };
+      obstacles.add(item);
+    }
+
+    // Posizionamento Ostacoli e Casse Texturizzate
+    spawnObstacle(4, 1, 'crate');
+    spawnObstacle(4, 2, 'crate');
+    spawnObstacle(3, 3, 'rock');
+    spawnObstacle(2, 5, 'rock');
+    spawnObstacle(5, 1, 'barrel');
+    spawnObstacle(0, 3, 'pillar');
+    spawnObstacle(7, 3, 'pillar');
+    spawnObstacle(7, 0, 'chest');
+
+    // 6. PERSONAGGI UMANI E NEMICI
+    function createHumanFigure(armorColorHex, skinColorHex = 0xffdbac, isEnemy = false) {
+      const human = new THREE.Group();
+
+      const armorMat = new THREE.MeshStandardMaterial({ color: armorColorHex, roughness: 0.4, metalness: 0.3 });
+      const skinMat = new THREE.MeshStandardMaterial({ color: skinColorHex, roughness: 0.6 });
+      const bootMat = new THREE.MeshStandardMaterial({ color: 0x1e1b18, roughness: 0.8 });
+      const steelMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.9, roughness: 0.2 });
+
+      const baseGeo = new THREE.CylinderGeometry(0.4, 0.42, 0.06, 20);
+      const base = new THREE.Mesh(baseGeo, new THREE.MeshStandardMaterial({ color: isEnemy ? 0x7f1d1d : 0x0f172a }));
+      base.position.y = 0.03; human.add(base);
+
+      const legGeo = new THREE.CylinderGeometry(0.06, 0.06, 0.4, 10);
+      const legL = new THREE.Mesh(legGeo, bootMat); legL.position.set(-0.1, 0.23, 0); legL.castShadow = true;
+      const legR = new THREE.Mesh(legGeo, bootMat); legR.position.set(0.1, 0.23, 0); legR.castShadow = true;
+      human.add(legL, legR);
+
+      const torso = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.42, 0.2), armorMat);
+      torso.position.set(0, 0.58, 0); torso.castShadow = true; human.add(torso);
+
+      const armGeo = new THREE.CylinderGeometry(0.05, 0.05, 0.38, 10);
+      const armL = new THREE.Mesh(armGeo, armorMat); armL.position.set(-0.21, 0.56, 0); armL.castShadow = true;
+      const armR = new THREE.Mesh(armGeo, armorMat); armR.position.set(0.21, 0.56, 0); armR.castShadow = true;
+      human.add(armL, armR);
+
+      const sword = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.55, 0.08), steelMat);
+      sword.position.set(0.26, 0.65, 0.15); sword.rotation.x = Math.PI / 4; sword.castShadow = true;
+      human.add(sword);
+
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 12), skinMat);
+      head.position.set(0, 0.88, 0); head.castShadow = true;
+      const helmet = new THREE.Mesh(new THREE.SphereGeometry(0.13, 12, 12, 0, Math.PI * 2, 0, Math.PI / 1.8), steelMat);
+      helmet.position.set(0, 0.89, 0); helmet.castShadow = true;
+      human.add(head, helmet);
+
+      return human;
+    }
+
+    const pieces = new THREE.Group();
+    scene.add(pieces);
+
+    function spawnUnit(x, z, stats) {
+      const humanModel = createHumanFigure(stats.color, stats.skinColor, stats.isEnemy);
+      const pos = get3DPosition(x, z);
+      humanModel.position.set(pos.x, 0.08, pos.z);
+
+      humanModel.userData = {
+        isPiece: true,
+        gridX: x, gridZ: z,
+        originalColor: stats.color,
+        torsoMesh: humanModel.children[3],
+        stats: { ...stats, currentHp: stats.maxHp }
+      };
+      pieces.add(humanModel);
+    }
+
+    // Alleati
+    spawnUnit(1, 1, { name: "Guerriero Umano", ca: 16, maxHp: 30, atkBonus: 6, dmgMin: 4, dmgMax: 11, speedMax: 3, color: 0xd97706, skinColor: 0xffdbac, isEnemy: false });
+    spawnUnit(1, 2, { name: "Mago Elfo", ca: 13, maxHp: 18, atkBonus: 4, dmgMin: 3, dmgMax: 8, speedMax: 3, color: 0x2563eb, skinColor: 0xfde047, isEnemy: false });
+
+    // Nemici
+    spawnUnit(3, 2, { name: "Guardia Orco", ca: 14, maxHp: 22, atkBonus: 4, dmgMin: 3, dmgMax: 8, speedMax: 3, color: 0x15803d, skinColor: 0x86efac, isEnemy: true });
+    spawnUnit(5, 5, { name: "Goblin Sciamano", ca: 12, maxHp: 12, atkBonus: 2, dmgMin: 2, dmgMax: 6, speedMax: 3, color: 0x166534, skinColor: 0x4ade80, isEnemy: true });
+    spawnUnit(6, 2, { name: "Guardia Elite", ca: 17, maxHp: 35, atkBonus: 7, dmgMin: 5, dmgMax: 12, speedMax: 3, color: 0x991b1b, skinColor: 0xfca5a5, isEnemy: true });
+
+    function isCellOccupied(x, z) {
+      const hasPiece = pieces.children.some(p => p.userData.gridX === x && p.userData.gridZ === z && p.userData.stats.currentHp > 0);
+      const hasObstacle = obstacles.children.some(o => o.userData.gridX === x && o.userData.gridZ === z);
+      return hasPiece || hasObstacle;
+    }
+
+    // Highlights
+    const highlightGroup = new THREE.Group();
+    scene.add(highlightGroup);
+    const hlGeo = new THREE.PlaneGeometry(tileSize * 0.95, tileSize * 0.95);
+    hlGeo.rotateX(-Math.PI / 2);
+    const hlMoveMat = new THREE.MeshBasicMaterial({ color: 0x22c55e, transparent: true, opacity: 0.4 });
+    const hlAtkMat = new THREE.MeshBasicMaterial({ color: 0xef4444, transparent: true, opacity: 0.5 });
+
+    function updateHighlights(selectedUnit) {
+      clearHighlights();
+      const startX = selectedUnit.userData.gridX;
+      const startZ = selectedUnit.userData.gridZ;
+
+      for (let x = 0; x < boardSize; x++) {
+        for (let z = 0; z < boardSize; z++) {
+          const dist = Math.max(Math.abs(x - startX), Math.abs(z - startZ));
+          if (dist === 0) continue;
+
+          const targetPiece = pieces.children.find(p => p.userData.gridX === x && p.userData.gridZ === z && p.userData.stats.currentHp > 0);
+
+          if (targetPiece) {
+            if (dist === 1 && targetPiece.userData.stats.isEnemy !== selectedUnit.userData.stats.isEnemy) {
+              const hl = new THREE.Mesh(hlGeo, hlAtkMat);
+              const pos = get3DPosition(x, z);
+              hl.position.set(pos.x, 0.09, pos.z);
+              highlightGroup.add(hl);
+            }
+          } else if (dist <= selectedUnit.userData.stats.speedMax && !isCellOccupied(x, z)) {
+            const hl = new THREE.Mesh(hlGeo, hlMoveMat);
+            const pos = get3DPosition(x, z);
+            hl.position.set(pos.x, 0.09, pos.z);
+            highlightGroup.add(hl);
+          }
+        }
+      }
+    }
+
+    function clearHighlights() {
+      while (highlightGroup.children.length > 0) highlightGroup.remove(highlightGroup.children[0]);
+    }
+
+    // 7. SISTEMA DI COMBATTIMENTO D&D 3.5
+    let attackingUnit = null;
+    let defendingUnit = null;
+    let attackAnimState = null;
+
+    function performAttack(attacker, defender) {
+      attackingUnit = attacker;
+      defendingUnit = defender;
+
+      const atkStats = attacker.userData.stats;
+      const defStats = defender.userData.stats;
+
+      const d20Roll = Math.floor(Math.random() * 20) + 1;
+      const totalAtk = d20Roll + atkStats.atkBonus;
+      const isHit = totalAtk >= defStats.ca || d20Roll === 20;
+
+      let damage = 0;
+      if (isHit) {
+        damage = Math.floor(Math.random() * (atkStats.dmgMax - atkStats.dmgMin + 1)) + atkStats.dmgMin;
+        defStats.currentHp = Math.max(0, defStats.currentHp - damage);
+      }
+
+      attackAnimState = {
+        phase: 'lunge', progress: 0,
+        startPos: { ...attacker.position },
+        targetPos: { ...defender.position },
+        isHit, damage, d20Roll, totalAtk
+      };
+
+      const statusText = document.getElementById('status-text');
+      if (isHit) {
+        statusText.innerHTML = `🎲 Dado: <b>${d20Roll}</b> (+${atkStats.atkBonus}) = <b>${totalAtk}</b> vs CA ${defStats.ca} ➔ <span style="color:#4ade80">COLPITO!</span> (${damage} Danni)`;
+      } else {
+        statusText.innerHTML = `🎲 Dado: <b>${d20Roll}</b> (+${atkStats.atkBonus}) = <b>${totalAtk}</b> vs CA ${defStats.ca} ➔ <span style="color:#f87171">MANCATO!</span>`;
+      }
+    }
+
+    // 8. INTERAZIONE
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    const statusText = document.getElementById('status-text');
+    const unitStatsBox = document.getElementById('unit-stats');
+
+    let selectedPiece = null;
+    let movingPiece = null;
+    let moveTargetParams = null;
+    let pointerDownPos = { x: 0, y: 0 };
+
+    window.addEventListener('pointerdown', (e) => {
+      pointerDownPos.x = e.clientX; pointerDownPos.y = e.clientY;
+    });
+
+    window.addEventListener('pointerup', (e) => {
+      if (movingPiece || attackAnimState) return;
+
+      const dist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
+      if (dist > 8) return;
+
+      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+
+      const intersects = raycaster.intersectObjects(pieces.children, true);
+
+      if (intersects.length > 0) {
+        let obj = intersects[0].object;
+        while (obj.parent && !obj.userData.isPiece) obj = obj.parent;
+
+        if (obj.userData.isPiece && obj.userData.stats.currentHp > 0) {
+          if (selectedPiece && obj !== selectedPiece) {
+            const distSquares = Math.max(
+              Math.abs(obj.userData.gridX - selectedPiece.userData.gridX),
+              Math.abs(obj.userData.gridZ - selectedPiece.userData.gridZ)
+            );
+
+            if (distSquares === 1 && selectedPiece.userData.stats.isEnemy !== obj.userData.stats.isEnemy) {
+              performAttack(selectedPiece, obj);
+              deselectUnit();
+              return;
+            }
+          }
+
+          selectUnit(obj);
+          return;
+        }
+      }
+
+      if (selectedPiece) {
+        const tileIntersects = raycaster.intersectObjects(tilesMap.children);
+        if (tileIntersects.length > 0) {
+          const tile = tileIntersects[0].object;
+          const targetX = tile.userData.gridX;
+          const targetZ = tile.userData.gridZ;
+          const distSquares = Math.max(Math.abs(targetX - selectedPiece.userData.gridX), Math.abs(targetZ - selectedPiece.userData.gridZ));
+
+          if (!isCellOccupied(targetX, targetZ) && distSquares <= selectedPiece.userData.stats.speedMax) {
+            startMovement(selectedPiece, targetX, targetZ);
+            deselectUnit();
+          } else if (isCellOccupied(targetX, targetZ)) {
+            statusText.innerText = "Casella bloccata da un nemico, cassa o muro!";
+          }
+        }
+      }
+    });
+
+    function selectUnit(piece) {
+      if (selectedPiece) deselectUnit();
+      selectedPiece = piece;
+      selectedPiece.userData.torsoMesh.material.color.setHex(0xfacc15);
+
+      const stats = piece.userData.stats;
+      unitStatsBox.style.display = 'block';
+      document.getElementById('unit-name').innerText = stats.name;
+      document.getElementById('unit-ac').innerText = stats.ca;
+      document.getElementById('unit-hp').innerText = `${stats.currentHp}/${stats.maxHp}`;
+      document.getElementById('unit-atk').innerText = `+${stats.atkBonus}`;
+
+      statusText.innerText = `${stats.name}: Tocca una casella verde (max 3 q) o un nemico ROSSO.`;
+      updateHighlights(piece);
+    }
+
+    function deselectUnit() {
+      if (!selectedPiece) return;
+      selectedPiece.userData.torsoMesh.material.color.setHex(selectedPiece.userData.originalColor);
+      selectedPiece = null;
+      clearHighlights();
+      unitStatsBox.style.display = 'none';
+    }
+
+    function startMovement(piece, targetX, targetZ) {
+      movingPiece = piece;
+      const target3D = get3DPosition(targetX, targetZ);
+      moveTargetParams = { x: target3D.x, z: target3D.z, gridX: targetX, gridZ: targetZ };
+      statusText.innerText = `Spostamento in corso...`;
+    }
+
+    // 9. LOOP ANIMAZIONI
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+      controls.update();
+
+      if (movingPiece && moveTargetParams) {
+        const dir = new THREE.Vector3(moveTargetParams.x - movingPiece.position.x, 0, moveTargetParams.z - movingPiece.position.z);
+        const dist = dir.length();
+        const step = 4.5 * delta;
+
+        if (dist > step) {
+          dir.normalize();
+          movingPiece.position.add(dir.multiplyScalar(step));
+          movingPiece.position.y = 0.08 + Math.sin((dist / tileSize) * Math.PI) * 0.2;
+        } else {
+          movingPiece.position.x = moveTargetParams.x;
+          movingPiece.position.z = moveTargetParams.z;
+          movingPiece.position.y = 0.08;
+          movingPiece.userData.gridX = moveTargetParams.gridX;
+          movingPiece.userData.gridZ = moveTargetParams.gridZ;
+          movingPiece = null;
+          moveTargetParams = null;
+          statusText.innerText = "Spostamento completato.";
+        }
+      }
+
+      if (attackAnimState && attackingUnit && defendingUnit) {
+        attackAnimState.progress += delta * 5;
+
+        if (attackAnimState.phase === 'lunge') {
+          attackingUnit.position.lerpVectors(attackAnimState.startPos, attackAnimState.targetPos, attackAnimState.progress * 0.4);
+          if (attackAnimState.progress >= 1) {
+            attackAnimState.phase = 'impact';
+            attackAnimState.progress = 0;
+
+            if (attackAnimState.isHit) {
+              defendingUnit.userData.torsoMesh.material.color.setHex(0xef4444);
+            }
+          }
+        } else if (attackAnimState.phase === 'impact') {
+          if (attackAnimState.progress >= 0.3) {
+            defendingUnit.userData.torsoMesh.material.color.setHex(defendingUnit.userData.originalColor);
+            attackAnimState.phase = 'return';
+            attackAnimState.progress = 0;
+          }
+        } else if (attackAnimState.phase === 'return') {
+          attackingUnit.position.lerpVectors(attackAnimState.targetPos, attackAnimState.startPos, attackAnimState.progress);
+          if (attackAnimState.progress >= 1) {
+            attackingUnit.position.copy(attackAnimState.startPos);
+
+            if (defendingUnit.userData.stats.currentHp <= 0) {
+              defendingUnit.rotation.x = Math.PI / 2;
+              defendingUnit.position.y = 0.1;
+              statusText.innerHTML += ` ➔ <b style="color:#ef4444">${defendingUnit.userData.stats.name} sconfitto!</b>`;
+            }
+
+            attackAnimState = null;
+            attackingUnit = null;
+            defendingUnit = null;
+          }
+        }
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
 <link rel="modulepreload" href="chunk-HE2J4SFP.js"><link rel="modulepreload" href="chunk-VQALC3F6.js"><script src="polyfills-5CFQRCPP.js" type="module"></script><script src="main-36B6RRHT.js" type="module"></script></body>
 
 </html>
