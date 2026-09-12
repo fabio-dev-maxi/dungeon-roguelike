@@ -1,95 +1,94 @@
-<div class="panel gothic-frame board-test-container">
-  <!-- HEADER SCHERMATA GOTICA -->
-  <header class="test-header">
-    <div class="header-titles">
-      <h2><app-icon name="swords" [size]="22" /> Arena Tattica nella Caverna</h2>
-      <span class="eyebrow">Simulatore D&D 3.5e con Fisica Rapier WASM e d20</span>
+<div class="board-container">
+  <!-- Area Principale Canvas & Controlli -->
+  <div class="main-area">
+    <div class="header-banner">
+      <h2>⚔️ ARENA TATTICA NELLA CAVERNA</h2>
+      <a routerLink="/" class="back-link">← TORNA AL GIOCO</a>
     </div>
-    <a routerLink="/" class="btn btn--ghost">&larr; Torna al Gioco</a>
-  </header>
 
-  <!-- LAYOUT PRINCIPALE -->
-  <div class="sandbox-layout">
-    <!-- VIEWPORT 3D & SCENA CAVERNA -->
-    <div class="canvas-viewport gothic-frame">
-      <canvas #boardCanvas class="three-canvas"></canvas>
+    <div class="board-wrapper">
+      <canvas #boardCanvas class="board-canvas"></canvas>
 
-      <!-- HUD STATO AZIONE -->
-      <div class="hud-overlay">
-        <span class="status-msg" [innerHTML]="statusText()"></span>
+      <div class="status-overlay">
+        <p>{{ statusText() }}</p>
+      </div>
+
+      <div class="controls-overlay">
+        <button (click)="focusOnSelectedUnit()">🎯 Centra Eroe</button>
       </div>
     </div>
+  </div>
 
-    <!-- CONTROLLI E SCHEDA UNITA' SELEZIONATA -->
-    <aside class="control-panel gothic-frame">
-      <h3>Statistiche Unità</h3>
-
+  <!-- Pannello Laterale Statistiche & Info -->
+  <aside class="sidebar-panel">
+    <div class="panel-card stats-card">
+      <h3>STATISTICHE UNITÀ</h3>
       @if (selectedUnitStats(); as stats) {
-      <div class="unit-card gothic-frame" [class.enemy-border]="stats.isEnemy">
-        <div class="unit-title">{{ stats.name }}</div>
-        <div class="unit-stats-grid">
-          <div class="stat-pill">
-            <span class="lbl">CA</span>
-            <span class="val">{{ stats.ca }}</span>
+      <div class="unit-details">
+        <h4>{{ stats.name }}</h4>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="label">CA</span>
+            <span class="value">{{ stats.ca }}</span>
           </div>
-          <div class="stat-pill">
-            <span class="lbl">PF</span>
-            <span class="val">{{ stats.currentHp }} / {{ stats.maxHp }}</span>
+          <div class="stat-item">
+            <span class="label">PF</span>
+            <span class="value">{{ stats.currentHp }} / {{ stats.maxHp }}</span>
           </div>
-          <div class="stat-pill">
-            <span class="lbl">TxC</span>
-            <span class="val">+{{ stats.atkBonus }}</span>
+          <div class="stat-item">
+            <span class="label">TXC</span>
+            <span class="value">+{{ stats.atkBonus }}</span>
           </div>
-          <div class="stat-pill">
-            <span class="lbl">Danno</span>
-            <span class="val">{{ stats.dmgMin }}-{{ stats.dmgMax }}</span>
+          <div class="stat-item">
+            <span class="label">DANNO</span>
+            <span class="value">{{ stats.dmgMin }}-{{ stats.dmgMax }}</span>
           </div>
         </div>
       </div>
       } @else {
-      <p class="small empty-msg">Tocca una pedina nella caverna per selezionarla.</p>
+      <p class="empty-selection">Seleziona un'unità sulla griglia per vederne i dettagli.</p>
       }
+    </div>
 
-      <hr class="rule" />
+    <div class="panel-card commands-card">
+      <h4>Comandi Caverna:</h4>
+      <ul>
+        <li><strong>Spostamento:</strong> Seleziona un eroe e tocca una casella verde.</li>
+        <li><strong>Mischia:</strong> Tocca un nemico adiacente.</li>
+        <li><strong>Incantesimi:</strong> Tocca un nemico/alleato a distanza con Mago o Chierico per aprire il grimorio.
+        </li>
+      </ul>
+    </div>
+  </aside>
 
-      <div class="instructions small">
-        <p><strong>Comandi Caverna:</strong></p>
-        <ul>
-          <li><strong>Spostamento:</strong> Seleziona un eroe e tocca una casella verde.</li>
-          <li><strong>Mischia:</strong> Tocca un nemico adiacente.</li>
-          <li><strong>Grimorio Mago:</strong> Tocca il Drago Rosso da distante per scegliere la magia.</li>
-        </ul>
+  <!-- Modale Selezione Incantesimi -->
+  @if (isModalOpen()) {
+  <div class="modal-backdrop">
+    <div class="modal-card">
+      <h3>
+        @if (modalMode() === 'mage') { GRIMORIO MAGICO }
+        @if (modalMode() === 'cleric_heal') { MAGIA DIVINA - CURA }
+        @if (modalMode() === 'cleric_harm') { MAGIA DIVINA - ATTACCO }
+      </h3>
+
+      <div class="spell-buttons">
+        @if (modalMode() === 'mage') {
+        <button (click)="selectSpell('fireball')">🔥 Palla di Fuoco</button>
+        <button (click)="selectSpell('lightning')">⚡ Tempesta di Fulmini</button>
+        <button (click)="selectSpell('missile')">✨ Dardo Incantato</button>
+        }
+
+        @if (modalMode() === 'cleric_heal') {
+        <button (click)="selectSpell('cure')">✨ Cura Ferite Leggere (1d8 + 3)</button>
+        }
+
+        @if (modalMode() === 'cleric_harm') {
+        <button (click)="selectSpell('harm')">💀 Infliggi Ferite Leggere (1d8 + 3)</button>
+        }
       </div>
-    </aside>
-  </div>
-</div>
 
-<!-- MODALE GRIMORIO INCANTESIMI -->
-@if (isModalOpen()) {
-<div class="modal-backdrop">
-  <div class="panel modal-box gothic-frame spell-modal-card">
-    <div class="sigil sigil--gold modal-sigil">
-      <app-icon name="scroll" [size]="28" />
-    </div>
-    <h2>📖 Scegli l'Incantesimo</h2>
-    <p class="small modal-desc">Seleziona la magia da canalizzare prima del tiro del d20 3D:</p>
-
-    <div class="spell-buttons-list">
-      <button type="button" class="btn spell-btn" (click)="selectSpell('fireball')">
-        <span>🔥 Palla di Fuoco</span>
-        <small class="spell-sub">(Danni Fuoco Area)</small>
-      </button>
-
-      <button type="button" class="btn spell-btn" (click)="selectSpell('lightning')">
-        <span>⚡ Tempesta di Fulmini</span>
-        <small class="spell-sub">(Fulmine Diretto)</small>
-      </button>
-
-      <button type="button" class="btn spell-btn" (click)="selectSpell('missile')">
-        <span>✨ Dardo Incantato</span>
-        <small class="spell-sub">(3 Dardi di Forza)</small>
-      </button>
+      <button class="close-btn" (click)="isModalOpen.set(false)">Annulla</button>
     </div>
   </div>
+  }
 </div>
-}

@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import * as THREE from 'three';
-import { EntityFactoryService, EntityMeshResult } from './entity-factory.service';
 import { EnvironmentFactoryService } from './environment-factory.service';
+import { EntityFactoryService, EntityMeshResult } from './entity-factory.service';
 import { BoardPhysicsService } from './board-physics.service';
-import { BoardUnit, UnitStats } from '../models/board-types';
+import { UnitStats, BoardUnit } from '../models/board-types';
 
 @Injectable({
   providedIn: 'root'
@@ -95,21 +95,23 @@ export class BoardGridService {
 
   public spawnPartyAndBoss(): void {
     this.spawnUnit(1, 1, { name: 'Guerriero Umano', classType: 'warrior', ca: 18, maxHp: 38, currentHp: 38, atkBonus: 8, dmgMin: 8, dmgMax: 16, speedMax: 3, color: 0x64748b, isEnemy: false });
-    this.spawnUnit(2, 1, { name: 'Mago Elfo', classType: 'mage', ca: 13, maxHp: 20, currentHp: 20, atkBonus: 6, dmgMin: 12, dmgMax: 28, speedMax: 3, color: 0x2563eb, isEnemy: false, isMage: true, isRanged: true });
+    this.spawnUnit(2, 1, { name: 'Mago Elfo', classType: 'mage', ca: 13, maxHp: 20, currentHp: 20, atkBonus: 6, dmgMin: 12, dmgMax: 28, speedMax: 3, color: 0x2563eb, isEnemy: false });
     this.spawnUnit(1, 2, { name: 'Ladro Halfling', classType: 'rogue', ca: 16, maxHp: 26, currentHp: 26, atkBonus: 7, dmgMin: 6, dmgMax: 14, speedMax: 4, color: 0x15803d, isEnemy: false });
     this.spawnUnit(2, 2, { name: 'Chierico Nano', classType: 'cleric', ca: 17, maxHp: 34, currentHp: 34, atkBonus: 6, dmgMin: 6, dmgMax: 12, speedMax: 3, color: 0xeab308, isEnemy: false });
 
     this.spawnUnit(4, 4, { name: 'Drago Rosso (Grande)', ca: 21, maxHp: 85, currentHp: 85, atkBonus: 14, dmgMin: 8, dmgMax: 22, speedMax: 3, color: 0xdc2626, isEnemy: true }, true);
-    this.spawnUnit(6, 3, { name: 'Goblin Esploratore', classType: 'goblin', ca: 13, maxHp: 12, currentHp: 12, atkBonus: 4, dmgMin: 2, dmgMax: 6, speedMax: 3, color: 0x15803d, isEnemy: true });
-    this.spawnUnit(3, 6, { name: 'Goblin Guerriero', classType: 'goblin', ca: 14, maxHp: 14, currentHp: 14, atkBonus: 5, dmgMin: 3, dmgMax: 7, speedMax: 3, color: 0x15803d, isEnemy: true });
+
+    this.spawnUnit(6, 3, { name: 'Goblin Arciere', classType: 'goblin', ca: 13, maxHp: 12, currentHp: 12, atkBonus: 4, dmgMin: 2, dmgMax: 6, speedMax: 3, color: 0x15803d, isEnemy: true, isRanged: true });
+    this.spawnUnit(3, 6, { name: 'Goblin Lanciere', classType: 'goblin', ca: 14, maxHp: 14, currentHp: 14, atkBonus: 5, dmgMin: 3, dmgMax: 7, speedMax: 3, color: 0x15803d, isEnemy: true, isRanged: false });
   }
 
   private spawnUnit(gridX: number, gridZ: number, stats: UnitStats, isDragon = false): void {
     let resultMesh: EntityMeshResult;
+
     if (isDragon) {
       resultMesh = this.entityFactory.createDragonMesh(this.tileSize);
     } else if (stats.classType === 'goblin') {
-      resultMesh = this.entityFactory.createGoblinMesh(stats.color);
+      resultMesh = this.entityFactory.createGoblinMesh(stats.color, !!stats.isRanged);
     } else {
       resultMesh = this.entityFactory.createHumanMesh(stats.color, stats.classType);
     }
@@ -185,18 +187,48 @@ export class BoardGridService {
       if (hitPiece && hitPiece.stats.currentHp > 0) {
         if (this.selectedUnit && hitPiece !== this.selectedUnit) {
           const dist = this.getDistanceBetweenUnits(this.selectedUnit, hitPiece);
+          const isEnemyTarget = this.selectedUnit.stats.isEnemy !== hitPiece.stats.isEnemy;
+          const attackerClass = this.selectedUnit.stats.classType;
 
-          if (this.selectedUnit.stats.isRanged && dist > 1 && dist <= 6 && this.selectedUnit.stats.isEnemy !== hitPiece.stats.isEnemy) {
+          // 1. CHIERICO SU ALLEATO (Cura Ferite Leggere)
+          if (!isEnemyTarget && attackerClass === 'cleric' && dist <= 6) {
             this.pendingAttack = { attacker: this.selectedUnit, defender: hitPiece };
-            onCallback({ type: 'openSpellModal' });
+            onCallback({ type: 'openSpellModal', modalType: 'cleric_heal', attacker: this.selectedUnit, defender: hitPiece });
             this.deselectUnit();
             return;
           }
 
-          if (dist === 1 && this.selectedUnit.stats.isEnemy !== hitPiece.stats.isEnemy) {
-            onCallback({ type: 'meleeAttack', attacker: this.selectedUnit, defender: hitPiece });
-            this.deselectUnit();
-            return;
+          // 2. TARGET NEMICO
+          if (isEnemyTarget) {
+            // MAGO (Grimorio Arcano: Palla di Fuoco, Tempesta di Fulmini, Dardo Incantato)
+            if (attackerClass === 'mage' && dist <= 6) {
+              this.pendingAttack = { attacker: this.selectedUnit, defender: hitPiece };
+              onCallback({ type: 'openSpellModal', modalType: 'mage', attacker: this.selectedUnit, defender: hitPiece });
+              this.deselectUnit();
+              return;
+            }
+
+            // CHIERICO SU NEMICO (Grimorio Divino: Infliggi Ferite Leggere)
+            if (attackerClass === 'cleric' && dist <= 6) {
+              this.pendingAttack = { attacker: this.selectedUnit, defender: hitPiece };
+              onCallback({ type: 'openSpellModal', modalType: 'cleric_harm', attacker: this.selectedUnit, defender: hitPiece });
+              this.deselectUnit();
+              return;
+            }
+
+            // TIRO RANGED FISICO (es. Goblin Arciere)
+            if (this.selectedUnit.stats.isRanged && attackerClass !== 'mage' && dist > 1 && dist <= 6) {
+              onCallback({ type: 'rangedArrowAttack', attacker: this.selectedUnit, defender: hitPiece });
+              this.deselectUnit();
+              return;
+            }
+
+            // MELEE (Guerriero, Ladro, Goblin Lanciere)
+            if (dist === 1) {
+              onCallback({ type: 'meleeAttack', attacker: this.selectedUnit, defender: hitPiece });
+              this.deselectUnit();
+              return;
+            }
           }
         }
 
@@ -270,17 +302,25 @@ export class BoardGridService {
   private updateHighlights(selectedUnit: BoardUnit): void {
     this.clearHighlights();
     const is2x2 = selectedUnit.occupiedTiles.length > 1;
+    const attackerClass = selectedUnit.stats.classType;
+    const isRangedCaster = attackerClass === 'mage' || attackerClass === 'cleric' || selectedUnit.stats.isRanged;
 
     const hlMoveMat = new THREE.MeshStandardMaterial({ color: 0x22c55e, emissive: 0x15803d, emissiveIntensity: 0.5, transparent: true, opacity: 0.35, depthWrite: false });
     const hlAtkMat = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0xb91c1c, emissiveIntensity: 0.6, transparent: true, opacity: 0.45, depthWrite: false });
+    const hlHealMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.6, transparent: true, opacity: 0.45, depthWrite: false });
+
     const lineMatMove = new THREE.LineBasicMaterial({ color: 0x86efac });
     const lineMatAtk = new THREE.LineBasicMaterial({ color: 0xfca5a5 });
+    const lineMatHeal = new THREE.LineBasicMaterial({ color: 0xbae6fd });
 
     this.units.forEach(targetUnit => {
       if (targetUnit === selectedUnit || targetUnit.stats.currentHp <= 0) return;
-      if (targetUnit.stats.isEnemy !== selectedUnit.stats.isEnemy) {
+      const isEnemyTarget = targetUnit.stats.isEnemy !== selectedUnit.stats.isEnemy;
+
+      // Evidenzia nemici attaccabili
+      if (isEnemyTarget) {
         const dist = this.getDistanceBetweenUnits(selectedUnit, targetUnit);
-        if (dist === 1 || (selectedUnit.stats.isRanged && dist <= 6)) {
+        if (dist === 1 || (isRangedCaster && dist <= 6)) {
           targetUnit.occupiedTiles.forEach(tile => {
             const geo = new THREE.PlaneGeometry(this.tileSize * 0.92, this.tileSize * 0.92);
             geo.rotateX(-Math.PI / 2);
@@ -288,6 +328,22 @@ export class BoardGridService {
             const pos = this.get3DPosition(tile.x, tile.z);
             hl.position.set(pos.x, 0.12, pos.z);
             hl.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), lineMatAtk));
+            hl.userData = { isHighlight: true, gridX: tile.x, gridZ: tile.z };
+            this.highlightGroup.add(hl);
+          });
+        }
+      }
+      // Evidenzia alleati curabili solo se la classe è Chierico
+      else if (attackerClass === 'cleric') {
+        const dist = this.getDistanceBetweenUnits(selectedUnit, targetUnit);
+        if (dist <= 6) {
+          targetUnit.occupiedTiles.forEach(tile => {
+            const geo = new THREE.PlaneGeometry(this.tileSize * 0.92, this.tileSize * 0.92);
+            geo.rotateX(-Math.PI / 2);
+            const hl = new THREE.Mesh(geo, hlHealMat);
+            const pos = this.get3DPosition(tile.x, tile.z);
+            hl.position.set(pos.x, 0.12, pos.z);
+            hl.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), lineMatHeal));
             hl.userData = { isHighlight: true, gridX: tile.x, gridZ: tile.z };
             this.highlightGroup.add(hl);
           });

@@ -21,6 +21,8 @@ export class BoardEffectsService {
   private lightningAnimState: any = null;
   private missileAnimState: any = null;
   private weaponAttackAnimState: any = null;
+  private arrowAnimState: any = null;
+  private harmAnimState: any = null;
   private activeExplosion: any = null;
 
   constructor(private physics: BoardPhysicsService) { }
@@ -29,7 +31,7 @@ export class BoardEffectsService {
     this.scene = scene;
   }
 
-  // === LANCI E GESTIONE FISICA d20 ===
+  // === DADO d20 ===
   public rollD20OnBoard(
     attacker: BoardUnit,
     defender: BoardUnit,
@@ -44,10 +46,7 @@ export class BoardEffectsService {
     this.scene.add(d20Mesh);
 
     const body = this.physics.createDynamicBallBody(startX, 2.8, startZ);
-    if (!body) {
-      console.error('Mondo fisico Rapier non disponibile per il d20.');
-      return;
-    }
+    if (!body) return;
 
     body.setLinvel({ x: (Math.random() - 0.5) * 5, y: 3.5, z: (Math.random() - 0.5) * 5 }, true);
     body.setAngvel({ x: Math.random() * 25, y: Math.random() * 25, z: Math.random() * 25 }, true);
@@ -57,19 +56,10 @@ export class BoardEffectsService {
     const isHit = totalAtk >= defender.stats.ca || d20Roll === 20;
 
     this.d20RollState = {
-      mesh: d20Mesh,
-      body,
-      phase: 'rolling',
-      timer: 0,
-      rollDuration: 2.0,
-      pauseDuration: 1.5,
-      attacker,
-      defender,
-      chosenSpellType,
-      d20Roll,
-      totalAtk,
-      isHit,
-      onStatusUpdate
+      mesh: d20Mesh, body, phase: 'rolling', timer: 0,
+      rollDuration: 2.0, pauseDuration: 1.5,
+      attacker, defender, chosenSpellType,
+      d20Roll, totalAtk, isHit, onStatusUpdate
     };
 
     onStatusUpdate('🎲 LANCIO DEL d20 SULLA BOARD...');
@@ -144,8 +134,51 @@ export class BoardEffectsService {
     return q;
   }
 
-  // === ANIMAZIONI ATTACCHI & INCANTESIMI ===
-  public startWeaponAttackAnimation(
+  // === TIRO CON L'ARCO (GOBLIN ARCIERE) ===
+  public shootArrow(attacker: BoardUnit, defender: BoardUnit, isHit: boolean, d20Roll: number, totalAtk: number, onStatusUpdate: (msg: string) => void): void {
+    const arrowGroup = new THREE.Group();
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.6, 8), new THREE.MeshStandardMaterial({ color: 0x78350f }));
+    shaft.rotation.x = Math.PI / 2;
+    const tip = new THREE.Mesh(new THREE.ConeGeometry(0.035, 0.12, 4), new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.8 }));
+    tip.position.z = 0.35;
+    tip.rotation.x = Math.PI / 2;
+    arrowGroup.add(shaft, tip);
+
+    const startPos = { x: attacker.root.position.x, y: 0.8, z: attacker.root.position.z };
+    const targetPos = { x: defender.root.position.x, y: 0.8, z: defender.root.position.z };
+    arrowGroup.position.set(startPos.x, startPos.y, startPos.z);
+    this.scene.add(arrowGroup);
+
+    this.arrowAnimState = {
+      group: arrowGroup, attacker, defender, startPos, targetPos,
+      progress: 0, isHit, d20Roll, totalAtk, onStatusUpdate
+    };
+
+    onStatusUpdate(`🏹 ${attacker.stats.name} scaglia una freccia!`);
+  }
+
+  // === MAGIE DEL CHIERICO ===
+  public castCuraFeriteLeggere(caster: BoardUnit, target: BoardUnit, d20Roll: number, onStatusUpdate: (msg: string) => void): void {
+    const healAmount = Math.floor(Math.random() * 8) + 1 + 3; // 1d8 + 3
+    target.stats.currentHp = Math.min(target.stats.maxHp, target.stats.currentHp + healAmount);
+
+    const textPos = target.root.position.clone();
+    textPos.y += 1.6;
+
+    this.spawnDamageText(textPos, `+${healAmount}`, '#22c55e');
+
+    const auraMesh = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.6, 0.6, 1.8, 16),
+      new THREE.MeshBasicMaterial({ color: 0x86efac, transparent: true, opacity: 0.5 })
+    );
+    auraMesh.position.copy(target.root.position);
+    this.scene.add(auraMesh);
+
+    setTimeout(() => this.scene.remove(auraMesh), 600);
+    onStatusUpdate(`🎲 Dado: ${d20Roll} ➔ ✨ ${caster.stats.name} lancia Cura Ferite Leggere su ${target.stats.name} (+${healAmount} PV)`);
+  }
+
+  public castInfliggiFeriteLeggere(
     attacker: BoardUnit,
     defender: BoardUnit,
     isHit: boolean,
@@ -153,6 +186,48 @@ export class BoardEffectsService {
     totalAtk: number,
     onStatusUpdate: (msg: string) => void
   ): void {
+    const startPos = attacker.root.position.clone();
+    startPos.y += 0.8;
+    const targetPos = defender.root.position.clone();
+    targetPos.y += 0.8;
+
+    const distance = startPos.distanceTo(targetPos);
+    const beamGeo = new THREE.CylinderGeometry(0.08, 0.08, distance, 12);
+    beamGeo.rotateX(Math.PI / 2);
+
+    const beamMat = new THREE.MeshBasicMaterial({
+      color: 0xef4444,
+      transparent: true,
+      opacity: 0.95
+    });
+    const beamMesh = new THREE.Mesh(beamGeo, beamMat);
+
+    const redLight = new THREE.PointLight(0xdc2626, 12, distance * 1.5);
+    beamMesh.add(redLight);
+
+    beamMesh.position.copy(startPos).add(targetPos).multiplyScalar(0.5);
+    beamMesh.lookAt(targetPos);
+
+    this.scene.add(beamMesh);
+
+    this.harmAnimState = {
+      mesh: beamMesh,
+      attacker,
+      defender,
+      targetPos,
+      timer: 0,
+      duration: 0.45,
+      isHit,
+      d20Roll,
+      totalAtk,
+      onStatusUpdate
+    };
+
+    onStatusUpdate(`💀 ${attacker.stats.name} lancia INFLIGGI FERITE LEGGERE!`);
+  }
+
+  // === ALTRE MAGIE E ATTACCHI ===
+  public startWeaponAttackAnimation(attacker: BoardUnit, defender: BoardUnit, isHit: boolean, d20Roll: number, totalAtk: number, onStatusUpdate: (msg: string) => void): void {
     const attPos = attacker.root.position;
     const defPos = defender.root.position;
 
@@ -168,14 +243,7 @@ export class BoardEffectsService {
     onStatusUpdate(`⚔️ ${attacker.stats.name} sferra un colpo d'arma!`);
   }
 
-  public castFireball(
-    attacker: BoardUnit,
-    defender: BoardUnit,
-    isHit: boolean,
-    d20Roll: number,
-    totalAtk: number,
-    onStatusUpdate: (msg: string) => void
-  ): void {
+  public castFireball(attacker: BoardUnit, defender: BoardUnit, isHit: boolean, d20Roll: number, totalAtk: number, onStatusUpdate: (msg: string) => void): void {
     const fireballGroup = new THREE.Group();
     const coreMesh = new THREE.Mesh(new THREE.SphereGeometry(0.55, 24, 24), new THREE.MeshBasicMaterial({ color: 0xffaa00 }));
     const auraMesh = new THREE.Mesh(new THREE.SphereGeometry(0.85, 24, 24), new THREE.MeshBasicMaterial({ color: 0xff2200, transparent: true, opacity: 0.45 }));
@@ -190,14 +258,7 @@ export class BoardEffectsService {
     onStatusUpdate(`🔥 ${attacker.stats.name} lancia PALLA DI FUOCO!`);
   }
 
-  public castLightningStorm(
-    attacker: BoardUnit,
-    defender: BoardUnit,
-    isHit: boolean,
-    d20Roll: number,
-    totalAtk: number,
-    onStatusUpdate: (msg: string) => void
-  ): void {
+  public castLightningStorm(attacker: BoardUnit, defender: BoardUnit, isHit: boolean, d20Roll: number, totalAtk: number, onStatusUpdate: (msg: string) => void): void {
     const lightningGroup = new THREE.Group();
     const targetPos = defender.root.position;
     const boltMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
@@ -223,14 +284,7 @@ export class BoardEffectsService {
     onStatusUpdate(`⚡ ${attacker.stats.name} invoca TEMPESTA DI FULMINI!`);
   }
 
-  public castMagicMissile(
-    attacker: BoardUnit,
-    defender: BoardUnit,
-    isHit: boolean,
-    d20Roll: number,
-    totalAtk: number,
-    onStatusUpdate: (msg: string) => void
-  ): void {
+  public castMagicMissile(attacker: BoardUnit, defender: BoardUnit, isHit: boolean, d20Roll: number, totalAtk: number, onStatusUpdate: (msg: string) => void): void {
     const missilesGroup = new THREE.Group();
     const startPos = { x: attacker.root.position.x, y: 1.1, z: attacker.root.position.z };
     const targetPos = { x: defender.root.position.x, y: 1.0, z: defender.root.position.z };
@@ -316,9 +370,7 @@ export class BoardEffectsService {
     }
   }
 
-  // === CICLO AGGIORNAMENTO EFFETTI E ANIMAZIONI ===
   public updateEffects(delta: number): void {
-    // Fase Tiro e Assestamento d20
     if (this.d20RollState) {
       const st = this.d20RollState;
       st.timer += delta;
@@ -347,6 +399,12 @@ export class BoardEffectsService {
           this.castLightningStorm(st.attacker, st.defender, st.isHit, st.d20Roll, st.totalAtk, st.onStatusUpdate);
         } else if (st.chosenSpellType === 'missile') {
           this.castMagicMissile(st.attacker, st.defender, st.isHit, st.d20Roll, st.totalAtk, st.onStatusUpdate);
+        } else if (st.chosenSpellType === 'cleric_harm') {
+          this.castInfliggiFeriteLeggere(st.attacker, st.defender, st.isHit, st.d20Roll, st.totalAtk, st.onStatusUpdate);
+        } else if (st.chosenSpellType === 'cure') {
+          this.castCuraFeriteLeggere(st.attacker, st.defender, st.d20Roll, st.onStatusUpdate);
+        } else if (st.chosenSpellType === 'arrow') {
+          this.shootArrow(st.attacker, st.defender, st.isHit, st.d20Roll, st.totalAtk, st.onStatusUpdate);
         } else {
           this.startWeaponAttackAnimation(st.attacker, st.defender, st.isHit, st.d20Roll, st.totalAtk, st.onStatusUpdate);
         }
@@ -355,25 +413,54 @@ export class BoardEffectsService {
       }
     }
 
-    // Animazione Fendente Braccio + Arma
+    if (this.harmAnimState) {
+      const st = this.harmAnimState;
+      st.timer += delta;
+      const progress = st.timer / st.duration;
+
+      st.mesh.material.opacity = Math.max(0, 1 - progress);
+      st.mesh.scale.set(1 + Math.sin(progress * Math.PI) * 0.5, 1, 1 + Math.sin(progress * Math.PI) * 0.5);
+
+      if (st.timer >= st.duration) {
+        this.triggerExplosion(st.targetPos, 0xdc2626);
+        this.applyAttackDamage(st.attacker, st.defender, st.isHit, st.d20Roll, st.totalAtk, st.onStatusUpdate);
+
+        this.scene.remove(st.mesh);
+        st.mesh.geometry.dispose();
+        st.mesh.material.dispose();
+        this.harmAnimState = null;
+      }
+    }
+
+    if (this.arrowAnimState) {
+      const st = this.arrowAnimState;
+      st.progress += delta * 2.5;
+      const p = Math.min(st.progress, 1);
+      st.group.position.x = THREE.MathUtils.lerp(st.startPos.x, st.targetPos.x, p);
+      st.group.position.y = THREE.MathUtils.lerp(st.startPos.y, st.targetPos.y, p) + Math.sin(p * Math.PI) * 0.4;
+      st.group.position.z = THREE.MathUtils.lerp(st.startPos.z, st.targetPos.z, p);
+      st.group.lookAt(st.targetPos.x, st.targetPos.y, st.targetPos.z);
+
+      if (st.progress >= 1) {
+        this.applyAttackDamage(st.attacker, st.defender, st.isHit, st.d20Roll, st.totalAtk, st.onStatusUpdate);
+        this.scene.remove(st.group);
+        this.arrowAnimState = null;
+      }
+    }
+
     if (this.weaponAttackAnimState) {
       const st = this.weaponAttackAnimState;
-
       if (st.armGroup) {
         st.progress += delta * 7.0;
         const p = Math.min(st.progress, 1);
-
         if (st.phase === 'slash') {
           st.armGroup.rotation.x = THREE.MathUtils.lerp(st.startRot.x, st.startRot.x - Math.PI * 0.55, Math.sin(p * Math.PI));
-
           if (st.progress >= 1) {
-            st.phase = 'return';
-            st.progress = 0;
+            st.phase = 'return'; st.progress = 0;
             this.applyAttackDamage(st.attacker, st.defender, st.isHit, st.d20Roll, st.totalAtk, st.onStatusUpdate);
           }
         } else if (st.phase === 'return') {
           st.armGroup.rotation.x = THREE.MathUtils.lerp(st.armGroup.rotation.x, st.startRot.x, p);
-
           if (st.progress >= 1) {
             st.armGroup.rotation.copy(st.startRot);
             this.weaponAttackAnimState = null;
@@ -385,14 +472,12 @@ export class BoardEffectsService {
       }
     }
 
-    // Traiettoria Palla di Fuoco
     if (this.fireballAnimState) {
       const st = this.fireballAnimState;
       st.progress += delta * 0.8;
       st.group.position.x = THREE.MathUtils.lerp(st.startPos.x, st.targetPos.x, Math.min(st.progress, 1));
       st.group.position.y = THREE.MathUtils.lerp(st.startPos.y, st.targetPos.y, Math.min(st.progress, 1)) + Math.sin(Math.min(st.progress, 1) * Math.PI) * 0.6;
       st.group.position.z = THREE.MathUtils.lerp(st.startPos.z, st.targetPos.z, Math.min(st.progress, 1));
-
       if (st.progress >= 1) {
         this.triggerExplosion(st.targetPos, 0xff3300);
         this.applyAttackDamage(st.attacker, st.defender, st.isHit, st.d20Roll, st.totalAtk, st.onStatusUpdate);
@@ -401,12 +486,10 @@ export class BoardEffectsService {
       }
     }
 
-    // Tempesta di Fulmini
     if (this.lightningAnimState) {
       const st = this.lightningAnimState;
       st.timer += delta;
       st.group.visible = Math.random() > 0.2;
-
       if (st.timer >= st.duration) {
         this.triggerExplosion(st.targetPos, 0x0284c7);
         this.applyAttackDamage(st.attacker, st.defender, st.isHit, st.d20Roll, st.totalAtk, st.onStatusUpdate);
@@ -415,11 +498,9 @@ export class BoardEffectsService {
       }
     }
 
-    // Dardi Incantati
     if (this.missileAnimState) {
       const st = this.missileAnimState;
       st.progress += delta * 0.9;
-
       st.darts.forEach((dart: any) => {
         const p = Math.max(0, Math.min(st.progress - dart.delay, 1));
         if (p > 0) {
@@ -432,7 +513,6 @@ export class BoardEffectsService {
           dart.group.position.z = lerpZ;
         }
       });
-
       if (st.progress >= 1.3) {
         this.triggerExplosion(st.targetPos, 0xa855f7);
         this.applyAttackDamage(st.attacker, st.defender, st.isHit, st.d20Roll, st.totalAtk, st.onStatusUpdate);
@@ -441,27 +521,19 @@ export class BoardEffectsService {
       }
     }
 
-    // Riverbero Esplosione
     if (this.activeExplosion) {
       const exp = this.activeExplosion;
-      exp.scale += delta * 10;
-      exp.opacity -= delta * 1.5;
+      exp.scale += delta * 10; exp.opacity -= delta * 1.5;
       exp.mesh.scale.set(exp.scale, exp.scale, exp.scale);
       exp.mesh.material.opacity = Math.max(0, exp.opacity);
-
-      if (exp.opacity <= 0) {
-        this.scene.remove(exp.mesh);
-        this.activeExplosion = null;
-      }
+      if (exp.opacity <= 0) { this.scene.remove(exp.mesh); this.activeExplosion = null; }
     }
 
-    // Progresso Testi Danni Fluttuanti
     for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
       const ft = this.floatingTexts[i];
       ft.timer += delta;
       ft.sprite.position.y += delta * 1.1;
       ft.sprite.material.opacity = Math.max(0, 1 - ft.timer / ft.maxDuration);
-
       if (ft.timer >= ft.maxDuration) {
         this.scene.remove(ft.sprite);
         ft.sprite.material.map?.dispose();

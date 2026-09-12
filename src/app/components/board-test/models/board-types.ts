@@ -13,6 +13,7 @@ export interface UnitStats {
   color: number;
   isEnemy: boolean;
   isMage?: boolean;
+  isCleric?: boolean;
   isRanged?: boolean;
   classType?: 'warrior' | 'mage' | 'rogue' | 'cleric' | 'goblin';
 }

@@ -18,7 +18,7 @@ export class EntityFactoryService {
   private skinMat = new THREE.MeshStandardMaterial({ color: 0xffdbac });
   private bootMat = new THREE.MeshStandardMaterial({ color: 0x1e1b18 });
 
-  // === ARMI ===
+  // === ARMI EROI ===
   createSword(): THREE.Group {
     const sword = new THREE.Group();
     const hilt = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.3), this.woodMat);
@@ -87,22 +87,44 @@ export class EntityFactoryService {
     return flail;
   }
 
-  createGoblinDagger(): THREE.Group {
-    const weapon = new THREE.Group();
-    const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.4), this.darkLeatherMat);
-    handle.position.y = 0.25;
+  // === ARMI GOBLIN (POSIZIONATE IN MANO SENZA FLUTTUARE) ===
 
-    const blade = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.22, 4), this.steelMat);
-    blade.position.y = 0.55;
-    blade.castShadow = true;
+  createGoblinSpear(): THREE.Group {
+    const spear = new THREE.Group();
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 1.1, 8), this.woodMat);
+    shaft.position.y = 0.35;
+    shaft.castShadow = true;
 
-    weapon.add(handle, blade);
-    weapon.position.set(0.16, 0.38, 0.08);
-    weapon.rotation.x = Math.PI / 4;
-    return weapon;
+    const tip = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.25, 4), this.steelMat);
+    tip.position.y = 0.95;
+    tip.castShadow = true;
+
+    spear.add(shaft, tip);
+    spear.position.set(0, -0.22, 0.05); // Posizione relativa alla mano
+    spear.rotation.x = Math.PI / 4;
+    return spear;
   }
 
-  // === UMANOIDI ED EROI ===
+  createGoblinBow(): THREE.Group {
+    const bowGroup = new THREE.Group();
+    const arcGeo = new THREE.TorusGeometry(0.32, 0.018, 8, 16, Math.PI);
+    const bowWood = new THREE.Mesh(arcGeo, this.woodMat);
+    bowWood.rotation.y = Math.PI / 2;
+    bowWood.castShadow = true;
+
+    const points = [new THREE.Vector3(0, 0.32, 0), new THREE.Vector3(0, -0.32, 0)];
+    const stringGeo = new THREE.BufferGeometry().setFromPoints(points);
+    const stringMat = new THREE.LineBasicMaterial({ color: 0xe2e8f0 });
+    const bowString = new THREE.Line(stringGeo, stringMat);
+
+    bowGroup.add(bowWood, bowString);
+    bowGroup.position.set(0, -0.22, 0.1); // Posizione relativa alla mano
+    bowGroup.rotation.y = Math.PI / 6;
+    return bowGroup;
+  }
+
+  // === EROI & UMANOIDI ===
+
   createHumanMesh(colorHex: number, classType: 'warrior' | 'mage' | 'rogue' | 'cleric' = 'warrior'): EntityMeshResult {
     const group = new THREE.Group();
     const armorMat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.4 });
@@ -166,7 +188,8 @@ export class EntityFactoryService {
   }
 
   // === GOBLIN ===
-  createGoblinMesh(colorHex: number): EntityMeshResult {
+
+  createGoblinMesh(colorHex: number, isRanged = false): EntityMeshResult {
     const group = new THREE.Group();
     const greenMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.5 });
     const redEyeMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
@@ -194,17 +217,23 @@ export class EntityFactoryService {
     const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.025), redEyeMat); eyeR.position.set(0.04, 0.73, 0.105);
     group.add(eyeL, eyeR);
 
+    // Snodo della spalla destra
     const armRGroup = new THREE.Group();
     armRGroup.position.set(0.15, 0.52, 0);
     const armRMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.26), greenMat);
     armRMesh.position.set(0, -0.11, 0);
-    armRGroup.add(armRMesh, this.createGoblinDagger());
+    armRGroup.add(armRMesh);
+
+    // Assegna l'arma corretta montata sulla mano
+    const weapon = isRanged ? this.createGoblinBow() : this.createGoblinSpear();
+    armRGroup.add(weapon);
 
     group.add(armRGroup);
     return { group, torsoMesh: torso, armRGroup };
   }
 
   // === DRAGO ROSSO 2x2 ===
+
   createDragonMesh(tileSize: number): EntityMeshResult {
     const group = new THREE.Group();
     const redMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.4 });

@@ -10,9 +10,11 @@ export class BoardEngineService {
   private camera!: THREE.PerspectiveCamera;
   private renderer!: THREE.WebGLRenderer;
   private controls!: OrbitControls;
-  private clock = new THREE.Clock();
+  private canvas!: HTMLCanvasElement;
+  private lastTime = performance.now();
 
   public initThree(canvas: HTMLCanvasElement): { scene: THREE.Scene; camera: THREE.PerspectiveCamera; renderer: THREE.WebGLRenderer; controls: OrbitControls } {
+    this.canvas = canvas;
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x1a1622);
     this.scene.fog = new THREE.FogExp2(0x1a1622, 0.022);
@@ -27,12 +29,17 @@ export class BoardEngineService {
 
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
+    this.controls.enablePan = true;
+    this.controls.screenSpacePanning = true;
+    this.controls.panSpeed = 1.2;
+
     this.controls.touches = {
       ONE: undefined as any,
       TWO: THREE.TOUCH.DOLLY_PAN
     };
 
     this.setupLighting();
+    this.lastTime = performance.now();
 
     return { scene: this.scene, camera: this.camera, renderer: this.renderer, controls: this.controls };
   }
@@ -52,8 +59,25 @@ export class BoardEngineService {
     this.scene.add(torch1, torch2);
   }
 
+  public handleResize(): void {
+    if (!this.canvas || !this.renderer || !this.camera) return;
+
+    const width = this.canvas.clientWidth;
+    const height = this.canvas.clientHeight;
+
+    if (width === 0 || height === 0) return;
+
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
+
+    this.renderer.setSize(width, height, false);
+  }
+
   public getDelta(): number {
-    return this.clock.getDelta();
+    const now = performance.now();
+    const delta = (now - this.lastTime) / 1000;
+    this.lastTime = now;
+    return Math.min(delta, 0.1);
   }
 
   public render(): void {
