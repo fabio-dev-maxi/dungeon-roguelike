@@ -34,6 +34,7 @@ export interface BoardUnit {
   root: THREE.Group;
   body: RAPIER.RigidBody;
   torsoMesh: THREE.Mesh;
+  armRGroup?: THREE.Group; // Braccio destro animato con arma
   gridX: number;
   gridZ: number;
   occupiedTiles: { x: number; z: number }[];
@@ -65,6 +66,7 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
   private clock = new THREE.Clock();
   private animFrameId?: number;
 
+  // Griglia espansa del 10%
   private boardSize = 8;
   private tileSize = 1.32;
   private offset = (this.boardSize / 2) * this.tileSize - (this.tileSize / 2);
@@ -74,6 +76,7 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
   private staticRocks: { gridX: number; gridZ: number }[] = [];
   private tilesMap = new THREE.Group();
   private highlightGroup = new THREE.Group();
+  private selectionRing!: THREE.Mesh;
 
   private selectedUnit: BoardUnit | null = null;
   private pendingAttack: { attacker: BoardUnit; defender: BoardUnit } | null = null;
@@ -87,6 +90,7 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
   private fireballAnimState: any = null;
   private lightningAnimState: any = null;
   private missileAnimState: any = null;
+  private weaponAttackAnimState: any = null;
   private activeExplosion: any = null;
 
   constructor(private ngZone: NgZone) { }
@@ -123,6 +127,7 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
     this.world = new RAPIER.World({ x: 0.0, y: -9.81, z: 0.0 });
   }
 
+  // === 1. INIZIALIZZAZIONE SCENA & SELEZIONE RING ===
   private initThree(): void {
     const canvas = this.canvasRef.nativeElement;
     this.scene = new THREE.Scene();
@@ -156,8 +161,24 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
 
     this.scene.add(this.tilesMap);
     this.scene.add(this.highlightGroup);
+
+    // Creazione del segnale di selezione circolare sotto le pedine
+    const ringGeo = new THREE.RingGeometry(0.38, 0.52, 32);
+    ringGeo.rotateX(-Math.PI / 2);
+    const ringMat = new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      emissive: 0x0284c7,
+      emissiveIntensity: 0.9,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.85
+    });
+    this.selectionRing = new THREE.Mesh(ringGeo, ringMat);
+    this.selectionRing.visible = false;
+    this.scene.add(this.selectionRing);
   }
 
+  // === 2. AMBIENTE CAVERNA ===
   private buildCaveEnvironment(): void {
     const totalBoardWidth = this.boardSize * this.tileSize;
 
@@ -218,10 +239,8 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
       ctx.fillRect(Math.random() * 256, Math.random() * 256, 3, 3);
     }
 
-    ctx.strokeStyle = '#221a12';
-    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#221a12'; ctx.lineWidth = 3;
     ctx.strokeRect(4, 4, 248, 248);
-
     return new THREE.CanvasTexture(canvas);
   }
 
@@ -257,8 +276,7 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
     const rockMesh = new THREE.Mesh(rockGeo, rockMat);
     rockMesh.position.set(pos.x, 0.35, pos.z);
     rockMesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
-    rockMesh.castShadow = true;
-    rockMesh.receiveShadow = true;
+    rockMesh.castShadow = true; rockMesh.receiveShadow = true;
     this.scene.add(rockMesh);
 
     const bodyDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(pos.x, 0.35, pos.z);
@@ -318,59 +336,53 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
     this.staticCrates.push({ gridX, gridZ });
   }
 
-  // === 3. PERSONAGGI, GOBLIN & DRAGO ROSSO MIGLIORATO ===
-
-  // MODEL GOBLIN (STATURA PICCOLA, PELLE VERDE, ORECCHIE A PUNTA, OCCHI ROSSI)
-  private createGoblinMesh(colorHex: number): { group: THREE.Group; torsoMesh: THREE.Mesh } {
+  // === 3. MODEL CREATURE E ARMI ANIMATE ===
+  private createGoblinMesh(colorHex: number): { group: THREE.Group; torsoMesh: THREE.Mesh; armRGroup: THREE.Group } {
     const group = new THREE.Group();
     const greenMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.5 });
     const darkLeatherMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.8 });
     const redEyeMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
     const steelMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8, roughness: 0.3 });
 
-    // Basetta Ridotta
     const base = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.3, 0.05, 12), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
     base.position.y = 0.025; base.receiveShadow = true; group.add(base);
 
-    // Gambette
     const legGeo = new THREE.CylinderGeometry(0.045, 0.045, 0.28, 8);
     const legL = new THREE.Mesh(legGeo, darkLeatherMat); legL.position.set(-0.08, 0.18, 0); legL.castShadow = true;
     const legR = new THREE.Mesh(legGeo, darkLeatherMat); legR.position.set(0.08, 0.18, 0); legR.castShadow = true;
     group.add(legL, legR);
 
-    // Busto Goblin
     const torso = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.32, 0.18), darkLeatherMat);
     torso.position.y = 0.46; torso.castShadow = true; group.add(torso);
 
-    // Testa Spigolosa
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 10), greenMat);
     head.position.y = 0.71; head.castShadow = true; group.add(head);
 
-    // Orecchie a Punta
-    const earGeo = new THREE.ConeGeometry(0.05, 0.22, 6);
-    earGeo.rotateZ(-Math.PI / 2);
+    const earGeo = new THREE.ConeGeometry(0.05, 0.22, 6); earGeo.rotateZ(-Math.PI / 2);
     const earL = new THREE.Mesh(earGeo, greenMat); earL.position.set(-0.16, 0.72, -0.02); earL.rotation.y = -0.3;
     const earR = new THREE.Mesh(earGeo, greenMat); earR.position.set(0.16, 0.72, -0.02); earR.rotation.y = 0.3;
     group.add(earL, earR);
 
-    // Occhi Rossi
     const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.025), redEyeMat); eyeL.position.set(-0.04, 0.73, 0.105);
     const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.025), redEyeMat); eyeR.position.set(0.04, 0.73, 0.105);
     group.add(eyeL, eyeR);
 
-    // Daga/Lancia Grezza
-    const weaponGroup = new THREE.Group();
-    const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.5), darkLeatherMat); handle.position.y = 0.25;
-    const blade = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.25, 4), steelMat); blade.position.y = 0.55; blade.castShadow = true;
-    weaponGroup.add(handle, blade);
-    weaponGroup.position.set(0.16, 0.38, 0.08); weaponGroup.rotation.x = Math.PI / 4;
-    group.add(weaponGroup);
+    // Gruppo Braccio Destro con Arma montata
+    const armRGroup = new THREE.Group();
+    armRGroup.position.set(0.15, 0.52, 0); // Snodo della spalla
+    const armRMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.26), greenMat);
+    armRMesh.position.set(0, -0.11, 0);
+    armRGroup.add(armRMesh);
 
-    return { group, torsoMesh: torso };
+    const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.4), darkLeatherMat); handle.position.set(0, -0.2, 0.1); handle.rotation.x = Math.PI / 3;
+    const blade = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.22, 4), steelMat); blade.position.set(0, -0.08, 0.28); blade.rotation.x = Math.PI / 3;
+    armRGroup.add(handle, blade);
+
+    group.add(armRGroup);
+    return { group, torsoMesh: torso, armRGroup };
   }
 
-  // MODEL EROE
-  private createHumanMesh(colorHex: number, classType: 'warrior' | 'mage' | 'rogue' | 'cleric' = 'warrior'): { group: THREE.Group; torsoMesh: THREE.Mesh } {
+  private createHumanMesh(colorHex: number, classType: 'warrior' | 'mage' | 'rogue' | 'cleric' = 'warrior'): { group: THREE.Group; torsoMesh: THREE.Mesh; armRGroup: THREE.Group } {
     const group = new THREE.Group();
     const armorMat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.4 });
     const bootMat = new THREE.MeshStandardMaterial({ color: 0x1e1b18 });
@@ -392,24 +404,28 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
 
     const armGeo = new THREE.CylinderGeometry(0.05, 0.05, 0.38, 10);
     const armL = new THREE.Mesh(armGeo, armorMat); armL.position.set(-0.21, 0.65, 0); armL.castShadow = true;
-    const armR = new THREE.Mesh(armGeo, armorMat); armR.position.set(0.21, 0.65, 0); armR.castShadow = true;
-    group.add(armL, armR);
+    group.add(armL);
 
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 12), skinMat);
     head.position.y = 1.05; head.castShadow = true; group.add(head);
+
+    // Gruppo Snodo Spalla Destra
+    const armRGroup = new THREE.Group();
+    armRGroup.position.set(0.21, 0.80, 0);
+
+    const armRMesh = new THREE.Mesh(armGeo, armorMat);
+    armRMesh.position.set(0, -0.15, 0);
+    armRGroup.add(armRMesh);
 
     if (classType === 'mage') {
       const hat = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.5, 12), armorMat);
       hat.position.y = 1.3; hat.castShadow = true; group.add(hat);
 
-      const staffGroup = new THREE.Group();
       const staffBody = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.4, 8), woodMat);
-      staffBody.position.y = 0.7; staffBody.castShadow = true;
+      staffBody.position.set(0, -0.2, 0.2); staffBody.castShadow = true;
       const orb = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 12), new THREE.MeshBasicMaterial({ color: 0x60a5fa }));
-      orb.position.y = 1.4;
-      staffGroup.add(staffBody, orb);
-      staffGroup.position.set(0.25, 0.2, 0.1);
-      group.add(staffGroup);
+      orb.position.set(0, 0.5, 0.2);
+      armRGroup.add(staffBody, orb);
     } else if (classType === 'warrior') {
       const helmet = new THREE.Mesh(new THREE.SphereGeometry(0.15, 12, 12, 0, Math.PI * 2, 0, Math.PI / 1.8), steelMat);
       helmet.position.y = 1.06; helmet.castShadow = true;
@@ -417,28 +433,17 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
       visor.position.set(0, 1.06, 0.1); visor.castShadow = true;
       group.add(helmet, visor);
 
-      const swordGroup = new THREE.Group();
-      const hilt = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.3), woodMat);
-      const guard = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.04, 0.06), steelMat); guard.position.y = 0.15;
-      const blade = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.9, 0.02), steelMat); blade.position.y = 0.6; blade.castShadow = true;
-      swordGroup.add(hilt, guard, blade);
-      swordGroup.position.set(0.22, 0.6, 0.15); swordGroup.rotation.x = Math.PI / 4;
-      group.add(swordGroup);
+      const hilt = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.3), woodMat); hilt.position.set(0, -0.2, 0.15); hilt.rotation.x = Math.PI / 4;
+      const guard = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.04, 0.06), steelMat); guard.position.set(0, -0.1, 0.25); guard.rotation.x = Math.PI / 4;
+      const blade = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.9, 0.02), steelMat); blade.position.set(0, 0.25, 0.55); blade.rotation.x = Math.PI / 4; blade.castShadow = true;
+      armRGroup.add(hilt, guard, blade);
     } else if (classType === 'rogue') {
       const hood = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 12, 0, Math.PI * 2, 0, Math.PI / 1.5), new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 }));
       hood.position.y = 1.07; hood.castShadow = true; group.add(hood);
 
-      const createDagger = () => {
-        const dag = new THREE.Group();
-        const dHilt = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.12), woodMat);
-        const dBlade = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.3, 0.015), steelMat); dBlade.position.y = 0.2; dBlade.castShadow = true;
-        dag.add(dHilt, dBlade);
-        return dag;
-      };
-
-      const dagR = createDagger(); dagR.position.set(0.22, 0.55, 0.12); dagR.rotation.x = Math.PI / 3;
-      const dagL = createDagger(); dagL.position.set(-0.22, 0.55, 0.12); dagL.rotation.x = Math.PI / 3;
-      group.add(dagR, dagL);
+      const dHilt = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.12), woodMat); dHilt.position.set(0, -0.25, 0.12); dHilt.rotation.x = Math.PI / 3;
+      const dBlade = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.3, 0.015), steelMat); dBlade.position.set(0, -0.1, 0.24); dBlade.rotation.x = Math.PI / 3; dBlade.castShadow = true;
+      armRGroup.add(dHilt, dBlade);
     } else if (classType === 'cleric') {
       const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.08, 12), goldMat);
       crown.position.y = 1.15; crown.castShadow = true; group.add(crown);
@@ -450,20 +455,18 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
       shieldGroup.position.set(-0.26, 0.65, 0.1);
       group.add(shieldGroup);
 
-      const flailGroup = new THREE.Group();
-      const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.45), woodMat); handle.position.y = 0.2;
-      const chain = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.18), steelMat); chain.position.set(0, 0.45, 0.08); chain.rotation.x = Math.PI / 4;
-      const ball = new THREE.Mesh(new THREE.DodecahedronGeometry(0.1, 0), steelMat); ball.position.set(0, 0.48, 0.18); ball.castShadow = true;
-      flailGroup.add(handle, chain, ball);
-      flailGroup.position.set(0.22, 0.5, 0.1); flailGroup.rotation.x = Math.PI / 6;
-      group.add(flailGroup);
+      const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.45), woodMat); handle.position.set(0, -0.2, 0.1); handle.rotation.x = Math.PI / 6;
+      const chain = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.18), steelMat); chain.position.set(0, -0.05, 0.22); chain.rotation.x = Math.PI / 4;
+      const ball = new THREE.Mesh(new THREE.DodecahedronGeometry(0.1, 0), steelMat); ball.position.set(0, 0.05, 0.32); ball.castShadow = true;
+      armRGroup.add(handle, chain, ball);
     }
 
-    return { group, torsoMesh: torso };
+    group.add(armRGroup);
+    return { group, torsoMesh: torso, armRGroup };
   }
 
-  // MODEL DRAGO ROSSO MIGLIORATO (FAUCI, CORNA, COLLO, PIATTO VENTRALE, SPINE & ALI)
-  private createDragonMesh(): { group: THREE.Group; torsoMesh: THREE.Mesh } {
+  // DRAGO ROSSO PROPORZIONATO 2x2
+  private createDragonMesh(): { group: THREE.Group; torsoMesh: THREE.Mesh; armRGroup?: THREE.Group } {
     const group = new THREE.Group();
     const redMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.4 });
     const darkRedMat = new THREE.MeshStandardMaterial({ color: 0x991b1b, roughness: 0.5 });
@@ -471,65 +474,62 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
     const hornMat = new THREE.MeshStandardMaterial({ color: 0xfef08a, roughness: 0.3 });
     const yellowEyeMat = new THREE.MeshBasicMaterial({ color: 0xfde047 });
 
-    const baseSize = this.tileSize * 2 - 0.1;
+    // Dimensioni base 2.5 per coprire l'area 2x2 (tileSize * 2 = 2.64)
+    const baseSize = this.tileSize * 2 - 0.14;
     const base = new THREE.Mesh(new THREE.BoxGeometry(baseSize, 0.06, baseSize), darkRedMat);
     base.position.y = 0.03; base.receiveShadow = true; group.add(base);
 
-    // Busto Principale
-    const body = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.85, 1.55), redMat);
-    body.position.y = 0.72; body.castShadow = true; group.add(body);
+    // Busto Imponente
+    const body = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.1, 2.0), redMat);
+    body.position.y = 0.85; body.castShadow = true; group.add(body);
 
-    // Piastra Ventrale Dorata
-    const belly = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.65, 1.35), goldBellyMat);
-    belly.position.set(0, 0.62, 0.1); group.add(belly);
+    // Piastra Ventrale
+    const belly = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.8, 1.8), goldBellyMat);
+    belly.position.set(0, 0.72, 0.12); group.add(belly);
 
-    // Collo Angolato
-    const neck = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.7, 0.55), redMat);
-    neck.position.set(0, 1.15, -0.65); neck.rotation.x = 0.4; neck.castShadow = true; group.add(neck);
+    // Snodo Collo/Testa per l'attacco
+    const neckGroup = new THREE.Group();
+    neckGroup.position.set(0, 1.3, -0.7);
 
-    // Testa & Fauci
-    const headGroup = new THREE.Group();
-    const upperJaw = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.35, 0.75), redMat);
-    upperJaw.position.set(0, 0, 0); upperJaw.castShadow = true;
-    const lowerJaw = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.18, 0.65), darkRedMat);
-    lowerJaw.position.set(0, -0.22, 0.05); lowerJaw.castShadow = true;
-    headGroup.add(upperJaw, lowerJaw);
+    const neck = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.9, 0.7), redMat);
+    neck.rotation.x = 0.4; neck.castShadow = true; neckGroup.add(neck);
 
-    // Occhi Gialli Emissivi
-    const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.045), yellowEyeMat); eyeL.position.set(-0.24, 0.08, -0.15);
-    const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.045), yellowEyeMat); eyeR.position.set(0.24, 0.08, -0.15);
-    headGroup.add(eyeL, eyeR);
+    const upperJaw = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.45, 1.0), redMat);
+    upperJaw.position.set(0, 0.45, -0.6); upperJaw.castShadow = true;
+    const lowerJaw = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.22, 0.85), darkRedMat);
+    lowerJaw.position.set(0, 0.18, -0.55); lowerJaw.castShadow = true;
+    neckGroup.add(upperJaw, lowerJaw);
 
-    // Corna Avorio
-    const hornGeo = new THREE.ConeGeometry(0.07, 0.45, 8);
-    hornGeo.rotateX(-0.5);
-    const hornL = new THREE.Mesh(hornGeo, hornMat); hornL.position.set(-0.2, 0.22, 0.25); hornL.rotation.z = -0.3;
-    const hornR = new THREE.Mesh(hornGeo, hornMat); hornR.position.set(0.2, 0.22, 0.25); hornR.rotation.z = 0.3;
-    headGroup.add(hornL, hornR);
+    const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.06), yellowEyeMat); eyeL.position.set(-0.35, 0.58, -0.8);
+    const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.06), yellowEyeMat); eyeR.position.set(0.35, 0.58, -0.8);
+    neckGroup.add(eyeL, eyeR);
 
-    headGroup.position.set(0, 1.45, -1.05);
-    group.add(headGroup);
+    const hornGeo = new THREE.ConeGeometry(0.09, 0.55, 8); hornGeo.rotateX(-0.5);
+    const hornL = new THREE.Mesh(hornGeo, hornMat); hornL.position.set(-0.28, 0.72, -0.3); hornL.rotation.z = -0.3;
+    const hornR = new THREE.Mesh(hornGeo, hornMat); hornR.position.set(0.28, 0.72, -0.3); hornR.rotation.z = 0.3;
+    neckGroup.add(hornL, hornR);
+
+    group.add(neckGroup);
 
     // Spine Dorsali
     for (let s = 0; s < 5; s++) {
-      const spike = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.22, 6), darkRedMat);
-      spike.position.set(0, 1.18, -0.5 + s * 0.28);
-      spike.rotation.x = 0.2;
+      const spike = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.32, 6), darkRedMat);
+      spike.position.set(0, 1.45, -0.6 + s * 0.38); spike.rotation.x = 0.2;
       group.add(spike);
     }
 
     // Ali Spiegate
-    const wingL = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.05, 0.95), redMat);
-    wingL.position.set(-1.25, 1.25, -0.1); wingL.rotation.set(0.2, 0.3, 0.45); wingL.castShadow = true;
-    const wingR = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.05, 0.95), redMat);
-    wingR.position.set(1.25, 1.25, -0.1); wingR.rotation.set(0.2, -0.3, -0.45); wingR.castShadow = true;
+    const wingL = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.06, 1.2), redMat);
+    wingL.position.set(-1.75, 1.5, -0.1); wingL.rotation.set(0.2, 0.3, 0.45); wingL.castShadow = true;
+    const wingR = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.06, 1.2), redMat);
+    wingR.position.set(1.75, 1.5, -0.1); wingR.rotation.set(0.2, -0.3, -0.45); wingR.castShadow = true;
     group.add(wingL, wingR);
 
-    return { group, torsoMesh: body };
+    return { group, torsoMesh: body, armRGroup: neckGroup };
   }
 
   private spawnUnit(gridX: number, gridZ: number, stats: UnitStats, isDragon = false): void {
-    let resultMesh: { group: THREE.Group; torsoMesh: THREE.Mesh };
+    let resultMesh: { group: THREE.Group; torsoMesh: THREE.Mesh; armRGroup?: THREE.Group };
 
     if (isDragon) {
       resultMesh = this.createDragonMesh();
@@ -539,7 +539,7 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
       resultMesh = this.createHumanMesh(stats.color, stats.classType);
     }
 
-    const { group, torsoMesh } = resultMesh;
+    const { group, torsoMesh, armRGroup } = resultMesh;
 
     let occupiedTiles = [{ x: gridX, z: gridZ }];
     let posX = 0, posZ = 0;
@@ -569,6 +569,7 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
       root: group,
       body,
       torsoMesh,
+      armRGroup,
       gridX, gridZ,
       occupiedTiles,
       originalColorHex: stats.color,
@@ -581,21 +582,18 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
   }
 
   private spawnPartyAndBoss(): void {
-    // Eroi
     this.spawnUnit(1, 1, { name: 'Guerriero Umano', classType: 'warrior', ca: 18, maxHp: 38, currentHp: 38, atkBonus: 8, dmgMin: 8, dmgMax: 16, speedMax: 3, color: 0x64748b, isEnemy: false });
     this.spawnUnit(2, 1, { name: 'Mago Elfo', classType: 'mage', ca: 13, maxHp: 20, currentHp: 20, atkBonus: 6, dmgMin: 12, dmgMax: 28, speedMax: 3, color: 0x2563eb, isEnemy: false, isMage: true, isRanged: true });
     this.spawnUnit(1, 2, { name: 'Ladro Halfling', classType: 'rogue', ca: 16, maxHp: 26, currentHp: 26, atkBonus: 7, dmgMin: 6, dmgMax: 14, speedMax: 4, color: 0x15803d, isEnemy: false });
     this.spawnUnit(2, 2, { name: 'Chierico Nano', classType: 'cleric', ca: 17, maxHp: 34, currentHp: 34, atkBonus: 6, dmgMin: 6, dmgMax: 12, speedMax: 3, color: 0xeab308, isEnemy: false });
 
-    // Boss Drago Rosso 2x2
     this.spawnUnit(4, 4, { name: 'Drago Rosso (Grande)', ca: 21, maxHp: 85, currentHp: 85, atkBonus: 14, dmgMin: 8, dmgMax: 22, speedMax: 3, color: 0xdc2626, isEnemy: true }, true);
 
-    // 2 Goblin Minions
     this.spawnUnit(6, 3, { name: 'Goblin Esploratore', classType: 'goblin', ca: 13, maxHp: 12, currentHp: 12, atkBonus: 4, dmgMin: 2, dmgMax: 6, speedMax: 3, color: 0x15803d, isEnemy: true });
     this.spawnUnit(3, 6, { name: 'Goblin Guerriero', classType: 'goblin', ca: 14, maxHp: 14, currentHp: 14, atkBonus: 5, dmgMin: 3, dmgMax: 7, speedMax: 3, color: 0x15803d, isEnemy: true });
   }
 
-  // === 4. SISTEMA DI TIRO DADO d20 NUMERATO 3D ===
+  // === 4. DADO d20 NUMERATO ===
   private createNumberTexture(num: number): THREE.CanvasTexture {
     const canvas = document.createElement('canvas');
     canvas.width = 128; canvas.height = 128;
@@ -674,7 +672,27 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
     this.statusText.set('🎲 LANCIO DEL d20 SULLA BOARD...');
   }
 
-  // === 5. INCANTESIMI ===
+  // === 5. INCANTESIMI & ANIMAZIONE BRACCIO + ARMA ===
+
+  private startWeaponAttackAnimation(attacker: BoardUnit, defender: BoardUnit, isHit: boolean, d20Roll: number, totalAtk: number): void {
+    const attPos = attacker.root.position;
+    const defPos = defender.root.position;
+
+    const targetAngle = Math.atan2(defPos.x - attPos.x, defPos.z - attPos.z);
+    attacker.root.rotation.y = targetAngle;
+
+    const armGroup = attacker.armRGroup;
+    const startRot = armGroup ? armGroup.rotation.clone() : new THREE.Euler();
+
+    this.weaponAttackAnimState = {
+      attacker, defender, armGroup,
+      startRot, phase: 'slash', progress: 0,
+      isHit, d20Roll, totalAtk
+    };
+
+    this.statusText.set(`⚔️ ${attacker.stats.name} sferra un colpo d'arma!`);
+  }
+
   private castFireball(attacker: BoardUnit, defender: BoardUnit, isHit: boolean, d20Roll: number, totalAtk: number): void {
     const fireballGroup = new THREE.Group();
     const coreMesh = new THREE.Mesh(new THREE.SphereGeometry(0.55, 24, 24), new THREE.MeshBasicMaterial({ color: 0xffaa00 }));
@@ -782,13 +800,13 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  // === 6. INTERAZIONE RAYCASTER ===
+  // === 6. INTERAZIONE RAYCASTER & SELEZIONE RING ===
   private bindPointerEvents(): void {
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
     window.addEventListener('pointerup', (e) => {
-      if (this.movingUnit || this.fireballAnimState || this.lightningAnimState || this.missileAnimState || this.d20RollState || this.isModalOpen()) return;
+      if (this.movingUnit || this.fireballAnimState || this.lightningAnimState || this.missileAnimState || this.weaponAttackAnimState || this.d20RollState || this.isModalOpen()) return;
 
       const rect = this.canvasRef.nativeElement.getBoundingClientRect();
       mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
@@ -841,7 +859,13 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
   private selectUnit(unit: BoardUnit): void {
     if (this.selectedUnit && this.selectedUnit !== unit) this.deselectUnit();
     this.selectedUnit = unit;
-    this.selectedUnit.torsoMesh.material = new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0xd97706, emissiveIntensity: 0.5 });
+
+    // Posizionamento del segnale circolare di selezione sotto la pedina (senza alterare la mesh)
+    const isDragon = unit.occupiedTiles.length > 1;
+    const ringRadius = isDragon ? 2.2 : 1.0;
+    this.selectionRing.scale.set(ringRadius, ringRadius, 1);
+    this.selectionRing.position.set(unit.root.position.x, 0.09, unit.root.position.z);
+    this.selectionRing.visible = true;
 
     this.selectedUnitStats.set(unit.stats);
     this.statusText.set(`${unit.stats.name}: Tocca una casella verde o un nemico ROSSO.`);
@@ -850,8 +874,8 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
 
   private deselectUnit(): void {
     if (!this.selectedUnit) return;
-    this.selectedUnit.torsoMesh.material = new THREE.MeshStandardMaterial({ color: this.selectedUnit.originalColorHex, roughness: 0.4 });
     this.selectedUnit = null;
+    this.selectionRing.visible = false;
     this.clearHighlights();
     this.selectedUnitStats.set(null);
   }
@@ -880,21 +904,13 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
     hlGeo.rotateX(-Math.PI / 2);
 
     const hlMoveMat = new THREE.MeshStandardMaterial({
-      color: 0x4ade80,
-      emissive: 0x22c55e,
-      emissiveIntensity: 0.8,
-      transparent: true,
-      opacity: 0.65,
-      depthWrite: false
+      color: 0x4ade80, emissive: 0x22c55e, emissiveIntensity: 0.8,
+      transparent: true, opacity: 0.65, depthWrite: false
     });
 
     const hlAtkMat = new THREE.MeshStandardMaterial({
-      color: 0xf87171,
-      emissive: 0xef4444,
-      emissiveIntensity: 0.8,
-      transparent: true,
-      opacity: 0.75,
-      depthWrite: false
+      color: 0xf87171, emissive: 0xef4444, emissiveIntensity: 0.8,
+      transparent: true, opacity: 0.75, depthWrite: false
     });
 
     this.units.forEach(targetUnit => {
@@ -949,7 +965,7 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
     return { x: gridX * this.tileSize - this.offset, z: gridZ * this.tileSize - this.offset };
   }
 
-  // === 7. LOOP RENDER & ANIMAZIONI + ROTAZIONE ORIENTAMENTO ===
+  // === 7. LOOP RENDER & ANIMAZIONI ===
   private animate(): void {
     this.animFrameId = requestAnimationFrame(() => this.animate());
     const delta = this.clock.getDelta();
@@ -978,9 +994,43 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
         if (st.chosenSpellType === 'fireball') this.castFireball(st.attacker, st.defender, st.isHit, st.d20Roll, st.totalAtk);
         else if (st.chosenSpellType === 'lightning') this.castLightningStorm(st.attacker, st.defender, st.isHit, st.d20Roll, st.totalAtk);
         else if (st.chosenSpellType === 'missile') this.castMagicMissile(st.attacker, st.defender, st.isHit, st.d20Roll, st.totalAtk);
-        else this.applyAttackDamage(st.attacker, st.defender, st.isHit, st.d20Roll, st.totalAtk);
+        else this.startWeaponAttackAnimation(st.attacker, st.defender, st.isHit, st.d20Roll, st.totalAtk);
 
         this.d20RollState = null;
+      }
+    }
+
+    // Animazione Attacco Braccio + Arma
+    if (this.weaponAttackAnimState) {
+      const st = this.weaponAttackAnimState;
+
+      if (st.armGroup) {
+        st.progress += delta * 7.0;
+        const p = Math.min(st.progress, 1);
+
+        if (st.phase === 'slash') {
+          st.armGroup.rotation.x = THREE.MathUtils.lerp(st.startRot.x, st.startRot.x - Math.PI * 0.55, Math.sin(p * Math.PI));
+
+          if (st.progress >= 1) {
+            st.phase = 'return';
+            st.progress = 0;
+
+            const hitWorldPos = new THREE.Vector3();
+            st.armGroup.getWorldPosition(hitWorldPos);
+            this.triggerExplosion(hitWorldPos, st.isHit ? 0xfbcfe8 : 0x64748b);
+            this.applyAttackDamage(st.attacker, st.defender, st.isHit, st.d20Roll, st.totalAtk);
+          }
+        } else if (st.phase === 'return') {
+          st.armGroup.rotation.x = THREE.MathUtils.lerp(st.armGroup.rotation.x, st.startRot.x, p);
+
+          if (st.progress >= 1) {
+            st.armGroup.rotation.copy(st.startRot);
+            this.weaponAttackAnimState = null;
+          }
+        }
+      } else {
+        this.applyAttackDamage(st.attacker, st.defender, st.isHit, st.d20Roll, st.totalAtk);
+        this.weaponAttackAnimState = null;
       }
     }
 
@@ -1054,7 +1104,7 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
       }
     }
 
-    // Movimento a Scacchiera con Rotazione di Orientamento
+    // Movimento a Scacchiera con Rotazione
     if (this.movingUnit && this.movePath.length > 0) {
       this.stepProgress += delta * this.stepSpeed;
       const currentStep = this.movePath[this.currentPathIndex];
@@ -1062,7 +1112,6 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
         ? this.get3DPosition(this.movingUnit.gridX, this.movingUnit.gridZ)
         : this.movePath[this.currentPathIndex - 1].pos3D;
 
-      // Rotazione progressiva nella direzione del movimento
       const dx = currentStep.pos3D.x - startPos.x;
       const dz = currentStep.pos3D.z - startPos.z;
       if (dx !== 0 || dz !== 0) {
@@ -1077,6 +1126,11 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
       this.movingUnit.root.position.x = THREE.MathUtils.lerp(startPos.x, currentStep.pos3D.x, Math.min(this.stepProgress, 1));
       this.movingUnit.root.position.z = THREE.MathUtils.lerp(startPos.z, currentStep.pos3D.z, Math.min(this.stepProgress, 1));
       this.movingUnit.root.position.y = Math.sin(Math.min(this.stepProgress, 1) * Math.PI) * 0.2;
+
+      // Aggiorna la posizione dell'anello di selezione se la pedina selezionata si sta muovendo
+      if (this.selectedUnit === this.movingUnit) {
+        this.selectionRing.position.set(this.movingUnit.root.position.x, 0.09, this.movingUnit.root.position.z);
+      }
 
       if (this.stepProgress >= 1) {
         this.stepProgress = 0;
