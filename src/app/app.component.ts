@@ -3,11 +3,12 @@ import { RouterOutlet, RouterLink } from '@angular/router';
 import { GameService } from './services/game.service';
 import { I18nService } from './services/i18n.service';
 import { LangBarComponent } from './components/lang-bar/lang-bar.component';
+import { FooterComponent } from './components/footer/footer.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, LangBarComponent],
+  imports: [RouterOutlet, RouterLink, LangBarComponent, FooterComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
