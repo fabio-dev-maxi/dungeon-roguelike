@@ -6,106 +6,98 @@ import * as THREE from 'three';
 })
 export class EnvironmentFactoryService {
   private textureLoader = new THREE.TextureLoader();
-  private atlasTexture: THREE.Texture | null = null;
+  private baseTexture: THREE.Texture | null = null;
+  private pendingSubTextures: { subTex: THREE.Texture; offsetX: number; offsetY: number; repeatX: number; repeatY: number }[] = [];
 
   constructor() {
-    this.loadAtlas();
-  }
-
-  private loadAtlas(): THREE.Texture {
-    if (!this.atlasTexture) {
-      this.atlasTexture = this.textureLoader.load('images/dungeon-atlas.jpg');
-      this.atlasTexture.colorSpace = THREE.SRGBColorSpace;
-    }
-    return this.atlasTexture;
+    // Caricamento asincrono sicuro: aggiorna tutte le sub-texture non appena l'atlas è pronto
+    this.textureLoader.load('images/dungeon-atlas.jpg', (tex) => {
+      tex.colorSpace = THREE.SRGBColorSpace;
+      this.baseTexture = tex;
+      this.pendingSubTextures.forEach(item => {
+        item.subTex.image = tex.image;
+        item.subTex.colorSpace = THREE.SRGBColorSpace;
+        item.subTex.offset.set(item.offsetX, item.offsetY);
+        item.subTex.repeat.set(item.repeatX, item.repeatY);
+        item.subTex.needsUpdate = true;
+      });
+      this.pendingSubTextures = [];
+    });
   }
 
   public getSubTexture(offsetX: number, offsetY: number, repeatX: number, repeatY: number): THREE.Texture {
-    const baseTex = this.loadAtlas();
-    const subTex = baseTex.clone();
-    subTex.needsUpdate = true;
-    subTex.offset.set(offsetX, offsetY);
-    subTex.repeat.set(repeatX, repeatY);
+    const subTex = new THREE.Texture();
+    if (this.baseTexture && this.baseTexture.image) {
+      subTex.image = this.baseTexture.image;
+      subTex.colorSpace = THREE.SRGBColorSpace;
+      subTex.offset.set(offsetX, offsetY);
+      subTex.repeat.set(repeatX, repeatY);
+      subTex.needsUpdate = true;
+    } else {
+      this.pendingSubTextures.push({ subTex, offsetX, offsetY, repeatX, repeatY });
+    }
     return subTex;
   }
 
-  // === MATERIALI DALL'ATLAS ===
+  // === RITAGLIO UV DALL'ATLAS ===
 
   public createFloorTileMaterial(): THREE.MeshStandardMaterial {
-    const tileTex = this.getSubTexture(0.01, 0.52, 0.37, 0.40);
-    return new THREE.MeshStandardMaterial({
-      map: tileTex,
-      roughness: 0.8,
-      metalness: 0.1
-    });
+    const tileTex = this.getSubTexture(0.02, 0.52, 0.35, 0.42);
+    return new THREE.MeshStandardMaterial({ map: tileTex, roughness: 0.8, metalness: 0.1 });
   }
 
   public createWallMaterial(): THREE.MeshStandardMaterial {
-    const wallTex = this.getSubTexture(0.0, 0.0, 0.55, 0.50);
-    return new THREE.MeshStandardMaterial({
-      map: wallTex,
-      roughness: 0.9,
-      metalness: 0.05
-    });
+    const wallTex = this.getSubTexture(0.02, 0.02, 0.50, 0.45);
+    return new THREE.MeshStandardMaterial({ map: wallTex, roughness: 0.9, metalness: 0.05 });
   }
 
   public createCrateMaterial(): THREE.MeshStandardMaterial {
-    const crateTex = this.getSubTexture(0.56, 0.02, 0.18, 0.25);
-    return new THREE.MeshStandardMaterial({
-      map: crateTex,
-      roughness: 0.7,
-      metalness: 0.1
-    });
+    // Coordinate ritagliate esattamente sul riquadro G (Casse)
+    const crateTex = this.getSubTexture(0.57, 0.03, 0.12, 0.22);
+    return new THREE.MeshStandardMaterial({ map: crateTex, roughness: 0.6, metalness: 0.1 });
   }
 
   public createCrystalMaterial(): THREE.MeshStandardMaterial {
-    const crystalTex = this.getSubTexture(0.56, 0.62, 0.14, 0.35);
+    const crystalTex = this.getSubTexture(0.57, 0.68, 0.12, 0.24);
     return new THREE.MeshStandardMaterial({
       map: crystalTex,
       emissive: 0x00f0ff,
       emissiveIntensity: 0.8,
-      roughness: 0.2,
-      metalness: 0.1
+      roughness: 0.2
     });
   }
 
   public createShieldMaterial(): THREE.MeshStandardMaterial {
-    // Coordinata UV mirata sull'icona dello scudo nel riquadro I dell'atlas
-    const shieldTex = this.getSubTexture(0.85, 0.08, 0.14, 0.22);
+    // Coordinate ritagliate sullo scudo araldico nel riquadro I
+    const shieldTex = this.getSubTexture(0.865, 0.08, 0.065, 0.18);
     return new THREE.MeshStandardMaterial({
       map: shieldTex,
-      roughness: 0.4,
-      metalness: 0.3,
-      transparent: true,
+      roughness: 0.3,
+      metalness: 0.4,
       side: THREE.DoubleSide
     });
   }
 
-  public createWoodCrateTexture(): THREE.CanvasTexture {
-    const canvas = document.createElement('canvas');
-    canvas.width = 128;
-    canvas.height = 128;
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.fillStyle = '#8B4513';
-      ctx.fillRect(0, 0, 128, 128);
-      ctx.strokeStyle = '#5C2E0B';
-      ctx.lineWidth = 8;
-      ctx.strokeRect(4, 4, 120, 120);
-    }
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.colorSpace = THREE.SRGBColorSpace;
-    return texture;
+  public createFireMaterial(): THREE.MeshStandardMaterial {
+    // Riquadro B (Fuoco) convertito in Fiamma Blu tramite Emissive Azzurro
+    const fireTex = this.getSubTexture(0.72, 0.68, 0.12, 0.24);
+    return new THREE.MeshStandardMaterial({
+      map: fireTex,
+      color: 0x38bdf8,
+      emissive: 0x00f0ff,
+      emissiveIntensity: 1.2,
+      transparent: true,
+      opacity: 0.9,
+      side: THREE.DoubleSide
+    });
   }
 
-  // === MESH E PROPS 3D ===
+  // === MESH 3D PROPS ===
 
-  public createFloorMesh(totalBoardWidth: number, wallThickness = 0.8): THREE.Mesh {
-    // Dimensione del basamento esattamente pari all'esterno delle mura per evitare sporgenze
+  public createFloorMesh(totalBoardWidth: number, wallThickness: number): THREE.Mesh {
     const outerSize = totalBoardWidth + wallThickness * 2;
     const floorGeo = new THREE.BoxGeometry(outerSize, 0.2, outerSize);
-    const floorMat = this.createWallMaterial();
-    const floorMesh = new THREE.Mesh(floorGeo, floorMat);
+    const floorMesh = new THREE.Mesh(floorGeo, this.createWallMaterial());
     floorMesh.position.set(0, -0.1, 0);
     floorMesh.receiveShadow = true;
     return floorMesh;
@@ -129,43 +121,55 @@ export class EnvironmentFactoryService {
   }
 
   public createCaveWallMesh(width: number, height: number, depth: number): THREE.Mesh {
-    const wallMat = this.createWallMaterial();
-    const wall = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), wallMat);
+    const wall = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), this.createWallMaterial());
     wall.castShadow = true;
     wall.receiveShadow = true;
     return wall;
   }
 
-  public createCrateMesh(size: number, customTexture?: THREE.CanvasTexture | THREE.Texture): THREE.Mesh {
-    const crateMat = customTexture
-      ? new THREE.MeshStandardMaterial({ map: customTexture, roughness: 0.7 })
-      : this.createCrateMaterial();
-
-    const crateMesh = new THREE.Mesh(new THREE.BoxGeometry(size, size, size), crateMat);
+  public createCrateMesh(size: number): THREE.Mesh {
+    const crateMesh = new THREE.Mesh(new THREE.BoxGeometry(size, size, size), this.createCrateMaterial());
     crateMesh.castShadow = true;
     crateMesh.receiveShadow = true;
     return crateMesh;
   }
 
+  public createBlueFireMesh(): THREE.Group {
+    const fireGroup = new THREE.Group();
+
+    // Basamento di pietre del braciere
+    const stoneRingGeo = new THREE.TorusGeometry(0.3, 0.08, 6, 8);
+    const stoneRing = new THREE.Mesh(stoneRingGeo, this.createWallMaterial());
+    stoneRing.rotation.x = Math.PI / 2;
+    stoneRing.position.y = 0.08;
+    fireGroup.add(stoneRing);
+
+    // Fiamme blu incrociate
+    const fireMat = this.createFireMaterial();
+    const firePlane1 = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.7), fireMat);
+    firePlane1.position.y = 0.4;
+    const firePlane2 = firePlane1.clone();
+    firePlane2.rotation.y = Math.PI / 2;
+    fireGroup.add(firePlane1, firePlane2);
+
+    // Luce blu emessa sul pavimento e sui muri
+    const blueLight = new THREE.PointLight(0x00f0ff, 2.5, 6);
+    blueLight.position.set(0, 0.5, 0);
+    blueLight.castShadow = true;
+    fireGroup.add(blueLight);
+
+    return fireGroup;
+  }
+
   public createCrystalMesh(): THREE.Group {
     const group = new THREE.Group();
     const crystalMat = this.createCrystalMaterial();
-    const count = 4;
 
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < 4; i++) {
       const height = 0.5 + Math.random() * 0.4;
-      const geo = new THREE.ConeGeometry(0.14, height, 5);
-      const mesh = new THREE.Mesh(geo, crystalMat);
-      mesh.position.set(
-        (Math.random() - 0.5) * 0.35,
-        height / 2,
-        (Math.random() - 0.5) * 0.35
-      );
-      mesh.rotation.set(
-        (Math.random() - 0.5) * 0.3,
-        Math.random() * Math.PI,
-        (Math.random() - 0.5) * 0.3
-      );
+      const mesh = new THREE.Mesh(new THREE.ConeGeometry(0.14, height, 5), crystalMat);
+      mesh.position.set((Math.random() - 0.5) * 0.35, height / 2, (Math.random() - 0.5) * 0.35);
+      mesh.rotation.set((Math.random() - 0.5) * 0.3, Math.random() * Math.PI, (Math.random() - 0.5) * 0.3);
       mesh.castShadow = true;
       group.add(mesh);
     }
@@ -173,7 +177,6 @@ export class EnvironmentFactoryService {
     const light = new THREE.PointLight(0x00f0ff, 1.5, 3);
     light.position.set(0, 0.5, 0);
     group.add(light);
-
     return group;
   }
 
@@ -181,18 +184,14 @@ export class EnvironmentFactoryService {
     const group = new THREE.Group();
     const shieldMat = this.createShieldMaterial();
 
-    const shieldGeo = new THREE.PlaneGeometry(0.5, 0.7);
-    const shieldMesh = new THREE.Mesh(shieldGeo, shieldMat);
+    // Scudo poggiato a terra
+    const shieldMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.7), shieldMat);
     shieldMesh.rotation.x = -Math.PI / 3;
     shieldMesh.rotation.z = Math.PI / 12;
     shieldMesh.position.set(0, 0.2, 0);
     shieldMesh.castShadow = true;
-    shieldMesh.receiveShadow = true;
 
-    // Retro scuro in metallo per dare spessore 3D
-    const backGeo = new THREE.PlaneGeometry(0.5, 0.7);
-    const backMat = new THREE.MeshStandardMaterial({ color: 0x221a14, roughness: 0.8 });
-    const backMesh = new THREE.Mesh(backGeo, backMat);
+    const backMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.7), new THREE.MeshStandardMaterial({ color: 0x221a14, roughness: 0.8 }));
     backMesh.rotation.x = Math.PI / 3;
     backMesh.position.set(0, 0.19, -0.01);
 
@@ -201,9 +200,7 @@ export class EnvironmentFactoryService {
   }
 
   public createRockMesh(): THREE.Mesh {
-    const rockGeo = new THREE.DodecahedronGeometry(0.45, 1);
-    const rockMat = this.createWallMaterial();
-    const rockMesh = new THREE.Mesh(rockGeo, rockMat);
+    const rockMesh = new THREE.Mesh(new THREE.DodecahedronGeometry(0.45, 1), this.createWallMaterial());
     rockMesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
     rockMesh.castShadow = true;
     rockMesh.receiveShadow = true;

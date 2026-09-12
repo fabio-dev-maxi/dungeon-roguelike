@@ -9,7 +9,7 @@ import { UnitStats, BoardUnit } from '../models/board-types';
   providedIn: 'root'
 })
 export class BoardGridService {
-  // Configurazione Scacchiera 10x10
+  // Scacchiera 10x10 perfetta
   public boardSize = 10;
   public tileSize = 1.2;
   public offset = (this.boardSize / 2) * this.tileSize - (this.tileSize / 2);
@@ -42,7 +42,7 @@ export class BoardGridService {
     const wallThickness = 0.8;
     const wallHeight = 2.2;
 
-    // Basamento sagomato precisamente sulle dimensioni esterne delle mura
+    // Basamento che accoglie esattamente la scacchiera e le mura
     const floorMesh = this.envFactory.createFloorMesh(totalBoardWidth, wallThickness);
     this.scene.add(floorMesh);
     this.physics.createFixedGround(totalBoardWidth + wallThickness * 2, totalBoardWidth + wallThickness * 2);
@@ -54,32 +54,32 @@ export class BoardGridService {
     this.selectionRing = this.envFactory.createSelectionRing();
     this.scene.add(this.selectionRing);
 
-    // Posizionamento esatto delle mura sul perimetro della griglia 10x10
+    // Mura posizionate direttamente a contatto col bordo della griglia 10x10 (nessun margine vuoto)
     const halfGrid = totalBoardWidth / 2; // 6.0
     const wallCenterOffset = halfGrid + wallThickness / 2; // 6.4
 
-    // Mura NORD e SUD (lunghezza estesa per chiudere gli angoli)
+    // Mura NORD e SUD
     const wallLengthNS = totalBoardWidth + wallThickness * 2;
     this.createCaveWall(0, -wallCenterOffset, wallLengthNS, wallHeight, wallThickness);
     this.createCaveWall(0, wallCenterOffset, wallLengthNS, wallHeight, wallThickness);
 
-    // Mura EST e OVEST (lunghezza interna)
+    // Mura EST e OVEST
     this.createCaveWall(-wallCenterOffset, 0, wallThickness, wallHeight, totalBoardWidth);
     this.createCaveWall(wallCenterOffset, 0, wallThickness, wallHeight, totalBoardWidth);
 
-    // Props
+    // Props con Texture Atlas
     this.spawnStaticCrate(3, 2);
     this.spawnStaticCrate(4, 2);
     this.spawnStaticCrate(8, 7);
 
+    // Cristalli e Fuochi Blu illuminati
     this.spawnBlueCrystals(0, 0);
     this.spawnBlueCrystals(9, 0);
-    this.spawnBlueCrystals(0, 9);
+    this.spawnBlueFire(0, 9);
+    this.spawnBlueFire(9, 9);
 
     this.spawnClericShield(2, 1);
-
     this.spawnRockObstacle(1, 8);
-    this.spawnRockObstacle(8, 8);
   }
 
   private createCaveWall(x: number, z: number, width: number, height: number, depth: number): void {
@@ -104,6 +104,13 @@ export class BoardGridService {
     const crystals = this.envFactory.createCrystalMesh();
     crystals.position.set(pos.x, 0.08, pos.z);
     this.scene.add(crystals);
+  }
+
+  private spawnBlueFire(gridX: number, gridZ: number): void {
+    const pos = this.get3DPosition(gridX, gridZ);
+    const blueFire = this.envFactory.createBlueFireMesh();
+    blueFire.position.set(pos.x, 0.08, pos.z);
+    this.scene.add(blueFire);
   }
 
   private spawnClericShield(gridX: number, gridZ: number): void {

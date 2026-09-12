@@ -21,7 +21,6 @@ export class EntityFactoryService {
   private skinMat = new THREE.MeshStandardMaterial({ color: 0xffdbac });
   private bootMat = new THREE.MeshStandardMaterial({ color: 0x1e1b18 });
 
-  // === ARMI EROI ===
   createSword(): THREE.Group {
     const sword = new THREE.Group();
     const hilt = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.3), this.woodMat);
@@ -43,10 +42,7 @@ export class EntityFactoryService {
     const staffBody = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.4, 8), this.woodMat);
     staffBody.position.set(0, -0.2, 0.2);
     staffBody.castShadow = true;
-    const orb = new THREE.Mesh(
-      new THREE.SphereGeometry(0.08, 12, 12),
-      new THREE.MeshBasicMaterial({ color: 0x60a5fa })
-    );
+    const orb = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 12), new THREE.MeshBasicMaterial({ color: 0x60a5fa }));
     orb.position.set(0, 0.5, 0.2);
     staff.add(staffBody, orb);
     return staff;
@@ -80,7 +76,6 @@ export class EntityFactoryService {
     return flail;
   }
 
-  // === ARMI GOBLIN ===
   createGoblinSpear(): THREE.Group {
     const spear = new THREE.Group();
     const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 1.1, 8), this.woodMat);
@@ -103,15 +98,13 @@ export class EntityFactoryService {
     bowWood.castShadow = true;
     const points = [new THREE.Vector3(0, 0.32, 0), new THREE.Vector3(0, -0.32, 0)];
     const stringGeo = new THREE.BufferGeometry().setFromPoints(points);
-    const stringMat = new THREE.LineBasicMaterial({ color: 0xe2e8f0 });
-    const bowString = new THREE.Line(stringGeo, stringMat);
+    const bowString = new THREE.Line(stringGeo, new THREE.LineBasicMaterial({ color: 0xe2e8f0 }));
     bowGroup.add(bowWood, bowString);
     bowGroup.position.set(0, -0.22, 0.1);
     bowGroup.rotation.y = Math.PI / 6;
     return bowGroup;
   }
 
-  // === EROI & UMANOIDI ===
   createHumanMesh(colorHex: number, classType: 'warrior' | 'mage' | 'rogue' | 'cleric' = 'warrior'): EntityMeshResult {
     const group = new THREE.Group();
     const armorMat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.4 });
@@ -158,13 +151,12 @@ export class EntityFactoryService {
       const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.08, 12), this.goldMat);
       crown.position.y = 1.15; crown.castShadow = true; group.add(crown);
 
-      // Scudo imbracciato con texture applicata dall'Atlas
+      // Scudo con Texture dell'Atlas applicata sul fronte della spalla sinistra
       const shieldGroup = new THREE.Group();
-      const shieldMat = this.envFactory.createShieldMaterial();
-      const shieldMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.55), shieldMat);
+      const shieldMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.58), this.envFactory.createShieldMaterial());
       shieldMesh.castShadow = true;
 
-      const backMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.55), this.steelMat);
+      const backMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.58), this.steelMat);
       backMesh.rotation.y = Math.PI;
 
       shieldGroup.add(shieldMesh, backMesh);
@@ -178,7 +170,6 @@ export class EntityFactoryService {
     return { group, torsoMesh: torso, armRGroup };
   }
 
-  // === GOBLIN ===
   createGoblinMesh(colorHex: number, isRanged = false): EntityMeshResult {
     const group = new THREE.Group();
     const greenMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.5 });
@@ -218,7 +209,6 @@ export class EntityFactoryService {
     return { group, torsoMesh: torso, armRGroup };
   }
 
-  // === DRAGO ROSSO 2x2 ===
   createDragonMesh(tileSize: number): EntityMeshResult {
     const group = new THREE.Group();
     const redMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.4 });
