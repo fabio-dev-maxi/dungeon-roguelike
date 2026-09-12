@@ -68,12 +68,40 @@
   --ease-out: cubic-bezier(.16, 1, .3, 1);
 }
 
+.title-wrap {
+  position: relative;
+  width: 100%;
+  min-height: calc(100vh - 70px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 50px 20px 30px;
+  box-sizing: border-box;
+
+  background-image:
+    radial-gradient(circle at center, rgba(10, 7, 5, 0.25) 0%, rgba(5, 3, 2, 0.85) 90%),
+    url('assets/images/bg-abyss.jpg');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+
+  border: none !important;
+  box-shadow: none !important;
+}
+
 /* ==========================================================================
    RESET & BASE
    ========================================================================== */
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
-html, body { height: 100%; }
+html,
+body {
+  height: 100%;
+}
 
 body {
   margin: 0;
@@ -90,16 +118,37 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-::selection { background: var(--blood); color: var(--parchment); }
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: rgba(0, 0, 0, .3); }
-::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 4px; }
-:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 2px; }
+::selection {
+  background: var(--blood);
+  color: var(--parchment);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, .3);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gold-dim);
+  border-radius: 4px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
 
 /* ==========================================================================
    TIPOGRAFIA & UTILITY
    ========================================================================== */
-h1, h2, h3 {
+h1,
+h2,
+h3 {
   font-family: var(--font-heading);
   letter-spacing: .03em;
   margin: 0 0 8px;
@@ -108,13 +157,36 @@ h1, h2, h3 {
   font-weight: 600;
 }
 
-h2 { font-size: 1.2rem; display: flex; align-items: center; gap: 10px; justify-content: center; }
-p { margin: 0 0 10px; }
+h2 {
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+}
 
-.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-.num.gain { color: var(--emerald); }
-.small { font-size: .8rem; color: var(--parchment-dim); }
-.center { text-align: center; }
+p {
+  margin: 0 0 10px;
+}
+
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.num.gain {
+  color: var(--emerald);
+}
+
+.small {
+  font-size: .8rem;
+  color: var(--parchment-dim);
+}
+
+.center {
+  text-align: center;
+}
+
 .eyebrow {
   font-family: var(--font-heading);
   font-size: .7rem;
@@ -123,7 +195,11 @@ p { margin: 0 0 10px; }
   color: var(--gold-dim);
 }
 
-hr.rule { border: none; border-top: 1px solid var(--stone-line); margin: 18px 0; }
+hr.rule {
+  border: none;
+  border-top: 1px solid var(--stone-line);
+  margin: 18px 0;
+}
 
 /* Cornice circolare in pietra usata per contenere le icone. */
 .sigil {
@@ -150,10 +226,22 @@ hr.rule { border: none; border-top: 1px solid var(--stone-line); margin: 18px 0;
   border: 1px solid rgba(212, 175, 55, .22);
 }
 
-.sigil--sm { --sigil-size: 36px; }
-.sigil--lg { --sigil-size: 80px; }
-.sigil--danger { color: var(--blood-bright); }
-.sigil--success { color: var(--emerald); border-color: rgba(52, 211, 153, .35); }
+.sigil--sm {
+  --sigil-size: 36px;
+}
+
+.sigil--lg {
+  --sigil-size: 80px;
+}
+
+.sigil--danger {
+  color: var(--blood-bright);
+}
+
+.sigil--success {
+  color: var(--emerald);
+  border-color: rgba(52, 211, 153, .35);
+}
 
 /* ==========================================================================
    BOTTONI
@@ -200,14 +288,35 @@ hr.rule { border: none; border-top: 1px solid var(--stone-line); margin: 18px 0;
   transform: translateY(-1px);
 }
 
-.btn:active:not(:disabled) { transform: translateY(1px); box-shadow: 0 1px 0 rgba(0, 0, 0, .5); }
-.btn:disabled { opacity: .35; cursor: not-allowed; }
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .5);
+}
 
-.btn.danger { --btn-accent: var(--blood-bright); --btn-glow: var(--blood-glow); }
-.btn.heal { --btn-accent: var(--emerald); --btn-glow: var(--emerald-glow); }
-.btn.primary { --btn-accent: var(--gold); background: linear-gradient(180deg, #3d2c14, #241a0d); }
+.btn:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
 
-.btn--block { width: 100%; }
+.btn.danger {
+  --btn-accent: var(--blood-bright);
+  --btn-glow: var(--blood-glow);
+}
+
+.btn.heal {
+  --btn-accent: var(--emerald);
+  --btn-glow: var(--emerald-glow);
+}
+
+.btn.primary {
+  --btn-accent: var(--gold);
+  background: linear-gradient(180deg, #3d2c14, #241a0d);
+}
+
+.btn--block {
+  width: 100%;
+}
+
 .btn--ghost {
   background: transparent;
   border-color: transparent;
@@ -215,13 +324,18 @@ hr.rule { border: none; border-top: 1px solid var(--stone-line); margin: 18px 0;
   color: var(--parchment-dim);
   padding: 8px 10px;
 }
+
 .btn--ghost:hover:not(:disabled) {
   color: var(--parchment);
   box-shadow: none;
   transform: none;
   border-color: transparent;
 }
-.btn--icon { padding: 9px; border-radius: 50%; }
+
+.btn--icon {
+  padding: 9px;
+  border-radius: 50%;
+}
 
 /* ==========================================================================
    PANNELLI / CARD & CORNICI GOTICHE
@@ -330,12 +444,10 @@ hr.rule { border: none; border-top: 1px solid var(--stone-line); margin: 18px 0;
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.15) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.15) 50%,
+      transparent 100%);
   background-size: 200% 100%;
   animation: fluidShimmer 3s linear infinite;
   pointer-events: none;
@@ -380,13 +492,25 @@ hr.rule { border: none; border-top: 1px solid var(--stone-line); margin: 18px 0;
 }
 
 @keyframes fluidShimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 @keyframes criticalPulse {
-  0% { filter: brightness(1); box-shadow: 0 0 8px rgba(220, 38, 38, 0.6); }
-  100% { filter: brightness(1.4); box-shadow: 0 0 18px rgba(220, 38, 38, 0.95); }
+  0% {
+    filter: brightness(1);
+    box-shadow: 0 0 8px rgba(220, 38, 38, 0.6);
+  }
+
+  100% {
+    filter: brightness(1.4);
+    box-shadow: 0 0 18px rgba(220, 38, 38, 0.95);
+  }
 }
 
 /* ==========================================================================
@@ -403,32 +527,68 @@ hr.rule { border: none; border-top: 1px solid var(--stone-line); margin: 18px 0;
 }
 
 @keyframes pulseHeartbeat {
-  0% { box-shadow: inset 0 0 70px 8px rgba(139, 0, 0, 0.45); }
-  50% { box-shadow: inset 0 0 110px 25px rgba(193, 68, 59, 0.75); }
-  100% { box-shadow: inset 0 0 70px 8px rgba(139, 0, 0, 0.45); }
+  0% {
+    box-shadow: inset 0 0 70px 8px rgba(139, 0, 0, 0.45);
+  }
+
+  50% {
+    box-shadow: inset 0 0 110px 25px rgba(193, 68, 59, 0.75);
+  }
+
+  100% {
+    box-shadow: inset 0 0 70px 8px rgba(139, 0, 0, 0.45);
+  }
 }
 
 /* Effetti di Tremore da Impatto (Screen Shake) */
 .shake-crit {
-  animation: screenShakeCrit 0.45s cubic-bezier(.36,.07,.19,.97) both;
+  animation: screenShakeCrit 0.45s cubic-bezier(.36, .07, .19, .97) both;
 }
 
 .shake-hit {
-  animation: screenShakeHit 0.25s cubic-bezier(.36,.07,.19,.97) both;
+  animation: screenShakeHit 0.25s cubic-bezier(.36, .07, .19, .97) both;
 }
 
 @keyframes screenShakeCrit {
-  10%, 90% { transform: translate3d(-3px, 0, 0) rotate(-0.5deg); }
-  20%, 80% { transform: translate3d(4px, 1px, 0) rotate(0.8deg); }
-  30%, 50%, 70% { transform: translate3d(-5px, -2px, 0) rotate(-0.8deg); }
-  40%, 60% { transform: translate3d(5px, 2px, 0) rotate(0.5deg); }
+
+  10%,
+  90% {
+    transform: translate3d(-3px, 0, 0) rotate(-0.5deg);
+  }
+
+  20%,
+  80% {
+    transform: translate3d(4px, 1px, 0) rotate(0.8deg);
+  }
+
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-5px, -2px, 0) rotate(-0.8deg);
+  }
+
+  40%,
+  60% {
+    transform: translate3d(5px, 2px, 0) rotate(0.5deg);
+  }
 }
 
 @keyframes screenShakeHit {
-  20% { transform: translate3d(-2px, 1px, 0); }
-  40% { transform: translate3d(2px, -1px, 0); }
-  60% { transform: translate3d(-1px, 1px, 0); }
-  80% { transform: translate3d(1px, 0, 0); }
+  20% {
+    transform: translate3d(-2px, 1px, 0);
+  }
+
+  40% {
+    transform: translate3d(2px, -1px, 0);
+  }
+
+  60% {
+    transform: translate3d(-1px, 1px, 0);
+  }
+
+  80% {
+    transform: translate3d(1px, 0, 0);
+  }
 }
 
 /* ==========================================================================
@@ -516,8 +676,18 @@ hr.rule { border: none; border-top: 1px solid var(--stone-line); margin: 18px 0;
   text-transform: uppercase;
 }
 
-.stat-box .val { font-family: var(--font-mono); font-size: 1.35rem; color: var(--parchment); line-height: 1; }
-.stat-box .mod { font-family: var(--font-mono); font-size: .78rem; color: var(--parchment-dim); }
+.stat-box .val {
+  font-family: var(--font-mono);
+  font-size: 1.35rem;
+  color: var(--parchment);
+  line-height: 1;
+}
+
+.stat-box .mod {
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  color: var(--parchment-dim);
+}
 
 /* ==========================================================================
    CAMPI FORM
@@ -543,7 +713,10 @@ input[type=text] {
   border-radius: var(--radius-sm);
 }
 
-input[type=text]:focus { border-color: var(--gold); outline: none; }
+input[type=text]:focus {
+  border-color: var(--gold);
+  outline: none;
+}
 
 /* ==========================================================================
    MODALI (primitive condivise da level-up e boss reward)
@@ -571,25 +744,42 @@ input[type=text]:focus { border-color: var(--gold); outline: none; }
 }
 
 @keyframes modalIn {
-  from { opacity: 0; transform: translateY(10px) scale(.97); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
-.modal-box h2 { font-size: 1.35rem; margin: 6px 0 4px; }
+.modal-box h2 {
+  font-size: 1.35rem;
+  margin: 6px 0 4px;
+}
 
 /* ==========================================================================
    ACCESSIBILITÀ — riduzione delle animazioni
    ========================================================================== */
 @media (prefers-reduced-motion: reduce) {
-  * { scroll-behavior: auto !important; }
+  * {
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ==========================================================================
    MOBILE (<= 720px)
    ========================================================================== */
 @media (max-width: 720px) {
-  body { font-size: 16px; }
-  .panel { padding: 16px; }
+  body {
+    font-size: 16px;
+  }
+
+  .panel {
+    padding: 16px;
+  }
 }
 
 
@@ -665,5 +855,16 @@ input[type=text]:focus { border-color: var(--gold); outline: none; }
     height: 220px !important;
     min-height: 220px !important;
     max-height: 220px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .title-wrap {
+    padding: 30px 16px 20px;
+    /* Inquadra le scale e l'avventuriero alleggerendo la maschera scura */
+    background-position: 65% center;
+    background-image:
+      linear-gradient(180deg, rgba(10, 7, 5, 0.35) 0%, rgba(5, 3, 2, 0.82) 100%),
+      url('assets/images/bg-abyss_vertical.jpg');
   }
 }
