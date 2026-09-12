@@ -1,0 +1,95 @@
+<div class="panel gothic-frame board-test-container">
+  <!-- HEADER SCHERMATA GOTICA -->
+  <header class="test-header">
+    <div class="header-titles">
+      <h2><app-icon name="swords" [size]="22" /> Arena Tattica nella Caverna</h2>
+      <span class="eyebrow">Simulatore D&D 3.5e con Fisica Rapier WASM e d20</span>
+    </div>
+    <a routerLink="/" class="btn btn--ghost">&larr; Torna al Gioco</a>
+  </header>
+
+  <!-- LAYOUT PRINCIPALE -->
+  <div class="sandbox-layout">
+    <!-- VIEWPORT 3D & SCENA CAVERNA -->
+    <div class="canvas-viewport gothic-frame">
+      <canvas #boardCanvas class="three-canvas"></canvas>
+
+      <!-- HUD STATO AZIONE -->
+      <div class="hud-overlay">
+        <span class="status-msg" [innerHTML]="statusText()"></span>
+      </div>
+    </div>
+
+    <!-- CONTROLLI E SCHEDA UNITA' SELEZIONATA -->
+    <aside class="control-panel gothic-frame">
+      <h3>Statistiche Unità</h3>
+
+      @if (selectedUnitStats(); as stats) {
+      <div class="unit-card gothic-frame" [class.enemy-border]="stats.isEnemy">
+        <div class="unit-title">{{ stats.name }}</div>
+        <div class="unit-stats-grid">
+          <div class="stat-pill">
+            <span class="lbl">CA</span>
+            <span class="val">{{ stats.ca }}</span>
+          </div>
+          <div class="stat-pill">
+            <span class="lbl">PF</span>
+            <span class="val">{{ stats.currentHp }} / {{ stats.maxHp }}</span>
+          </div>
+          <div class="stat-pill">
+            <span class="lbl">TxC</span>
+            <span class="val">+{{ stats.atkBonus }}</span>
+          </div>
+          <div class="stat-pill">
+            <span class="lbl">Danno</span>
+            <span class="val">{{ stats.dmgMin }}-{{ stats.dmgMax }}</span>
+          </div>
+        </div>
+      </div>
+      } @else {
+      <p class="small empty-msg">Tocca una pedina nella caverna per selezionarla.</p>
+      }
+
+      <hr class="rule" />
+
+      <div class="instructions small">
+        <p><strong>Comandi Caverna:</strong></p>
+        <ul>
+          <li><strong>Spostamento:</strong> Seleziona un eroe e tocca una casella verde.</li>
+          <li><strong>Mischia:</strong> Tocca un nemico adiacente.</li>
+          <li><strong>Grimorio Mago:</strong> Tocca il Drago Rosso da distante per scegliere la magia.</li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- MODALE GRIMORIO INCANTESIMI -->
+@if (isModalOpen()) {
+<div class="modal-backdrop">
+  <div class="panel modal-box gothic-frame spell-modal-card">
+    <div class="sigil sigil--gold modal-sigil">
+      <app-icon name="scroll" [size]="28" />
+    </div>
+    <h2>📖 Scegli l'Incantesimo</h2>
+    <p class="small modal-desc">Seleziona la magia da canalizzare prima del tiro del d20 3D:</p>
+
+    <div class="spell-buttons-list">
+      <button type="button" class="btn spell-btn" (click)="selectSpell('fireball')">
+        <span>🔥 Palla di Fuoco</span>
+        <small class="spell-sub">(Danni Fuoco Area)</small>
+      </button>
+
+      <button type="button" class="btn spell-btn" (click)="selectSpell('lightning')">
+        <span>⚡ Tempesta di Fulmini</span>
+        <small class="spell-sub">(Fulmine Diretto)</small>
+      </button>
+
+      <button type="button" class="btn spell-btn" (click)="selectSpell('missile')">
+        <span>✨ Dardo Incantato</span>
+        <small class="spell-sub">(3 Dardi di Forza)</small>
+      </button>
+    </div>
+  </div>
+</div>
+}

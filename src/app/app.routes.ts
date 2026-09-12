@@ -9,6 +9,10 @@ export const routes: Routes = [
     loadComponent: () => import('./components/admin-section/admin/admin.component').then(m => m.AdminComponent)
   },
   {
+    path: 'board-test',
+    loadComponent: () => import('./components/board-test/board-test.component').then(m => m.BoardTestComponent)
+  },
+  {
     path: 'wiki',
     loadComponent: () => import('./components/admin-section/wiki/wiki.component').then(m => m.WikiComponent)
   },
