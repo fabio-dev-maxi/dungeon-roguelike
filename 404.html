@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="it">
+
+<head>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta charset="utf-8">
+  <title>Endless Pitfall — Discesa Infinita</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <script>
+    (function () {
+      var internalNg = {};
+      var safeProxy = new Proxy(internalNg, {
+        get: function (target, prop) {
+          // Disarma esclusivamente le utility di ispezione del DOM
+          if (['getComponent', 'getInjector', 'getOwningComponent', 'getContext', 'getDirectiveMetadata'].includes(prop)) {
+            return undefined;
+          }
+          return target[prop];
+        }
+      });
+
+      Object.defineProperty(window, 'ng', {
+        get: function () { return safeProxy; },
+        set: function (val) {
+          if (val && typeof val === 'object') {
+            Object.assign(internalNg, val);
+          }
+        },
+        configurable: false
+      });
+    })();
+  </script>
+</head>
+
+<body>
+  <app-root></app-root>
+</body>
+
+</html>
