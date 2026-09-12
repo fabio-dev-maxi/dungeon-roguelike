@@ -1,6 +1,5 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import * as THREE from 'three';
-import { EnvironmentFactoryService } from './environment-factory.service';
 
 export interface EntityMeshResult {
   group: THREE.Group;
@@ -12,8 +11,6 @@ export interface EntityMeshResult {
   providedIn: 'root'
 })
 export class EntityFactoryService {
-  private envFactory = inject(EnvironmentFactoryService);
-
   private steelMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.8, roughness: 0.2 });
   private woodMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.7 });
   private goldMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.7, roughness: 0.3 });
@@ -151,17 +148,16 @@ export class EntityFactoryService {
       const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.08, 12), this.goldMat);
       crown.position.y = 1.15; crown.castShadow = true; group.add(crown);
 
-      // Scudo con Texture dell'Atlas applicata sul fronte della spalla sinistra
+      // Scudo imbracciato dal Chierico
       const shieldGroup = new THREE.Group();
-      const shieldMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.58), this.envFactory.createShieldMaterial());
+      const shieldMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.04, 6), this.steelMat);
+      shieldMesh.rotation.x = Math.PI / 2;
       shieldMesh.castShadow = true;
+      const emblem = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.28, 0.02), this.goldMat);
+      emblem.position.z = 0.03;
 
-      const backMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.58), this.steelMat);
-      backMesh.rotation.y = Math.PI;
-
-      shieldGroup.add(shieldMesh, backMesh);
-      shieldGroup.position.set(-0.25, 0.65, 0.12);
-      shieldGroup.rotation.y = Math.PI / 6;
+      shieldGroup.add(shieldMesh, emblem);
+      shieldGroup.position.set(-0.26, 0.65, 0.1);
       group.add(shieldGroup);
 
       armRGroup.add(this.createFlail());
