@@ -2,19 +2,16 @@
   <!-- Area Principale Canvas & Controlli -->
   <div class="main-area">
     <div class="header-banner">
-      <h2>⚔️ ARENA TATTICA NELLA CAVERNA</h2>
-      <a routerLink="/" class="back-link">← TORNA AL GIOCO</a>
+      <h2>ARENA TATTICA NELLA CAVERNA (10x10)</h2>
+      <a routerLink="/" class="back-link">&larr; TORNA AL GIOCO</a>
     </div>
-
     <div class="board-wrapper">
       <canvas #boardCanvas class="board-canvas"></canvas>
-
       <div class="status-overlay">
         <p>{{ statusText() }}</p>
       </div>
-
       <div class="controls-overlay">
-        <button (click)="focusOnSelectedUnit()">🎯 Centra Eroe</button>
+        <button type="button" (click)="focusOnSelectedUnit()">🎯 Centra Eroe</button>
       </div>
     </div>
   </div>
@@ -49,7 +46,6 @@
       <p class="empty-selection">Seleziona un'unità sulla griglia per vederne i dettagli.</p>
       }
     </div>
-
     <div class="panel-card commands-card">
       <h4>Comandi Caverna:</h4>
       <ul>
@@ -70,24 +66,20 @@
         @if (modalMode() === 'cleric_heal') { MAGIA DIVINA - CURA }
         @if (modalMode() === 'cleric_harm') { MAGIA DIVINA - ATTACCO }
       </h3>
-
       <div class="spell-buttons">
         @if (modalMode() === 'mage') {
-        <button (click)="selectSpell('fireball')">🔥 Palla di Fuoco</button>
-        <button (click)="selectSpell('lightning')">⚡ Tempesta di Fulmini</button>
-        <button (click)="selectSpell('missile')">✨ Dardo Incantato</button>
+        <button type="button" (click)="selectSpell('fireball')">🔥 Palla di Fuoco</button>
+        <button type="button" (click)="selectSpell('lightning')">⚡ Tempesta di Fulmini</button>
+        <button type="button" (click)="selectSpell('missile')">✨ Dardo Incantato</button>
         }
-
         @if (modalMode() === 'cleric_heal') {
-        <button (click)="selectSpell('cure')">✨ Cura Ferite Leggere (1d8 + 3)</button>
+        <button type="button" (click)="selectSpell('cure')">✨ Cura Ferite Leggere (1d8 + 3)</button>
         }
-
         @if (modalMode() === 'cleric_harm') {
-        <button (click)="selectSpell('harm')">💀 Infliggi Ferite Leggere (1d8 + 3)</button>
+        <button type="button" (click)="selectSpell('harm')">💀 Infliggi Ferite Leggere (1d8 + 3)</button>
         }
       </div>
-
-      <button class="close-btn" (click)="isModalOpen.set(false)">Annulla</button>
+      <button type="button" class="close-btn" (click)="isModalOpen.set(false)">Annulla</button>
     </div>
   </div>
   }

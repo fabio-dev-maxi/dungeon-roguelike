@@ -9,8 +9,9 @@ import { UnitStats, BoardUnit } from '../models/board-types';
   providedIn: 'root'
 })
 export class BoardGridService {
-  public boardSize = 8;
-  public tileSize = 1.32;
+  // Configurazione Scacchiera 10x10
+  public boardSize = 10;
+  public tileSize = 1.2;
   public offset = (this.boardSize / 2) * this.tileSize - (this.tileSize / 2);
 
   private scene!: THREE.Scene;
@@ -20,7 +21,6 @@ export class BoardGridService {
   private staticRocks: { gridX: number; gridZ: number }[] = [];
   private highlightGroup = new THREE.Group();
   private selectionRing!: THREE.Mesh;
-
   private selectedUnit: BoardUnit | null = null;
   private pendingAttack: { attacker: BoardUnit; defender: BoardUnit } | null = null;
   private movingUnit: BoardUnit | null = null;
@@ -38,12 +38,14 @@ export class BoardGridService {
   public initGrid(scene: THREE.Scene, camera: THREE.PerspectiveCamera): void {
     this.scene = scene;
     this.camera = camera;
+    const totalBoardWidth = this.boardSize * this.tileSize; // 12.0
+    const wallThickness = 0.8;
+    const wallHeight = 2.2;
 
-    const totalBoardWidth = this.boardSize * this.tileSize;
-
-    const floorMesh = this.envFactory.createFloorMesh(totalBoardWidth);
+    // Basamento sagomato precisamente sulle dimensioni esterne delle mura
+    const floorMesh = this.envFactory.createFloorMesh(totalBoardWidth, wallThickness);
     this.scene.add(floorMesh);
-    this.physics.createFixedGround(totalBoardWidth + 2, totalBoardWidth + 2);
+    this.physics.createFixedGround(totalBoardWidth + wallThickness * 2, totalBoardWidth + wallThickness * 2);
 
     const tilesMap = this.envFactory.createTilesGroup(this.boardSize, this.tileSize, this.offset);
     this.scene.add(tilesMap);
@@ -52,25 +54,63 @@ export class BoardGridService {
     this.selectionRing = this.envFactory.createSelectionRing();
     this.scene.add(this.selectionRing);
 
-    const wallThickness = 0.5;
-    const wallOffset = totalBoardWidth / 2 + wallThickness / 2;
-    this.createCaveWall(0, -wallOffset, totalBoardWidth + wallThickness * 2, wallThickness);
-    this.createCaveWall(0, wallOffset, totalBoardWidth + wallThickness * 2, wallThickness);
-    this.createCaveWall(-wallOffset, 0, wallThickness, totalBoardWidth);
-    this.createCaveWall(wallOffset, 0, wallThickness, totalBoardWidth);
+    // Posizionamento esatto delle mura sul perimetro della griglia 10x10
+    const halfGrid = totalBoardWidth / 2; // 6.0
+    const wallCenterOffset = halfGrid + wallThickness / 2; // 6.4
 
-    this.spawnStaticCrate(3, 1);
-    this.spawnStaticCrate(5, 2);
-    this.spawnRockObstacle(0, 3);
-    this.spawnRockObstacle(6, 1);
+    // Mura NORD e SUD (lunghezza estesa per chiudere gli angoli)
+    const wallLengthNS = totalBoardWidth + wallThickness * 2;
+    this.createCaveWall(0, -wallCenterOffset, wallLengthNS, wallHeight, wallThickness);
+    this.createCaveWall(0, wallCenterOffset, wallLengthNS, wallHeight, wallThickness);
+
+    // Mura EST e OVEST (lunghezza interna)
+    this.createCaveWall(-wallCenterOffset, 0, wallThickness, wallHeight, totalBoardWidth);
+    this.createCaveWall(wallCenterOffset, 0, wallThickness, wallHeight, totalBoardWidth);
+
+    // Props
+    this.spawnStaticCrate(3, 2);
+    this.spawnStaticCrate(4, 2);
+    this.spawnStaticCrate(8, 7);
+
+    this.spawnBlueCrystals(0, 0);
+    this.spawnBlueCrystals(9, 0);
+    this.spawnBlueCrystals(0, 9);
+
+    this.spawnClericShield(2, 1);
+
+    this.spawnRockObstacle(1, 8);
+    this.spawnRockObstacle(8, 8);
   }
 
-  private createCaveWall(x: number, z: number, width: number, depth: number): void {
-    const wallHeight = 2.4;
-    const wall = this.envFactory.createCaveWallMesh(width, wallHeight, depth);
-    wall.position.set(x, wallHeight / 2, z);
+  private createCaveWall(x: number, z: number, width: number, height: number, depth: number): void {
+    const wall = this.envFactory.createCaveWallMesh(width, height, depth);
+    wall.position.set(x, height / 2, z);
     this.scene.add(wall);
-    this.physics.createFixedWall(x, z, width, wallHeight, depth);
+    this.physics.createFixedWall(x, z, width, height, depth);
+  }
+
+  private spawnStaticCrate(gridX: number, gridZ: number): void {
+    const pos = this.get3DPosition(gridX, gridZ);
+    const size = 0.75;
+    const crateMesh = this.envFactory.createCrateMesh(size);
+    crateMesh.position.set(pos.x, size / 2, pos.z);
+    this.scene.add(crateMesh);
+    this.physics.createFixedBox(pos.x, size / 2, pos.z, size);
+    this.staticCrates.push({ gridX, gridZ });
+  }
+
+  private spawnBlueCrystals(gridX: number, gridZ: number): void {
+    const pos = this.get3DPosition(gridX, gridZ);
+    const crystals = this.envFactory.createCrystalMesh();
+    crystals.position.set(pos.x, 0.08, pos.z);
+    this.scene.add(crystals);
+  }
+
+  private spawnClericShield(gridX: number, gridZ: number): void {
+    const pos = this.get3DPosition(gridX, gridZ);
+    const shield = this.envFactory.createShieldMesh();
+    shield.position.set(pos.x, 0.08, pos.z);
+    this.scene.add(shield);
   }
 
   private spawnRockObstacle(gridX: number, gridZ: number): void {
@@ -82,32 +122,18 @@ export class BoardGridService {
     this.staticRocks.push({ gridX, gridZ });
   }
 
-  private spawnStaticCrate(gridX: number, gridZ: number): void {
-    const pos = this.get3DPosition(gridX, gridZ);
-    const size = 0.72;
-    const crateTexture = this.envFactory.createWoodCrateTexture();
-    const crateMesh = this.envFactory.createCrateMesh(size, crateTexture);
-    crateMesh.position.set(pos.x, size / 2, pos.z);
-    this.scene.add(crateMesh);
-    this.physics.createFixedBox(pos.x, size / 2, pos.z, size);
-    this.staticCrates.push({ gridX, gridZ });
-  }
-
   public spawnPartyAndBoss(): void {
     this.spawnUnit(1, 1, { name: 'Guerriero Umano', classType: 'warrior', ca: 18, maxHp: 38, currentHp: 38, atkBonus: 8, dmgMin: 8, dmgMax: 16, speedMax: 3, color: 0x64748b, isEnemy: false });
     this.spawnUnit(2, 1, { name: 'Mago Elfo', classType: 'mage', ca: 13, maxHp: 20, currentHp: 20, atkBonus: 6, dmgMin: 12, dmgMax: 28, speedMax: 3, color: 0x2563eb, isEnemy: false });
     this.spawnUnit(1, 2, { name: 'Ladro Halfling', classType: 'rogue', ca: 16, maxHp: 26, currentHp: 26, atkBonus: 7, dmgMin: 6, dmgMax: 14, speedMax: 4, color: 0x15803d, isEnemy: false });
     this.spawnUnit(2, 2, { name: 'Chierico Nano', classType: 'cleric', ca: 17, maxHp: 34, currentHp: 34, atkBonus: 6, dmgMin: 6, dmgMax: 12, speedMax: 3, color: 0xeab308, isEnemy: false });
-
-    this.spawnUnit(4, 4, { name: 'Drago Rosso (Grande)', ca: 21, maxHp: 85, currentHp: 85, atkBonus: 14, dmgMin: 8, dmgMax: 22, speedMax: 3, color: 0xdc2626, isEnemy: true }, true);
-
-    this.spawnUnit(6, 3, { name: 'Goblin Arciere', classType: 'goblin', ca: 13, maxHp: 12, currentHp: 12, atkBonus: 4, dmgMin: 2, dmgMax: 6, speedMax: 3, color: 0x15803d, isEnemy: true, isRanged: true });
-    this.spawnUnit(3, 6, { name: 'Goblin Lanciere', classType: 'goblin', ca: 14, maxHp: 14, currentHp: 14, atkBonus: 5, dmgMin: 3, dmgMax: 7, speedMax: 3, color: 0x15803d, isEnemy: true, isRanged: false });
+    this.spawnUnit(6, 6, { name: 'Drago Rosso (Grande)', ca: 21, maxHp: 85, currentHp: 85, atkBonus: 14, dmgMin: 8, dmgMax: 22, speedMax: 3, color: 0xdc2626, isEnemy: true }, true);
+    this.spawnUnit(8, 3, { name: 'Goblin Arciere', classType: 'goblin', ca: 13, maxHp: 12, currentHp: 12, atkBonus: 4, dmgMin: 2, dmgMax: 6, speedMax: 3, color: 0x15803d, isEnemy: true, isRanged: true });
+    this.spawnUnit(4, 7, { name: 'Goblin Lanciere', classType: 'goblin', ca: 14, maxHp: 14, currentHp: 14, atkBonus: 5, dmgMin: 3, dmgMax: 7, speedMax: 3, color: 0x15803d, isEnemy: true, isRanged: false });
   }
 
   private spawnUnit(gridX: number, gridZ: number, stats: UnitStats, isDragon = false): void {
     let resultMesh: EntityMeshResult;
-
     if (isDragon) {
       resultMesh = this.entityFactory.createDragonMesh(this.tileSize);
     } else if (stats.classType === 'goblin') {
@@ -115,11 +141,9 @@ export class BoardGridService {
     } else {
       resultMesh = this.entityFactory.createHumanMesh(stats.color, stats.classType);
     }
-
     const { group, torsoMesh, armRGroup } = resultMesh;
     let occupiedTiles = [{ x: gridX, z: gridZ }];
     let posX = 0, posZ = 0;
-
     if (isDragon) {
       occupiedTiles = [
         { x: gridX, z: gridZ }, { x: gridX + 1, z: gridZ },
@@ -132,13 +156,10 @@ export class BoardGridService {
       const p = this.get3DPosition(gridX, gridZ);
       posX = p.x; posZ = p.z;
     }
-
     group.position.set(posX, 0.0, posZ);
     this.scene.add(group);
-
     const colSize = isDragon ? this.tileSize : 0.35;
     const body = this.physics.createKinematicBody(posX, 0.0, posZ, colSize);
-
     const unitData: BoardUnit = {
       root: group,
       body,
@@ -150,7 +171,6 @@ export class BoardGridService {
       stats: { ...stats, currentHp: stats.maxHp },
       isRagdoll: false
     };
-
     group.traverse(child => { if (child instanceof THREE.Mesh) child.userData = { isPiece: true, unitData }; });
     this.units.push(unitData);
   }
@@ -163,19 +183,15 @@ export class BoardGridService {
   public bindPointerEvents(canvas: HTMLCanvasElement, onCallback: (event: any) => void): void {
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
-
     window.addEventListener('pointerup', (e) => {
       if (this.movingUnit) return;
-
       const rect = canvas.getBoundingClientRect();
       mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
       raycaster.setFromCamera(mouse, this.camera);
-
       const intersects = raycaster.intersectObjects(this.scene.children, true);
       let hitPiece: BoardUnit | null = null;
       let hitTile: { x: number; z: number } | null = null;
-
       for (let i = 0; i < intersects.length; i++) {
         const obj = intersects[i].object;
         let curr: THREE.Object3D | null = obj;
@@ -183,14 +199,12 @@ export class BoardGridService {
         if (curr && curr.userData?.['isPiece'] && !hitPiece) { hitPiece = curr.userData['unitData']; }
         if ((obj.userData?.['isTile'] || obj.userData?.['isHighlight']) && !hitTile) { hitTile = { x: obj.userData['gridX'], z: obj.userData['gridZ'] }; }
       }
-
       if (hitPiece && hitPiece.stats.currentHp > 0) {
         if (this.selectedUnit && hitPiece !== this.selectedUnit) {
           const dist = this.getDistanceBetweenUnits(this.selectedUnit, hitPiece);
           const isEnemyTarget = this.selectedUnit.stats.isEnemy !== hitPiece.stats.isEnemy;
           const attackerClass = this.selectedUnit.stats.classType;
 
-          // 1. CHIERICO SU ALLEATO (Cura Ferite Leggere)
           if (!isEnemyTarget && attackerClass === 'cleric' && dist <= 6) {
             this.pendingAttack = { attacker: this.selectedUnit, defender: hitPiece };
             onCallback({ type: 'openSpellModal', modalType: 'cleric_heal', attacker: this.selectedUnit, defender: hitPiece });
@@ -198,32 +212,24 @@ export class BoardGridService {
             return;
           }
 
-          // 2. TARGET NEMICO
           if (isEnemyTarget) {
-            // MAGO (Grimorio Arcano: Palla di Fuoco, Tempesta di Fulmini, Dardo Incantato)
             if (attackerClass === 'mage' && dist <= 6) {
               this.pendingAttack = { attacker: this.selectedUnit, defender: hitPiece };
               onCallback({ type: 'openSpellModal', modalType: 'mage', attacker: this.selectedUnit, defender: hitPiece });
               this.deselectUnit();
               return;
             }
-
-            // CHIERICO SU NEMICO (Grimorio Divino: Infliggi Ferite Leggere)
             if (attackerClass === 'cleric' && dist <= 6) {
               this.pendingAttack = { attacker: this.selectedUnit, defender: hitPiece };
               onCallback({ type: 'openSpellModal', modalType: 'cleric_harm', attacker: this.selectedUnit, defender: hitPiece });
               this.deselectUnit();
               return;
             }
-
-            // TIRO RANGED FISICO (es. Goblin Arciere)
             if (this.selectedUnit.stats.isRanged && attackerClass !== 'mage' && dist > 1 && dist <= 6) {
               onCallback({ type: 'rangedArrowAttack', attacker: this.selectedUnit, defender: hitPiece });
               this.deselectUnit();
               return;
             }
-
-            // MELEE (Guerriero, Ladro, Goblin Lanciere)
             if (dist === 1) {
               onCallback({ type: 'meleeAttack', attacker: this.selectedUnit, defender: hitPiece });
               this.deselectUnit();
@@ -231,18 +237,15 @@ export class BoardGridService {
             }
           }
         }
-
         this.selectUnit(hitPiece);
         onCallback({ type: 'unitSelected', unit: hitPiece });
         return;
       }
-
       if (this.selectedUnit && hitTile) {
         const targetX = hitTile.x;
         const targetZ = hitTile.z;
         const dist = Math.max(Math.abs(targetX - this.selectedUnit.gridX), Math.abs(targetZ - this.selectedUnit.gridZ));
         const is2x2 = this.selectedUnit.occupiedTiles.length > 1;
-
         let isValid = false;
         if (is2x2) {
           isValid = targetX >= 0 && targetX < this.boardSize - 1 && targetZ >= 0 && targetZ < this.boardSize - 1 &&
@@ -253,7 +256,6 @@ export class BoardGridService {
         } else {
           isValid = !this.isCellOccupied(targetX, targetZ, this.selectedUnit);
         }
-
         if (isValid && dist <= this.selectedUnit.stats.speedMax) {
           this.startChessMovement(this.selectedUnit, targetX, targetZ);
         }
@@ -264,13 +266,11 @@ export class BoardGridService {
   public selectUnit(unit: BoardUnit): void {
     if (this.selectedUnit && this.selectedUnit !== unit) this.deselectUnit();
     this.selectedUnit = unit;
-
     const isDragon = unit.occupiedTiles.length > 1;
     const ringRadius = isDragon ? 2.2 : 1.0;
     this.selectionRing.scale.set(ringRadius, ringRadius, 1);
     this.selectionRing.position.set(unit.root.position.x, 0.09, unit.root.position.z);
     this.selectionRing.visible = true;
-
     this.updateHighlights(unit);
   }
 
@@ -304,11 +304,9 @@ export class BoardGridService {
     const is2x2 = selectedUnit.occupiedTiles.length > 1;
     const attackerClass = selectedUnit.stats.classType;
     const isRangedCaster = attackerClass === 'mage' || attackerClass === 'cleric' || selectedUnit.stats.isRanged;
-
     const hlMoveMat = new THREE.MeshStandardMaterial({ color: 0x22c55e, emissive: 0x15803d, emissiveIntensity: 0.5, transparent: true, opacity: 0.35, depthWrite: false });
     const hlAtkMat = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0xb91c1c, emissiveIntensity: 0.6, transparent: true, opacity: 0.45, depthWrite: false });
     const hlHealMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.6, transparent: true, opacity: 0.45, depthWrite: false });
-
     const lineMatMove = new THREE.LineBasicMaterial({ color: 0x86efac });
     const lineMatAtk = new THREE.LineBasicMaterial({ color: 0xfca5a5 });
     const lineMatHeal = new THREE.LineBasicMaterial({ color: 0xbae6fd });
@@ -316,8 +314,6 @@ export class BoardGridService {
     this.units.forEach(targetUnit => {
       if (targetUnit === selectedUnit || targetUnit.stats.currentHp <= 0) return;
       const isEnemyTarget = targetUnit.stats.isEnemy !== selectedUnit.stats.isEnemy;
-
-      // Evidenzia nemici attaccabili
       if (isEnemyTarget) {
         const dist = this.getDistanceBetweenUnits(selectedUnit, targetUnit);
         if (dist === 1 || (isRangedCaster && dist <= 6)) {
@@ -332,9 +328,7 @@ export class BoardGridService {
             this.highlightGroup.add(hl);
           });
         }
-      }
-      // Evidenzia alleati curabili solo se la classe è Chierico
-      else if (attackerClass === 'cleric') {
+      } else if (attackerClass === 'cleric') {
         const dist = this.getDistanceBetweenUnits(selectedUnit, targetUnit);
         if (dist <= 6) {
           targetUnit.occupiedTiles.forEach(tile => {
@@ -353,25 +347,21 @@ export class BoardGridService {
 
     const maxX = is2x2 ? this.boardSize - 1 : this.boardSize;
     const maxZ = is2x2 ? this.boardSize - 1 : this.boardSize;
-
     for (let x = 0; x < maxX; x++) {
       for (let z = 0; z < maxZ; z++) {
         const dist = Math.max(Math.abs(x - selectedUnit.gridX), Math.abs(z - selectedUnit.gridZ));
         let isValid = is2x2
           ? !this.isCellOccupied(x, z, selectedUnit) && !this.isCellOccupied(x + 1, z, selectedUnit) && !this.isCellOccupied(x, z + 1, selectedUnit) && !this.isCellOccupied(x + 1, z + 1, selectedUnit)
           : !this.isCellOccupied(x, z, selectedUnit);
-
         if (dist > 0 && dist <= selectedUnit.stats.speedMax && isValid) {
           const w = is2x2 ? this.tileSize * 2 * 0.94 : this.tileSize * 0.92;
           const h = is2x2 ? this.tileSize * 2 * 0.94 : this.tileSize * 0.92;
           const geo = new THREE.PlaneGeometry(w, h);
           geo.rotateX(-Math.PI / 2);
-
           const hl = new THREE.Mesh(geo, hlMoveMat);
           const pos = this.get3DPositionForUnit(selectedUnit, x, z);
           hl.position.set(pos.x, 0.11, pos.z);
           hl.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), lineMatMove));
-
           hl.userData = { isHighlight: true, gridX: x, gridZ: z };
           this.highlightGroup.add(hl);
         }
@@ -386,25 +376,21 @@ export class BoardGridService {
   private startChessMovement(unit: BoardUnit, targetX: number, targetZ: number): void {
     let currX = unit.gridX; let currZ = unit.gridZ;
     this.movePath = [];
-
     while (currX !== targetX || currZ !== targetZ) {
       if (currX < targetX) currX++; else if (currX > targetX) currX--;
       if (currZ < targetZ) currZ++; else if (currZ > targetZ) currZ--;
       this.movePath.push({ gridX: currX, gridZ: currZ, pos3D: this.get3DPositionForUnit(unit, currX, currZ) });
     }
-
     this.movingUnit = unit; this.currentPathIndex = 0; this.stepProgress = 0;
   }
 
   public updateMovement(delta: number): void {
     if (!this.movingUnit || this.movePath.length === 0) return;
-
     this.stepProgress += delta * this.stepSpeed;
     const currentStep = this.movePath[this.currentPathIndex];
     const startPos = this.currentPathIndex === 0
       ? this.get3DPositionForUnit(this.movingUnit, this.movingUnit.gridX, this.movingUnit.gridZ)
       : this.movePath[this.currentPathIndex - 1].pos3D;
-
     const dx = currentStep.pos3D.x - startPos.x;
     const dz = currentStep.pos3D.z - startPos.z;
     if (dx !== 0 || dz !== 0) {
@@ -415,20 +401,16 @@ export class BoardGridService {
         Math.min(delta * 16, 1)
       );
     }
-
     this.movingUnit.root.position.x = THREE.MathUtils.lerp(startPos.x, currentStep.pos3D.x, Math.min(this.stepProgress, 1));
     this.movingUnit.root.position.z = THREE.MathUtils.lerp(startPos.z, currentStep.pos3D.z, Math.min(this.stepProgress, 1));
     this.movingUnit.root.position.y = Math.sin(Math.min(this.stepProgress, 1) * Math.PI) * 0.2;
-
     if (this.selectedUnit === this.movingUnit) {
       this.selectionRing.position.set(this.movingUnit.root.position.x, 0.09, this.movingUnit.root.position.z);
     }
-
     if (this.stepProgress >= 1) {
       this.stepProgress = 0;
       this.movingUnit.gridX = currentStep.gridX;
       this.movingUnit.gridZ = currentStep.gridZ;
-
       if (this.movingUnit.occupiedTiles.length > 1) {
         this.movingUnit.occupiedTiles = [
           { x: currentStep.gridX, z: currentStep.gridZ },
@@ -439,9 +421,7 @@ export class BoardGridService {
       } else {
         this.movingUnit.occupiedTiles = [{ x: currentStep.gridX, z: currentStep.gridZ }];
       }
-
       this.currentPathIndex++;
-
       if (this.currentPathIndex >= this.movePath.length) {
         this.movingUnit.root.position.y = 0;
         const finishedUnit = this.movingUnit;

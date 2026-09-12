@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import * as THREE from 'three';
+import { EnvironmentFactoryService } from './environment-factory.service';
 
 export interface EntityMeshResult {
   group: THREE.Group;
@@ -11,6 +12,8 @@ export interface EntityMeshResult {
   providedIn: 'root'
 })
 export class EntityFactoryService {
+  private envFactory = inject(EnvironmentFactoryService);
+
   private steelMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.8, roughness: 0.2 });
   private woodMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.7 });
   private goldMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.7, roughness: 0.3 });
@@ -24,16 +27,13 @@ export class EntityFactoryService {
     const hilt = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.3), this.woodMat);
     hilt.position.set(0, -0.2, 0.15);
     hilt.rotation.x = Math.PI / 4;
-
     const guard = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.04, 0.06), this.steelMat);
     guard.position.set(0, -0.1, 0.25);
     guard.rotation.x = Math.PI / 4;
-
     const blade = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.9, 0.02), this.steelMat);
     blade.position.set(0, 0.25, 0.55);
     blade.rotation.x = Math.PI / 4;
     blade.castShadow = true;
-
     sword.add(hilt, guard, blade);
     return sword;
   }
@@ -43,13 +43,11 @@ export class EntityFactoryService {
     const staffBody = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.4, 8), this.woodMat);
     staffBody.position.set(0, -0.2, 0.2);
     staffBody.castShadow = true;
-
     const orb = new THREE.Mesh(
       new THREE.SphereGeometry(0.08, 12, 12),
       new THREE.MeshBasicMaterial({ color: 0x60a5fa })
     );
     orb.position.set(0, 0.5, 0.2);
-
     staff.add(staffBody, orb);
     return staff;
   }
@@ -59,12 +57,10 @@ export class EntityFactoryService {
     const dHilt = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.12), this.woodMat);
     dHilt.position.set(0, -0.25, 0.12);
     dHilt.rotation.x = Math.PI / 3;
-
     const dBlade = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.3, 0.015), this.steelMat);
     dBlade.position.set(0, -0.1, 0.24);
     dBlade.rotation.x = Math.PI / 3;
     dBlade.castShadow = true;
-
     daggers.add(dHilt, dBlade);
     return daggers;
   }
@@ -74,33 +70,27 @@ export class EntityFactoryService {
     const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.45), this.woodMat);
     handle.position.set(0, -0.2, 0.1);
     handle.rotation.x = Math.PI / 6;
-
     const chain = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.18), this.steelMat);
     chain.position.set(0, -0.05, 0.22);
     chain.rotation.x = Math.PI / 4;
-
     const ball = new THREE.Mesh(new THREE.DodecahedronGeometry(0.1, 0), this.steelMat);
     ball.position.set(0, 0.05, 0.32);
     ball.castShadow = true;
-
     flail.add(handle, chain, ball);
     return flail;
   }
 
-  // === ARMI GOBLIN (POSIZIONATE IN MANO SENZA FLUTTUARE) ===
-
+  // === ARMI GOBLIN ===
   createGoblinSpear(): THREE.Group {
     const spear = new THREE.Group();
     const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 1.1, 8), this.woodMat);
     shaft.position.y = 0.35;
     shaft.castShadow = true;
-
     const tip = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.25, 4), this.steelMat);
     tip.position.y = 0.95;
     tip.castShadow = true;
-
     spear.add(shaft, tip);
-    spear.position.set(0, -0.22, 0.05); // Posizione relativa alla mano
+    spear.position.set(0, -0.22, 0.05);
     spear.rotation.x = Math.PI / 4;
     return spear;
   }
@@ -111,24 +101,20 @@ export class EntityFactoryService {
     const bowWood = new THREE.Mesh(arcGeo, this.woodMat);
     bowWood.rotation.y = Math.PI / 2;
     bowWood.castShadow = true;
-
     const points = [new THREE.Vector3(0, 0.32, 0), new THREE.Vector3(0, -0.32, 0)];
     const stringGeo = new THREE.BufferGeometry().setFromPoints(points);
     const stringMat = new THREE.LineBasicMaterial({ color: 0xe2e8f0 });
     const bowString = new THREE.Line(stringGeo, stringMat);
-
     bowGroup.add(bowWood, bowString);
-    bowGroup.position.set(0, -0.22, 0.1); // Posizione relativa alla mano
+    bowGroup.position.set(0, -0.22, 0.1);
     bowGroup.rotation.y = Math.PI / 6;
     return bowGroup;
   }
 
   // === EROI & UMANOIDI ===
-
   createHumanMesh(colorHex: number, classType: 'warrior' | 'mage' | 'rogue' | 'cleric' = 'warrior'): EntityMeshResult {
     const group = new THREE.Group();
     const armorMat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.4 });
-
     const base = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.4, 0.06, 16), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
     base.position.y = 0.03; base.receiveShadow = true; group.add(base);
 
@@ -149,7 +135,6 @@ export class EntityFactoryService {
 
     const armRGroup = new THREE.Group();
     armRGroup.position.set(0.21, 0.80, 0);
-
     const armRMesh = new THREE.Mesh(armGeo, armorMat);
     armRMesh.position.set(0, -0.15, 0);
     armRGroup.add(armRMesh);
@@ -173,27 +158,31 @@ export class EntityFactoryService {
       const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.08, 12), this.goldMat);
       crown.position.y = 1.15; crown.castShadow = true; group.add(crown);
 
+      // Scudo imbracciato con texture applicata dall'Atlas
       const shieldGroup = new THREE.Group();
-      const shieldBody = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.04, 6), this.steelMat); shieldBody.rotation.x = Math.PI / 2; shieldBody.castShadow = true;
-      const emblem = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.28, 0.02), this.goldMat); emblem.position.z = 0.03;
-      shieldGroup.add(shieldBody, emblem);
-      shieldGroup.position.set(-0.26, 0.65, 0.1);
+      const shieldMat = this.envFactory.createShieldMaterial();
+      const shieldMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.55), shieldMat);
+      shieldMesh.castShadow = true;
+
+      const backMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.55), this.steelMat);
+      backMesh.rotation.y = Math.PI;
+
+      shieldGroup.add(shieldMesh, backMesh);
+      shieldGroup.position.set(-0.25, 0.65, 0.12);
+      shieldGroup.rotation.y = Math.PI / 6;
       group.add(shieldGroup);
 
       armRGroup.add(this.createFlail());
     }
-
     group.add(armRGroup);
     return { group, torsoMesh: torso, armRGroup };
   }
 
   // === GOBLIN ===
-
   createGoblinMesh(colorHex: number, isRanged = false): EntityMeshResult {
     const group = new THREE.Group();
     const greenMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.5 });
     const redEyeMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
-
     const base = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.3, 0.05, 12), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
     base.position.y = 0.025; base.receiveShadow = true; group.add(base);
 
@@ -217,23 +206,19 @@ export class EntityFactoryService {
     const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.025), redEyeMat); eyeR.position.set(0.04, 0.73, 0.105);
     group.add(eyeL, eyeR);
 
-    // Snodo della spalla destra
     const armRGroup = new THREE.Group();
     armRGroup.position.set(0.15, 0.52, 0);
     const armRMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.26), greenMat);
     armRMesh.position.set(0, -0.11, 0);
     armRGroup.add(armRMesh);
 
-    // Assegna l'arma corretta montata sulla mano
     const weapon = isRanged ? this.createGoblinBow() : this.createGoblinSpear();
     armRGroup.add(weapon);
-
     group.add(armRGroup);
     return { group, torsoMesh: torso, armRGroup };
   }
 
   // === DRAGO ROSSO 2x2 ===
-
   createDragonMesh(tileSize: number): EntityMeshResult {
     const group = new THREE.Group();
     const redMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.4 });
@@ -254,7 +239,6 @@ export class EntityFactoryService {
 
     const neckGroup = new THREE.Group();
     neckGroup.position.set(0, 1.3, -0.7);
-
     const neck = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.9, 0.7), redMat);
     neck.rotation.x = 0.4; neck.castShadow = true; neckGroup.add(neck);
 
@@ -270,7 +254,6 @@ export class EntityFactoryService {
     const hornL = new THREE.Mesh(hornGeo, hornMat); hornL.position.set(-0.28, 0.72, -0.3); hornL.rotation.z = -0.3;
     const hornR = new THREE.Mesh(hornGeo, hornMat); hornR.position.set(0.28, 0.72, -0.3); hornR.rotation.z = 0.3;
     neckGroup.add(hornL, hornR);
-
     group.add(neckGroup);
 
     for (let s = 0; s < 5; s++) {
