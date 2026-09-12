@@ -34,7 +34,7 @@ export interface BoardUnit {
   root: THREE.Group;
   body: RAPIER.RigidBody;
   torsoMesh: THREE.Mesh;
-  armRGroup?: THREE.Group; // Braccio destro animato con arma
+  armRGroup?: THREE.Group;
   gridX: number;
   gridZ: number;
   occupiedTiles: { x: number; z: number }[];
@@ -66,7 +66,6 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
   private clock = new THREE.Clock();
   private animFrameId?: number;
 
-  // Griglia espansa del 10%
   private boardSize = 8;
   private tileSize = 1.32;
   private offset = (this.boardSize / 2) * this.tileSize - (this.tileSize / 2);
@@ -115,6 +114,22 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
     this.renderer?.dispose();
   }
 
+  // CONTROLLI TELECAMERA PER MOBILE
+  focusOnSelectedUnit(): void {
+    if (!this.selectedUnit) return;
+    const pos = this.selectedUnit.root.position;
+    this.controls.target.set(pos.x, 0, pos.z);
+    this.controls.update();
+  }
+
+  rotateCamera(degrees: number): void {
+    const radians = (degrees * Math.PI) / 180;
+    const currentPos = this.camera.position.clone().sub(this.controls.target);
+    currentPos.applyAxisAngle(new THREE.Vector3(0, 1, 0), radians);
+    this.camera.position.copy(this.controls.target).add(currentPos);
+    this.controls.update();
+  }
+
   selectSpell(spellType: 'fireball' | 'lightning' | 'missile'): void {
     if (!this.pendingAttack) return;
     const { attacker, defender } = this.pendingAttack;
@@ -127,7 +142,6 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
     this.world = new RAPIER.World({ x: 0.0, y: -9.81, z: 0.0 });
   }
 
-  // === 1. INIZIALIZZAZIONE SCENA & SELEZIONE RING ===
   private initThree(): void {
     const canvas = this.canvasRef.nativeElement;
     this.scene = new THREE.Scene();
@@ -146,6 +160,13 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
 
+    // 1 dito: disabilitato sui controlli (libero per Raycaster/selezione)
+    // 2 dita: Zoom (Pinch) e Traslazione (Pan)
+    this.controls.touches = {
+      ONE: undefined as any,
+      TWO: THREE.TOUCH.DOLLY_PAN
+    };
+
     this.scene.add(new THREE.AmbientLight(0x887766, 1.8));
 
     const caveLight = new THREE.DirectionalLight(0xffecd1, 1.6);
@@ -162,7 +183,6 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
     this.scene.add(this.tilesMap);
     this.scene.add(this.highlightGroup);
 
-    // Creazione del segnale di selezione circolare sotto le pedine
     const ringGeo = new THREE.RingGeometry(0.38, 0.52, 32);
     ringGeo.rotateX(-Math.PI / 2);
     const ringMat = new THREE.MeshStandardMaterial({
@@ -178,7 +198,6 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
     this.scene.add(this.selectionRing);
   }
 
-  // === 2. AMBIENTE CAVERNA ===
   private buildCaveEnvironment(): void {
     const totalBoardWidth = this.boardSize * this.tileSize;
 
@@ -336,7 +355,6 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
     this.staticCrates.push({ gridX, gridZ });
   }
 
-  // === 3. MODEL CREATURE E ARMI ANIMATE ===
   private createGoblinMesh(colorHex: number): { group: THREE.Group; torsoMesh: THREE.Mesh; armRGroup: THREE.Group } {
     const group = new THREE.Group();
     const greenMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.5 });
@@ -367,9 +385,8 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
     const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.025), redEyeMat); eyeR.position.set(0.04, 0.73, 0.105);
     group.add(eyeL, eyeR);
 
-    // Gruppo Braccio Destro con Arma montata
     const armRGroup = new THREE.Group();
-    armRGroup.position.set(0.15, 0.52, 0); // Snodo della spalla
+    armRGroup.position.set(0.15, 0.52, 0);
     const armRMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.26), greenMat);
     armRMesh.position.set(0, -0.11, 0);
     armRGroup.add(armRMesh);
@@ -409,7 +426,6 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 12), skinMat);
     head.position.y = 1.05; head.castShadow = true; group.add(head);
 
-    // Gruppo Snodo Spalla Destra
     const armRGroup = new THREE.Group();
     armRGroup.position.set(0.21, 0.80, 0);
 
@@ -465,7 +481,6 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
     return { group, torsoMesh: torso, armRGroup };
   }
 
-  // DRAGO ROSSO PROPORZIONATO 2x2
   private createDragonMesh(): { group: THREE.Group; torsoMesh: THREE.Mesh; armRGroup?: THREE.Group } {
     const group = new THREE.Group();
     const redMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.4 });
@@ -474,20 +489,16 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
     const hornMat = new THREE.MeshStandardMaterial({ color: 0xfef08a, roughness: 0.3 });
     const yellowEyeMat = new THREE.MeshBasicMaterial({ color: 0xfde047 });
 
-    // Dimensioni base 2.5 per coprire l'area 2x2 (tileSize * 2 = 2.64)
     const baseSize = this.tileSize * 2 - 0.14;
     const base = new THREE.Mesh(new THREE.BoxGeometry(baseSize, 0.06, baseSize), darkRedMat);
     base.position.y = 0.03; base.receiveShadow = true; group.add(base);
 
-    // Busto Imponente
     const body = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.1, 2.0), redMat);
     body.position.y = 0.85; body.castShadow = true; group.add(body);
 
-    // Piastra Ventrale
     const belly = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.8, 1.8), goldBellyMat);
     belly.position.set(0, 0.72, 0.12); group.add(belly);
 
-    // Snodo Collo/Testa per l'attacco
     const neckGroup = new THREE.Group();
     neckGroup.position.set(0, 1.3, -0.7);
 
@@ -511,14 +522,12 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
 
     group.add(neckGroup);
 
-    // Spine Dorsali
     for (let s = 0; s < 5; s++) {
       const spike = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.32, 6), darkRedMat);
       spike.position.set(0, 1.45, -0.6 + s * 0.38); spike.rotation.x = 0.2;
       group.add(spike);
     }
 
-    // Ali Spiegate
     const wingL = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.06, 1.2), redMat);
     wingL.position.set(-1.75, 1.5, -0.1); wingL.rotation.set(0.2, 0.3, 0.45); wingL.castShadow = true;
     const wingR = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.06, 1.2), redMat);
@@ -673,7 +682,6 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
   }
 
   // === 5. INCANTESIMI & ANIMAZIONE BRACCIO + ARMA ===
-
   private startWeaponAttackAnimation(attacker: BoardUnit, defender: BoardUnit, isHit: boolean, d20Roll: number, totalAtk: number): void {
     const attPos = attacker.root.position;
     const defPos = defender.root.position;
@@ -860,7 +868,7 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
     if (this.selectedUnit && this.selectedUnit !== unit) this.deselectUnit();
     this.selectedUnit = unit;
 
-    // Posizionamento del segnale circolare di selezione sotto la pedina (senza alterare la mesh)
+    // Posizionamento del segnale circolare sul terreno senza variare il colore della pedina
     const isDragon = unit.occupiedTiles.length > 1;
     const ringRadius = isDragon ? 2.2 : 1.0;
     this.selectionRing.scale.set(ringRadius, ringRadius, 1);
@@ -1127,7 +1135,6 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
       this.movingUnit.root.position.z = THREE.MathUtils.lerp(startPos.z, currentStep.pos3D.z, Math.min(this.stepProgress, 1));
       this.movingUnit.root.position.y = Math.sin(Math.min(this.stepProgress, 1) * Math.PI) * 0.2;
 
-      // Aggiorna la posizione dell'anello di selezione se la pedina selezionata si sta muovendo
       if (this.selectedUnit === this.movingUnit) {
         this.selectionRing.position.set(this.movingUnit.root.position.x, 0.09, this.movingUnit.root.position.z);
       }
