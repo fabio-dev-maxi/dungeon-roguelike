@@ -43,6 +43,12 @@ export interface BoardUnit {
   isRagdoll: boolean;
 }
 
+interface FloatingText {
+  sprite: THREE.Sprite;
+  timer: number;
+  maxDuration: number;
+}
+
 @Component({
   selector: 'app-board-test',
   standalone: true,
@@ -76,6 +82,7 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
   private tilesMap = new THREE.Group();
   private highlightGroup = new THREE.Group();
   private selectionRing!: THREE.Mesh;
+  private floatingTexts: FloatingText[] = [];
 
   private selectedUnit: BoardUnit | null = null;
   private pendingAttack: { attacker: BoardUnit; defender: BoardUnit } | null = null;
@@ -114,7 +121,6 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
     this.renderer?.dispose();
   }
 
-  // CONTROLLI TELECAMERA PER MOBILE
   focusOnSelectedUnit(): void {
     if (!this.selectedUnit) return;
     const pos = this.selectedUnit.root.position;
@@ -160,8 +166,6 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
 
-    // 1 dito: disabilitato sui controlli (libero per Raycaster/selezione)
-    // 2 dita: Zoom (Pinch) e Traslazione (Pan)
     this.controls.touches = {
       ONE: undefined as any,
       TWO: THREE.TOUCH.DOLLY_PAN
@@ -681,7 +685,41 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
     this.statusText.set('🎲 LANCIO DEL d20 SULLA BOARD...');
   }
 
-  // === 5. INCANTESIMI & ANIMAZIONE BRACCIO + ARMA ===
+  // === 5. INCANTESIMI & DANNI FLUTTUANTI ===
+  private createDamageTextTexture(text: string, colorHex: string): THREE.CanvasTexture {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d')!;
+
+    ctx.font = 'bold 80px "Georgia", serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Contorno
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 14;
+    ctx.strokeText(text, 256, 128);
+
+    // Testo
+    ctx.fillStyle = colorHex;
+    ctx.fillText(text, 256, 128);
+
+    return new THREE.CanvasTexture(canvas);
+  }
+
+  private spawnDamageText(position: THREE.Vector3, text: string, colorHex: string): void {
+    const texture = this.createDamageTextTexture(text, colorHex);
+    const mat = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false });
+    const sprite = new THREE.Sprite(mat);
+
+    sprite.position.copy(position);
+    sprite.scale.set(2.4, 1.2, 1); // Mantiene il rapporto di forma 2:1 del canvas 512x256
+
+    this.scene.add(sprite);
+    this.floatingTexts.push({ sprite, timer: 0, maxDuration: 1.2 });
+  }
+
   private startWeaponAttackAnimation(attacker: BoardUnit, defender: BoardUnit, isHit: boolean, d20Roll: number, totalAtk: number): void {
     const attPos = attacker.root.position;
     const defPos = defender.root.position;
@@ -785,9 +823,15 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
   }
 
   private applyAttackDamage(attacker: BoardUnit, defender: BoardUnit, isHit: boolean, d20Roll: number, totalAtk: number): void {
+    const textPos = defender.root.position.clone();
+    textPos.y += 1.6; // Mostra il testo sopra la testa del nemico
+
     if (isHit) {
       const damage = Math.floor(Math.random() * (attacker.stats.dmgMax - attacker.stats.dmgMin + 1)) + attacker.stats.dmgMin;
       defender.stats.currentHp = Math.max(0, defender.stats.currentHp - damage);
+
+      // Spawna il numero dei danni in rosso brillante
+      this.spawnDamageText(textPos, `-${damage}`, '#ef4444');
 
       this.statusText.set(`🎲 Dado: ${d20Roll} (+${attacker.stats.atkBonus}) = ${totalAtk} vs CA ${defender.stats.ca} ➔ COLPITO! (${damage} Danni)`);
 
@@ -804,6 +848,8 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
         defender.body = ragdollBody;
       }
     } else {
+      // Spawna "MANCATO" in grigio
+      this.spawnDamageText(textPos, 'MANCATO', '#94a3b8');
       this.statusText.set(`🎲 Dado: ${d20Roll} (+${attacker.stats.atkBonus}) = ${totalAtk} vs CA ${defender.stats.ca} ➔ MANCATO!`);
     }
   }
@@ -868,7 +914,6 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
     if (this.selectedUnit && this.selectedUnit !== unit) this.deselectUnit();
     this.selectedUnit = unit;
 
-    // Posizionamento del segnale circolare sul terreno senza variare il colore della pedina
     const isDragon = unit.occupiedTiles.length > 1;
     const ringRadius = isDragon ? 2.2 : 1.0;
     this.selectionRing.scale.set(ringRadius, ringRadius, 1);
@@ -1008,7 +1053,7 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
       }
     }
 
-    // Animazione Attacco Braccio + Arma
+    // Animazione Attacco Braccio + Arma (Senza Esplosione)
     if (this.weaponAttackAnimState) {
       const st = this.weaponAttackAnimState;
 
@@ -1023,9 +1068,7 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
             st.phase = 'return';
             st.progress = 0;
 
-            const hitWorldPos = new THREE.Vector3();
-            st.armGroup.getWorldPosition(hitWorldPos);
-            this.triggerExplosion(hitWorldPos, st.isHit ? 0xfbcfe8 : 0x64748b);
+            // Applica il danno (che mostrerà il testo fluttuante sopra il mostro) SENZA esplosione!
             this.applyAttackDamage(st.attacker, st.defender, st.isHit, st.d20Roll, st.totalAtk);
           }
         } else if (st.phase === 'return') {
@@ -1042,7 +1085,7 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
       }
     }
 
-    // Volo Palla di Fuoco
+    // Volo Palla di Fuoco (Con Esplosione + Danni Fluttuanti)
     if (this.fireballAnimState) {
       const st = this.fireballAnimState;
       st.progress += delta * 0.8;
@@ -1109,6 +1152,21 @@ export class BoardTestComponent implements AfterViewInit, OnDestroy {
       if (exp.opacity <= 0) {
         this.scene.remove(exp.mesh);
         this.activeExplosion = null;
+      }
+    }
+
+    // Aggiornamento Testi Danni Fluttuanti (Floating Damage Text Animation)
+    for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
+      const ft = this.floatingTexts[i];
+      ft.timer += delta;
+      ft.sprite.position.y += delta * 1.1; // Sale verso l'alto
+      ft.sprite.material.opacity = Math.max(0, 1 - ft.timer / ft.maxDuration);
+
+      if (ft.timer >= ft.maxDuration) {
+        this.scene.remove(ft.sprite);
+        ft.sprite.material.map?.dispose();
+        ft.sprite.material.dispose();
+        this.floatingTexts.splice(i, 1);
       }
     }
 
