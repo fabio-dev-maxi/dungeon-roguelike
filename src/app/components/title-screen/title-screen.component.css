@@ -3,24 +3,23 @@
   width: 100vw;
   margin-left: calc(-50vw + 50%);
   margin-top: -18px;
-  /* Annulla il padding superiore di .app-shell */
-  margin-bottom: -48px;
-  /* Annulla il padding inferiore di .app-shell rimuovendo la fascia nera */
+  margin-bottom: -52px;
+  line-height: 1;
 }
 
 .title-wrap {
   position: relative;
   width: 100%;
-  min-height: calc(100vh - 80px);
+  min-height: calc(100vh - 70px);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 50px 20px;
+  padding: 50px 20px 30px;
   box-sizing: border-box;
 
-  /* Sfondo a tutto schermo */
+  /* Percorso relativo senza '/' iniziale per compatibilità con GitHub Pages */
   background-image:
     radial-gradient(circle at center, rgba(10, 7, 5, 0.25) 0%, rgba(5, 3, 2, 0.85) 90%),
     url('/images/bg-abyss.jpg');
@@ -74,7 +73,7 @@
 .title-wrap h1 {
   font-family: var(--font-display);
   text-transform: none;
-  font-size: clamp(3.2rem, 9vw, 5.5rem);
+  font-size: clamp(2.8rem, 8vw, 5.5rem);
   color: #ffffff;
   text-shadow: 0 0 30px rgba(212, 175, 55, 0.8), 0 4px 12px #000000;
   letter-spacing: .02em;
@@ -170,15 +169,25 @@
   filter: drop-shadow(0 0 6px var(--gold-glow));
 }
 
-/* === RESPONSIVE MOBILE === */
+/* === REGOLE SPECIFICHE MOBILE === */
 @media (max-width: 768px) {
   .title-wrap {
-    padding: 40px 16px;
-    background-position: 60% center;
+    padding: 30px 16px 20px;
+    /* Inquadra le scale e l'avventuriero alleggerendo la maschera scura */
+    background-position: 65% center;
+    background-image:
+      linear-gradient(180deg, rgba(10, 7, 5, 0.35) 0%, rgba(5, 3, 2, 0.82) 100%),
+      url('/images/bg-abyss_vertical.jpg');
   }
 
   .lore {
-    font-size: 1rem;
-    line-height: 1.6;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 24px;
+  }
+
+  .btn-descent {
+    padding: 14px 28px;
+    font-size: 0.95rem;
   }
 }
