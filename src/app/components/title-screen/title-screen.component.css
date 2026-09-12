@@ -1,12 +1,38 @@
-.title-wrap {
-  position: relative;
-  text-align: center;
-  padding: 40px 14px 34px;
-  max-width: 680px;
-  margin: 0 auto;
+:host {
+  display: block;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  margin-top: -18px;
+  /* Annulla il padding superiore di .app-shell */
+  margin-bottom: -48px;
+  /* Annulla il padding inferiore di .app-shell rimuovendo la fascia nera */
 }
 
-/* Medaglione Centrale Araldico */
+.title-wrap {
+  position: relative;
+  width: 100%;
+  min-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 50px 20px;
+  box-sizing: border-box;
+
+  /* Sfondo a tutto schermo */
+  background-image:
+    radial-gradient(circle at center, rgba(10, 7, 5, 0.25) 0%, rgba(5, 3, 2, 0.85) 90%),
+    url('/images/bg-abyss.jpg');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* === MEDAGLIONE E TITOLO === */
 .title-emblem {
   position: relative;
   display: inline-flex;
@@ -26,29 +52,31 @@
 }
 
 @keyframes haloPulse {
-  0% { transform: scale(0.9); opacity: 0.4; }
-  100% { transform: scale(1.15); opacity: 0.85; }
+  0% {
+    transform: scale(0.9);
+    opacity: 0.4;
+  }
+
+  100% {
+    transform: scale(1.15);
+    opacity: 0.85;
+  }
 }
 
 .title-sigil {
   --sigil-size: 84px;
-  background: radial-gradient(circle at 35% 30%, rgba(212, 175, 55, .3), transparent 65%), var(--stone-800);
+  background: radial-gradient(circle at 35% 30%, rgba(212, 175, 55, .3), transparent 65%), rgba(20, 14, 10, 0.85);
   border: 2px solid var(--gold);
   box-shadow: 0 0 24px var(--gold-glow), inset 0 0 16px rgba(0, 0, 0, .8);
   color: var(--gold-bright);
-  transition: transform .3s var(--ease-out);
-}
-
-.title-sigil:hover {
-  transform: scale(1.05) rotate(5deg);
 }
 
 .title-wrap h1 {
   font-family: var(--font-display);
   text-transform: none;
-  font-size: clamp(2.8rem, 8vw, 4.8rem);
-  color: var(--parchment);
-  text-shadow: 0 0 28px rgba(212, 175, 55, .5), 0 3px 0 #000;
+  font-size: clamp(3.2rem, 9vw, 5.5rem);
+  color: #ffffff;
+  text-shadow: 0 0 30px rgba(212, 175, 55, 0.8), 0 4px 12px #000000;
   letter-spacing: .02em;
   margin: 0 0 6px;
   line-height: 1.05;
@@ -56,28 +84,29 @@
 
 .title-sub {
   font-family: var(--font-heading);
-  color: var(--gold);
-  font-size: .95rem;
+  color: var(--gold-bright);
+  font-size: 1rem;
   letter-spacing: .28em;
   text-transform: uppercase;
   margin-bottom: 18px;
-  text-shadow: 0 0 10px var(--gold-glow);
+  text-shadow: 0 2px 8px #000000, 0 0 12px var(--gold-glow);
 }
 
-/* Divisore Gotico con Gemma */
+/* === DIVISORE ED EPITAFIO === */
 .gothic-divider {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
   margin: 0 auto 24px;
+  width: 100%;
   max-width: 320px;
 }
 
 .divider-line {
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
 }
 
 .divider-gem {
@@ -87,15 +116,17 @@
 }
 
 .lore {
-  max-width: 580px;
+  max-width: 640px;
   margin: 0 auto 34px;
   font-style: italic;
-  color: var(--parchment-dim);
-  line-height: 1.75;
-  font-size: 1.08rem;
+  color: #efe1c2;
+  line-height: 1.8;
+  font-size: 1.15rem;
   padding: 0 10px;
+  text-shadow: 0 2px 10px #000000, 0 0 20px rgba(0, 0, 0, 0.95);
 }
 
+/* === BOTTONI ED ELEMENTI DI AZIONE === */
 .action-wrap {
   display: flex;
   justify-content: center;
@@ -103,37 +134,51 @@
 }
 
 .btn-descent {
-  padding: 16px 36px;
-  font-size: 1.05rem;
+  padding: 16px 42px;
+  font-size: 1.1rem;
   letter-spacing: 0.12em;
-  border-color: var(--gold);
-  background: linear-gradient(180deg, #443118 0%, #22180d 100%);
-  box-shadow: 0 4px 18px rgba(0, 0, 0, .7), 0 0 20px rgba(212, 175, 55, .25);
+  border: 1px solid var(--gold);
+  background: linear-gradient(180deg, rgba(68, 49, 24, 0.9) 0%, rgba(34, 24, 13, 0.95) 100%);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 0 25px rgba(212, 175, 55, 0.35);
   border-radius: var(--radius-sm);
 }
 
 .btn-descent:hover {
-  box-shadow: 0 4px 22px rgba(0, 0, 0, .8), 0 0 30px var(--gold-glow);
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.9), 0 0 35px var(--gold-glow);
   transform: translateY(-2px);
 }
 
-/* Lapide del Record */
 .record-plaque {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   margin-top: 12px;
   padding: 6px 14px;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(10, 7, 5, 0.75);
   border: 1px solid var(--stone-line);
   border-radius: var(--radius-sm);
   font-family: var(--font-heading);
   font-size: 0.8rem;
   letter-spacing: 0.08em;
-  color: var(--gold-dim);
+  color: var(--gold-bright);
+  backdrop-filter: blur(4px);
 }
 
 .crown-icon {
   color: var(--gold);
   filter: drop-shadow(0 0 6px var(--gold-glow));
+}
+
+/* === RESPONSIVE MOBILE === */
+@media (max-width: 768px) {
+  .title-wrap {
+    padding: 40px 16px;
+    background-position: 60% center;
+  }
+
+  .lore {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
 }
